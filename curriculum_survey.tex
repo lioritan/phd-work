@@ -1,0 +1,121 @@
+\documentclass[letterpaper]{article}
+
+% AAAI-style 2-per-page format, without the annoying bits
+\setlength\topmargin{-0.25in} \setlength\oddsidemargin{-0.25in}
+\setlength\textheight{9.0in} \setlength\textwidth{7.0in}
+\setlength\columnsep{0.375in} \newlength\titlebox \setlength\titlebox{2.25in}
+\setlength\headheight{0pt}  \setlength\headsep{0pt}
+\flushbottom \twocolumn \sloppy
+
+\pdfpagewidth=8.5in
+\pdfpageheight=11in
+
+
+\usepackage{times} 
+\usepackage{helvet}  
+\usepackage{courier}  
+\usepackage{url}  
+\usepackage{graphicx} 
+
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+\usepackage{multirow}
+\usepackage{ctable}
+\usepackage{color}
+\usepackage{natbib}
+%\usepackage[style=authoryear]{biblatex}
+
+\raggedbottom %nicer enumerate
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Curriculum metrics survey}
+\begin{document}
+	\maketitle
+	\begin{abstract}
+		A summary of curriculum metrics and set-ups
+	\end{abstract}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Problem formulations} \label{sec:formulation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{defn}
+	A task/environment is defined as a MDP $<S,A,P,R,S_0,G>$,
+	Where $S$ is a set of states, $A$ is a set of actions, $P:SxAxS\rightarrow [0,1]$ is a transition function, 
+	$R:SxA\rightarrow \mathbb{R}$ is a reward function, $S_0:S\rightarrow [0,1]$ is a start-state distribution,
+	$G\subset S$ is an optional set of goal states.
+\end{defn}
+
+Usually tasks have a single start state and either a single goal state or no goal states at all.
+\textbf{Most} formulations for a set of tasks assume $S,A$ are the same between tasks, but $P$ and $R$ (transition dynamics and reward) can change.
+
+\begin{defn} \label{defn:curriculum}
+	Given a (possibly infinite) set of possible tasks $\mathcal{T}$, and an agent history $\mathcal{H}$, 
+	Choose a curriculum $D^{\mathcal{T}}: \mathcal{H}x\mathcal{T}\rightarrow [0,1]$ - a distribution of task probabilities given the history,
+	in order to maximize some performance metric $P$ Evaluated for given task $T$ after N training steps.
+	\[
+	\max_{D^{\mathcal{T}}} \sum_{T \sim \mathcal{T}_target} {P_T^N dT}
+	\]
+
+\end{defn}
+This is often defined as a POMDP, as student is considered to be a black-box agent, with only the trajectory and reward observable.
+There are no works (that I found) that define RL curricula with a control measure smaller than a full episode on a task.
+
+There are several main metrics for choosing the performance metric $P$ defined in definition \ref{defn:curriculum}.
+The common metrics are:
+\begin{itemize}
+	\item Asymptotic return - $P$ is the return for $T$ (sometimes normalized average if task have different reward scales)
+	\item Asymptotic success rate - $P$ is the percentage of tasks in $\mathcal{T}_target$ that the student succeeded in (reached goal state) - common for goal-reaching tasks.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Measuring task difficulty and curriculum} \label{sec:difficulty}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In \cite{Matiisen2020}, the task probability is based on the absolute value of the reward improvement rate, measured by the difference between the trained task reward $r_t$ and the trained task reward last measured for the same task $r_{t'}$.
+This method only works for a finite set of tasks. Tasks with high improvement or large performance decreases will be sampled more often.
+
+In \cite{Feng2020}, a curriculum is designed for a specific task (Sokoban), and task difficulty is measured by a domain-specific measurement, the number of boxes to be moved to goal locations. Difficulty is increased based on the reverse of \cite{Matiisen2020} - if the success rate on a given difficulty level has not changed for several iterations, difficulty should be increased. This is because measuring task feasibility in Sokoban is hard, and therefore improvement rate can be zero even in cases where the agent does generalize well.
+
+In \cite{Klink2020}, some task parameters are called a `context' (e.g. friction and goal location), and task probability for a given task is based on the student's value function estimate of the start state (including the context).
+Contexts are assumed to come from a Gaussian distribution and the target distribution is assumed to be \textbf{known}.
+The value function estimate is normalized by the context probability and by KL-divergence from the target distribution to discourage a large gap from the target environment. A KL-divergence constraint is also used to prevent large changes in the context distribution between updates.
+
+In \cite{Jiang2020}, a curriculum is learned in order to re-try previously solved tasks in a manner that would hopefully lead to generalization. Task probability is proportional to the (discounted) TD-error for the last sampled trajectory - this is calculated as $ \frac{1}{T} | \sum_{t=0}^{T} {G_{t:T}}|$, where $G_{t:T}$ is the $t$-step discounted return. Tasks with high TD-error supposedly have higher learning potential, and are therefore more likely to be re-tried. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Ensuring task variety} \label{sec:variety}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In \cite{Jiang2020}, a probability bonus is given proportional to the number of tasks seen since a given task was sampled, thus forcing the task to eventually be re-played.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Method summary} \label{sec:summary}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{table*}
+%\centering
+\caption{Comparison of approaches}
+\begin{tabular}{|l | l | l | l  | l| l|}
+	\hline
+	Paper & Difficulty measure & variety measure  & Controllable elements & Learned functions    \\ \hline	
+	\cite{Matiisen2020} & improvement rate & none & task selection & anything, Q function \\ \hline
+	\cite{Feng2020} & domain-specific & none & task parameters & Q function \\ \hline
+	\cite{Klink2020} & $V(s_0)$ & none & task parameters & policy (+critic for SAC) \\ \hline
+	\cite{Jiang2020} & improvement potential & uncertainty bonus & task selection & anything, policy \\ \hline
+	
+\end{tabular}
+\end{table*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
+\bibliographystyle{named}
+\bibliography{library}
+
+\end{document}
