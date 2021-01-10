@@ -5,7 +5,7 @@
 \setlength\textheight{9.0in} \setlength\textwidth{7.0in}
 \setlength\columnsep{0.375in} \newlength\titlebox \setlength\titlebox{2.25in}
 \setlength\headheight{0pt}  \setlength\headsep{0pt}
-\flushbottom \twocolumn \sloppy
+\flushbottom \sloppy
 
 \pdfpagewidth=8.5in
 \pdfpageheight=11in
@@ -37,12 +37,14 @@
 \begin{document}
 	\maketitle
 	\begin{abstract}
-		A summary of curriculum metrics and set-ups
+		Added most methods not focused on varied tasks
 	\end{abstract}
+
+\tableofcontents
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Problem formulations} \label{sec:formulation}
+\section{Problem formulations (last updated 10.1.21)} \label{sec:formulation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{defn}
 	A task/environment is defined as a MDP $<S,A,P,R,S_0,G>$,
@@ -75,7 +77,7 @@ The common metrics are:
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Measuring task difficulty and curriculum} \label{sec:difficulty}
+\section{Measuring task difficulty and curriculum (last updated 10.1.21)} \label{sec:difficulty}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In \cite{Matiisen2020}, the task probability is based on the absolute value of the reward improvement rate, measured by the difference between the trained task reward $r_t$ and the trained task reward last measured for the same task $r_{t'}$.
@@ -90,13 +92,13 @@ The value function estimate is normalized by the context probability and by KL-d
 In \cite{Jiang2020}, a curriculum is learned in order to re-try previously solved tasks in a manner that would hopefully lead to generalization. Task probability is proportional to the (discounted) TD-error for the last sampled trajectory - this is calculated as $ \frac{1}{T} | \sum_{t=0}^{T} {G_{t:T}}|$, where $G_{t:T}$ is the $t$-step discounted return. Tasks with high TD-error supposedly have higher learning potential, and are therefore more likely to be re-tried. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Ensuring task variety} \label{sec:variety}
+\section{Ensuring task variety (last updated 10.1.21)} \label{sec:variety}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In \cite{Jiang2020}, a probability bonus is given proportional to the number of tasks seen since a given task was sampled, thus forcing the task to eventually be re-played.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Method summary} \label{sec:summary}
+\section{Method summary (last updated 10.1.21)} \label{sec:summary}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{table*}
