@@ -91,11 +91,60 @@ The value function estimate is normalized by the context probability and by KL-d
 
 In \cite{Jiang2020}, a curriculum is learned in order to re-try previously solved tasks in a manner that would hopefully lead to generalization. Task probability is proportional to the (discounted) TD-error for the last sampled trajectory - this is calculated as $ \frac{1}{T} | \sum_{t=0}^{T} {G_{t:T}}|$, where $G_{t:T}$ is the $t$-step discounted return. Tasks with high TD-error supposedly have higher learning potential, and are therefore more likely to be re-tried. 
 
+In \cite{Portelas2019}, the authors define \textit{ALP-GMM}, a MAB (Multi-Armed Bandit) based teacher, that chooses the environment parameters based on absolute learning progress, the same thing as absolute improvement rate.
+Unlike \cite{Matiisen2020}, task parameters are continuous, so they are separated into regions to allow comparisons to previous tasks. The major innovation of \textit{ALP-GMM} is in how to create the separation. A Gaussian Mixture Model is learned to fit task parameters to the improvement rate, giving a better connection between parameter space and improvement rate (compared to random task selection or hard-coded regions which is a method called \textit{RIAC}).
+In \cite{Portelas2020}, a continuation of this approach with multiple students was proposed. In this classroom-like setting, the goal is to maximize task selection as well as student selection, meaning schedule must offer both a task and a student to give said task to, and optimizes over all students. \textit{ALP-GMM} is used for task selection, and a knowledge vector for each student is learned and used to select a task that will have good improvement rate for multiple similar students (similarity measured by knowledge vector).
+
+In \cite{Narvekar2019}, a curriculum for grid-world environments is learned with task-specific operators used to specify task simplification (sub-goals and parameter-based simplifications). The curriculum itself measured time to convergence, i.e. the number of episodes until the policy ceases to change. A low time was considered more desirable.
+In a continuation paper, \cite{Narvekar2020}, the authors improve on this by measuring convergence with actions instead of episodes, a policy is considered to converge if the number of steps required to reach a goal state is at most $\delta$ more than the optimal policy for a pre-defined $\delta$. The set of tasks is pre-defined, and both a task and a goal must be chosen.
+
+In \cite{Gutierrez2020}, tasks are chosen from a given set based on a combination of relevance and a difference from previously chosen tasks. The relevance criterion is measured using policy entropy. It is assumed that the optimal policy for each task is known, and a set of \textit{validation tasks} similar to the test tasks is given.
+A task is considered relevant if for at least one \textit{validation task}, we run the optimal policy in the task, measure mean entropy for the visited states, then train the policy $l$ steps and measure the same entropy, and a lower entropy is reached. Basically, a task is relevant if adapting it to a validation task makes it more deterministic.
+Interestingly, they show that choosing all subtasks did not necessarily give better meta-learning.
+
+In \cite{Justesen2018}, a task-specific difficulty measure is defined, and difficulty is increased on task success and decreased on task failure by a fixed amount.
+
+In \cite{Jain2017}, tasks are chosen from a given set, and several selection criteria are defined. Among these criteria are:
+\begin{itemize}
+	\item Reward maximizing task - run a trajectory on each task, pick task with highest reward.
+	\item Transfer maximizing task - before training, estimate task transferability (for example by calculating reward for task b after transferring policy trained on task a) for all task pairs as well as the target task. The curriculum is one that will maximize transferability from some initial task to the target task.
+	\item Active reward maximization - assumes each task comes with a feature vector, and use active-learning regression to estimate the transferability between tasks
+\end{itemize}
+These curriculum were shown to converge more quickly and to a higher reward than learning on the target task directly.
+
+In \cite{Reny2019}, a curriculum for experience re-play is learned. Unlike \cite{Jiang2020}, new tasks are created. This is done by choosing goal states (like HER) that will be difficult but achievable. In the paper, HER is considered a curriculum of choosing goal states estimated to be easy to achieve (via value function estimation), and this paper adds a term to try and pick goals that will have low Wasserstein (earth-mover) distance from the target goal distribution (which is assumed to be known). The choice of Wasserstein distance comes from a theorem assuming that close goals lead to close policies.
+
+In \cite{Dennis2020}, environment parameters are chosen (tasks) to try and create hard but solvable tasks. An adversarial task generator creates a task, the student `protagonist' trains on it, then another `antagonist' agent train on it. The task generator tries to change the environment parameters to maximize `antagonist' return and minimize `protagonist' return (both were trained to convergence on the last environment). This is shown to be a nash-equilibrium between `protagonist' and `antagonist'. The intent is that as student adapts, environment must become more difficult.
+
+In \cite{Racaniere2019}, goal states are chosen (tasks) to try and create hard but solvable tasks. 
+This is done by trying to balance a trade-off between three metrics: feasibility, validity, and coverage.
+Goal validity (likelihood of student reaching the goal) is measured by the Negative Log-Likelihood of generating a goal that's very close to a previously achieved goal.
+Goal feasibility is measured using a binary classifier that tries to predict agent success given a goal. The teacher knows this prediction and uses it when generating environments.
+If target goal distribution is known, this is also used to measure the teacher's loss.
+The paper evaluated the performance of measures in complex environments, and showed that all metrics were useful.
+
+In \cite{Al-Shedivat2017}, a curriculum is implicitly learned in a multi-player game by adversarial self-play. The paper itself assumes task distribution is given and is similar to existing meta-RL approach MAML (\cite{Finn2017a}).
+
+In \cite{Zhang2020}, a goal state is chosen from a given parameter space. An ensemble of value function estimators (Q was chosen in the paper) is learned, and is used to estimate the standard deviation for given goal and start state. Goals with high standard deviation (=low confidence) are assumed to be good as they should be complex but not impossible.
+
+In \cite{Florensa2017, Florensa2018}, a curriculum based on medium difficulty goal-based tasks is created, using an algorithm called \textit{GoalGAN}. This is done by trying to find a policy to maximize the probability of reaching the goal assuming some known test goal distribution (which was uniform in the paper). Do to so efficiently, goals are sampled from a smaller set of goals (called \textit{GOID}), with estimated success probability between some lower and upper bound. This is done using a GAN, with the discriminator separating goals in \textit{GOID} and goals not in \textit{GOID}, with policy evaluations used as labels (the return should be in the range). Does well compared to self-play and \textit{RIAC}.
+
+In \cite{Wohlke2020}, a curriculum is learned in order to maximize probability of reaching a known goal state given that the start state is selected uniformly. This is done by changing the distribution of start states to match the $L_2$ norm of the gradient for our performance measurement (probability of reaching the goal). This is estimated by picking a dimension and doing a zeroth-order approximation of the partial derivatives. This only works if the state space is euclidean, but that is quite common. This is quite similar to improvement rate for goal-based rewards.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Ensuring task variety (last updated 10.1.21)} \label{sec:variety}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In \cite{Jiang2020}, a probability bonus is given proportional to the number of tasks seen since a given task was sampled, thus forcing the task to eventually be re-played.
+
+In \cite{Gutierrez2020}, tasks are chosen from a given set based on a combination of relevance and a difference from previously chosen tasks. Difference is measured by the mean KL-divergence of the optimal policies for a pre-defined set of states. A task is different from chosen tasks if the KL-divergence of its optimal policy is sufficiently large.
+
+In \cite{Reny2019}, an optimization constraint for choosing a goal state is imposed, forcing tasks to come from different training trajectories.
+
+In \cite{Racaniere2019}, goal states are chosen (tasks) to try and create hard but solvable tasks. 
+This is done by trying to balance a trade-off between three metrics: feasibility, validity, and coverage.
+Goal coverage is measured by the entropy of the teacher over random goals.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Method summary (last updated 10.1.21)} \label{sec:summary}
@@ -104,16 +153,38 @@ In \cite{Jiang2020}, a probability bonus is given proportional to the number of 
 \begin{table*}
 %\centering
 \caption{Comparison of approaches}
-\begin{tabular}{|l | l | l | l  | l| l|}
+\begin{tabular}{|l | l | l | l  | l|}
 	\hline
-	Paper & Difficulty measure & variety measure  & Controllable elements & Learned functions    \\ \hline	
-	\cite{Matiisen2020} & improvement rate & none & task selection & anything, Q function \\ \hline
-	\cite{Feng2020} & domain-specific & none & task parameters & Q function \\ \hline
-	\cite{Klink2020} & $V(s_0)$ & none & task parameters & policy (+critic for SAC) \\ \hline
-	\cite{Jiang2020} & improvement potential & uncertainty bonus & task selection & anything, policy \\ \hline
+	Paper & Difficulty measure & variety measure  & Controllable elements     \\ \hline	
+	\cite{Matiisen2020} & improvement rate & none & task selection  \\ \hline
+	\cite{Feng2020} & domain-specific & none & task parameters  \\ \hline
+	\textit{SPRL} \cite{Klink2020} & $V(s_0)$ & none & task parameters \\ \hline
+	\cite{Jiang2020} & improvement potential (error) & uncertainty bonus & task selection  \\ \hline
+	\textit{ALP-GMM}, \cite{Portelas2019} &  improvement rate & none & task parameters \\ \hline
+	\cite{Portelas2020} & improvement rate & none & task parameters, student  \\ \hline
+	\cite{Narvekar2019} & fast policy convergence & none & task parameters \\ \hline
+	\cite{Narvekar2020} & fast policy convergence & none & task selection, goal state \\ \hline
+	\cite{Gutierrez2020} & validation tasks & Policy KL-divergence & task selection \\ \hline
+	\cite{Justesen2018} & $\pm$ difficulty, on success/fail & none & task parameter \\ \hline
+	\cite{Jain2017} & transfer improvement & none & task selection \\ \hline
+	\cite{Reny2019} & $V(s_0)-diff(g,g*)$ & Constrained goals & start state, goal state \\ \hline
+	\cite{Dennis2020} & adversarial reward & none & task parameters \\ \hline
+	\cite{Racaniere2019} & prob of task success & teacher entropy & goal state \\ \hline
+	\cite{Al-Shedivat2017} & self-play & none & opponent agent \\ \hline
+	\cite{Zhang2020} & ensemble confidence & none & goal state \\ \hline
+	\cite{Wohlke2020} & $\sim V'(s_0)$ & none & start state \\ \hline
+	\textit{GoalGAN} \cite{Florensa2018} & return in range & none (GAN helps) & goal state \\ \hline
 	
 \end{tabular}
 \end{table*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Short-term goals (last updated 10.1.21)} \label{sec:short-term}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Long-term goals (last updated 10.1.21)} \label{sec:long-term}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
