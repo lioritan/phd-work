@@ -37,7 +37,8 @@
 \begin{document}
 	\maketitle
 	\begin{abstract}
-		Added most methods not focused on varied tasks
+		%Added most methods not focused on varied tasks
+		Added methods focused on task variety and exploration
 	\end{abstract}
 
 \tableofcontents
@@ -77,7 +78,7 @@ The common metrics are:
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Measuring task difficulty and curriculum (last updated 10.1.21)} \label{sec:difficulty}
+\section{Measuring task difficulty and curriculum (last updated 11.1.21)} \label{sec:difficulty}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In \cite{Matiisen2020}, the task probability is based on the absolute value of the reward improvement rate, measured by the difference between the trained task reward $r_t$ and the trained task reward last measured for the same task $r_{t'}$.
@@ -129,11 +130,16 @@ In \cite{Zhang2020}, a goal state is chosen from a given parameter space. An ens
 
 In \cite{Florensa2017, Florensa2018}, a curriculum based on medium difficulty goal-based tasks is created, using an algorithm called \textit{GoalGAN}. This is done by trying to find a policy to maximize the probability of reaching the goal assuming some known test goal distribution (which was uniform in the paper). Do to so efficiently, goals are sampled from a smaller set of goals (called \textit{GOID}), with estimated success probability between some lower and upper bound. This is done using a GAN, with the discriminator separating goals in \textit{GOID} and goals not in \textit{GOID}, with policy evaluations used as labels (the return should be in the range). Does well compared to self-play and \textit{RIAC}.
 
+A similar approach can be seen in \cite{Srinivasan2019}, where this notion of medium difficulty goals was applied to discrete state and action spaces. In their paper, a curriculum of goals is created by trying to choose start states within certain distance to the goal, but since random walk can be an issue in discrete spaces, demonstrations are used to determine both the start state and the curriculum, as each task is created by following an expert $i$ steps, with $i$ decreasing as the agent improves.
+
 In \cite{Wohlke2020}, a curriculum is learned in order to maximize probability of reaching a known goal state given that the start state is selected uniformly. This is done by changing the distribution of start states to match the $L_2$ norm of the gradient for our performance measurement (probability of reaching the goal). This is estimated by picking a dimension and doing a zeroth-order approximation of the partial derivatives. This only works if the state space is euclidean, but that is quite common. This is quite similar to improvement rate for goal-based rewards.
 
+In \cite{Akkaya2019}, a method to randomize environment parameters was proposed. In each iteration, environment parameters are uniformly sampled from a $d$-dimensional box. To adapt the box size, a random parameter is sampled from one of the edges of its current range, and an episode is trained to measure reward. Once enough data for a parameter is gathered, we measure the average performance and if it is above or below a set threshold, we change the box size. 
+
+In \cite{Fang2020}, a combination of task feasibility and the closeness to the test environment are used to estimate progress. A good curriculum will give tasks closer to the test environment, but still feasible. Task generation is done with a GAN setup: A generator creates tasks (by choosing task parameters), and a discriminator tries to estimate `task progress' - the similarity of the trajectory for the generated task to a trajectory on the test task. To do this, rollouts on the test task are required. The generator loss is a combination of the discriminator error and the task's expected return.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Ensuring task variety (last updated 10.1.21)} \label{sec:variety}
+\section{Ensuring task variety (last updated 11.1.21)} \label{sec:variety}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In \cite{Jiang2020}, a probability bonus is given proportional to the number of tasks seen since a given task was sampled, thus forcing the task to eventually be re-played.
@@ -146,8 +152,23 @@ In \cite{Racaniere2019}, goal states are chosen (tasks) to try and create hard b
 This is done by trying to balance a trade-off between three metrics: feasibility, validity, and coverage.
 Goal coverage is measured by the entropy of the teacher over random goals.
 
+In \cite{Mehta2019}, environment `difficulty' is estimated by learning a discriminator that tries to separate rollouts from generated environments and rollouts in a given reference environment. The discriminator output is used as the teacher's reward for the generated environment, so environments that are very different from the reference environment are rewarded. 
+The teacher agent tries to choose environment parameters to maximize this reward, and therefore encourage variety. The teacher agent uses a method called \textit{SVPG}, Stein Variational Policy Gradient, a method similar to \textit{A2C} but with multiple policy parameters (called particles), and a trade-off between parameter reward and difference between them (measured with a kernel function).
+Expanding on the previous apporach, \cite{Raparthy2020} create a method with two teacher agents: one uses a discriminator to force environment parameters away from the reference environment like in \cite{Mehta2019}, and the other that chooses a task from the given distribution in an adversarial manner: the task selector uses the student policy and a stopping policy to act in the reference environment and find a goal state. The student must then reach that goal in the generated environment. To update the stopping policy, the adversary is rewarded for finding a goal in few actions that also requires many actions to reach, and is therefore hopefully hard but solvable. 
+In a continuation paper, \cite{Mehta2020}, a meta-RL algorithm is used to adapt the student policy to the generated environment, and the discriminator tries to predict whether the trajectory came from the policy before or after adaptation, thus encouraging tasks with large changes during adaptation. Notably this removes the need to have reference environments.
+
+
+In \cite{Gupta2018}, the environment parameters are not given directly to the trained student, but are used as latent variables to generate an environment. A discriminator is learned to try and predict the latent task that was used to generate a given trajectory, with high confidence prediction yielding high reward. Since a high variety between tasks leads to good prediction, this helps with variety.
+
+In \cite{Jabri2019}, a curriculum to learn an MDP without a reward is proposed. The teacher agent chooses environment parameters as latent variables, and gives state reward $r_z(s) = log q(s|z) - log q(s)$, the information gain of the latent variable. The teacher agent uses the sampled trajectories to improve this $q$, via discriminative clustering.
+
+In \cite{Kaddour2020}, tasks are characterized by a learned low-dimensional task embedding. This is done by learning an encoder on trajectories that tries to maximize likelihood of parameters and rewards given the observations. To pick a task, a point in the latent space is picked to maximize some utility.
+The utility used in the paper was picking maximal surprise (self-information) - a latent point with low likelihood according to the estimate task distribution.
+
+In \cite{Wang2019}, \textit{POET}, a genetic algorithm for varied task generation is proposed. A set of environments and a set of agents are maintained, and at each step, environment parameters are randomly changed (with a ranking based on euclidean distance of parameters from already existing environments), each agent is trained on each environment (using a single step of ES - exploration strategies), and if an environment is challenging (mean reward at least $x$ and at most $y$), it is kept.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Method summary (last updated 10.1.21)} \label{sec:summary}
+\section{Method summary (last updated 11.1.21)} \label{sec:summary}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{table*}
@@ -173,8 +194,17 @@ Goal coverage is measured by the entropy of the teacher over random goals.
 	\cite{Al-Shedivat2017} & self-play & none & opponent agent \\ \hline
 	\cite{Zhang2020} & ensemble confidence & none & goal state \\ \hline
 	\cite{Wohlke2020} & $\sim V'(s_0)$ & none & start state \\ \hline
+	\cite{Fang2020} & improvement rate \& test similarity & none (GAN helps) & task parameters \\ \hline
 	\textit{GoalGAN} \cite{Florensa2018} & return in range & none (GAN helps) & goal state \\ \hline
-	
+	\cite{Mehta2019} & none & learned trajectory difference & task parameters \\ \hline
+	\cite{Raparthy2020} & adversarial reward & learned trajectory difference & task parameters \\ \hline
+	\cite{Mehta2020} & none & learned adaptation difference & task parameters \\ \hline
+	\cite{Gupta2018} & none & learned state difference & task parameters \\ \hline
+	\cite{Jabri2019} & none & trajectory clustering & task parameters \\ \hline
+	\cite{Srinivasan2019} & demonstrated trajectories & none & start state \\ \hline
+	\cite{Akkaya2019} & return, fixed change size & none & task parameters \\ \hline
+	\cite{Kaddour2020} & none & surprise (low likelihood) & task parameters \\ \hline
+	\textit{POET} \cite{Wang2019} & return in range & distance in parameter space & task parameters \\ \hline
 \end{tabular}
 \end{table*}
 
