@@ -27,7 +27,18 @@
 \usepackage{ctable}
 \usepackage{color}
 \usepackage{natbib}
+\usepackage[normalem]{ulem}
 %\usepackage[style=authoryear]{biblatex}
+
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black, % color for table of contents
+	citecolor=black, % color for citations
+	urlcolor=blue, % color for hyperlinks
+	bookmarks=true,
+}
+\urlstyle{same}
 
 \raggedbottom %nicer enumerate
 \theoremstyle{definition}
@@ -38,47 +49,48 @@
 	\maketitle
 	\begin{abstract}
 		%Added most methods not focused on varied tasks
-		Added methods focused on task variety and exploration
+		%Added methods focused on task variety and exploration
+		Added short-term goals, blog, POMDP fomulation
 	\end{abstract}
 
 \tableofcontents
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Problem formulations (last updated 10.1.21)} \label{sec:formulation}
+\section{Problem formulations - 13.1.21} \label{sec:formulation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{defn}
-	A task/environment is defined as a MDP $<S,A,P,R,S_0,G>$,
-	Where $S$ is a set of states, $A$ is a set of actions, $P:SxAxS\rightarrow [0,1]$ is a transition function, 
-	$R:SxA\rightarrow \mathbb{R}$ is a reward function, $S_0:S\rightarrow [0,1]$ is a start-state distribution,
-	$G\subset S$ is an optional set of goal states.
+	A \textbf{task} (sometimes called an environment) is defined as a MDP $<S,A,P,R,\gamma>$,
+	Where $S$ is a set of states, $A$ is a set of actions, $P:S\times A\times S\rightarrow [0,1]$ is a transition function, 
+	$R:S\times A\rightarrow \mathbb{R}$ is a reward function, $\gamma\in[0,1]$ is a discount factor.
 \end{defn}
 
-Usually tasks have a single start state and either a single goal state or no goal states at all.
-\textbf{Most} formulations for a set of tasks assume $S,A$ are the same between tasks, but $P$ and $R$ (transition dynamics and reward) can change.
-
-\begin{defn} \label{defn:curriculum}
-	Given a (possibly infinite) set of possible tasks $\mathcal{T}$, and an agent history $\mathcal{H}$, 
-	Choose a curriculum $D^{\mathcal{T}}: \mathcal{H}x\mathcal{T}\rightarrow [0,1]$ - a distribution of task probabilities given the history,
-	in order to maximize some performance metric $P$ Evaluated for given task $T$ after N training steps.
-	\[
-	\max_{D^{\mathcal{T}}} \sum_{T \sim \mathcal{T}_target} {P_T^N dT}
-	\]
-
+\begin{defn} \label{defn:curriculum-pomdp}
+	Given a (possibly infinite) set of possible tasks $\mathcal{T}$, a \textbf{curriculum} is the policy rollout of the POMDP $<S,A,P,R,\Omega,O, \gamma_T>$, where:
+	\begin{itemize}
+		\item $S$ is the (unobserved) set of student states. In the case of neural networks, $s_t$ is the vector of network parameters.
+		\item $a_{t}^{\tau, k}\in A$ is the action of training the student on task $\tau\in \mathcal{T}$ for $k$ time steps.
+		\item $P$ is the (unobserved) transition function between states. This is determined by the student's learning algorithm.
+		\item $R:O\times A\times H \rightarrow \mathbb{R}$ is a reward function that evaluates student performance on a given task, possibly based on observation history $H$.
+		\item $o_t$ is the teacher's student observation on the task. This is usually a `black box' observation, meaning $o_t\neq s_t$. Common examples of $o_t$ are the student's task trajectory or the student's discounted return.
+	\end{itemize}	
+	%\[
+	%\max_{D^{\mathcal{T}}} \sum_{T \sim \mathcal{T}_target} {P_T^N dT}
+	%\]
 \end{defn}
-This is often defined as a POMDP, as student is considered to be a black-box agent, with only the trajectory and reward observable.
-There are no works (that I found) that define RL curricula with a control measure smaller than a full episode on a task.
 
-There are several main metrics for choosing the performance metric $P$ defined in definition \ref{defn:curriculum}.
-The common metrics are:
-\begin{itemize}
-	\item Asymptotic return - $P$ is the return for $T$ (sometimes normalized average if task have different reward scales)
-	\item Asymptotic success rate - $P$ is the percentage of tasks in $\mathcal{T}_target$ that the student succeeded in (reached goal state) - common for goal-reaching tasks.
-\end{itemize}
+A \textit{teacher algorithm} is defined by specifying the observation method and the teacher's reward. It is often assumed that tasks in $\mathcal{T}$ have the same internal state and action space, with dynamics and task-level rewards varying between tasks.
+Note that changing the start state or goal state for a task is also possible, since this is part of the specification of the task.
+%There are no works (that I found) that define RL curricula with a control measure smaller than a full episode on a task.
+
+\begin{defn} \label{defn:curriculum-pomdp-shaping}
+	A \textbf{reward-shaped curriculum} is a variant curriculum where the actions are different:
+	Given a set of tasks $\mathcal{T}=\{\tau|\tau=<S,A,P_i,R_i,\gamma>\}$, the action $a_{t}^{\tau', k}$ is the action of training the student on task $\tau'=<S,A,P_i,R',\gamma'>$ for $k$ time steps, where $\gamma'\leq \gamma$ and $R'(s,a)=R_i(s,a)+R'(s,a)$ for a given shaped reward $R'$.
+\end{defn}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Measuring task difficulty and curriculum (last updated 11.1.21)} \label{sec:difficulty}
+\section{Measuring task difficulty and curriculum - 11.1.21} \label{sec:difficulty}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In \cite{Matiisen2020}, the task probability is based on the absolute value of the reward improvement rate, measured by the difference between the trained task reward $r_t$ and the trained task reward last measured for the same task $r_{t'}$.
@@ -139,7 +151,7 @@ In \cite{Akkaya2019}, a method to randomize environment parameters was proposed.
 In \cite{Fang2020}, a combination of task feasibility and the closeness to the test environment are used to estimate progress. A good curriculum will give tasks closer to the test environment, but still feasible. Task generation is done with a GAN setup: A generator creates tasks (by choosing task parameters), and a discriminator tries to estimate `task progress' - the similarity of the trajectory for the generated task to a trajectory on the test task. To do this, rollouts on the test task are required. The generator loss is a combination of the discriminator error and the task's expected return.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Ensuring task variety (last updated 11.1.21)} \label{sec:variety}
+\section{Ensuring task variety - 11.1.21} \label{sec:variety}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In \cite{Jiang2020}, a probability bonus is given proportional to the number of tasks seen since a given task was sampled, thus forcing the task to eventually be re-played.
@@ -168,13 +180,16 @@ The utility used in the paper was picking maximal surprise (self-information) - 
 In \cite{Wang2019}, \textit{POET}, a genetic algorithm for varied task generation is proposed. A set of environments and a set of agents are maintained, and at each step, environment parameters are randomly changed (with a ranking based on euclidean distance of parameters from already existing environments), each agent is trained on each environment (using a single step of ES - exploration strategies), and if an environment is challenging (mean reward at least $x$ and at most $y$), it is kept.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Method summary (last updated 11.1.21)} \label{sec:summary}
+\section{Method summary - 11.1.21} \label{sec:summary}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+See table \ref{methods-table}
 
 \begin{table*}
 %\centering
 \caption{Comparison of approaches}
-\begin{tabular}{|l | l | l | l  | l|}
+\label{methods-table}
+\begin{tabular}{|l | l | l | l  | l|} 
 	\hline
 	Paper & Difficulty measure & variety measure  & Controllable elements     \\ \hline	
 	\cite{Matiisen2020} & improvement rate & none & task selection  \\ \hline
@@ -209,16 +224,43 @@ In \cite{Wang2019}, \textit{POET}, a genetic algorithm for varied task generatio
 \end{table*}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Short-term goals (last updated 10.1.21)} \label{sec:short-term}
+\section{Relevant posts - 13.1.21} \label{sec:blogs}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{enumerate}
+	\item 
+	\href{https://lilianweng.github.io/lil-log/2020/01/29/curriculum-for-reinforcement-learning.html}{Curriculum summary} - a very good summary of curriculum methods for deep RL, with references to many of the better known papers.
+	
+	\item \href{https://lilianweng.github.io/lil-log/2020/06/07/exploration-strategies-in-deep-reinforcement-learning.html}{Exploration in deep RL} - a blog post on recent methods in exploration.
+	
+	\item 
+	\href{https://bair.berkeley.edu/blog/2017/12/20/reverse-curriculum/}{Reverse curriculum generation} - a post by one of the authors of \textit{GoalGAN}, this is a short explanation of the notion of `goals of medium difficulty'.
+	
+	\item 
+	\href{https://lilianweng.github.io/lil-log/2019/06/23/meta-reinforcement-learning.html}{MetaRL summary} - an OK summary of metaRL, interesting mostly for the discussion of exploration and task generation.
+
+\end{enumerate}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Long-term goals (last updated 10.1.21)} \label{sec:long-term}
+\section{Short-term goals - 12.1.21} \label{sec:short-term}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{itemize}
+	\item \sout{Create a POMDP problem formulation (based on Teacher-Student paper) }
+	\item \sout{Add reward shaping to the problem formulation}
+	\item Make a `mixture of experts' method with multiple teachers, consider how to weigh them
+	\item Create a starting code-base with environments and simple method
+	\item Consider a game theory formulation of the problem
+	\item Try to see how in-task intervention would change the formulations
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Long-term goals - 10.1.21} \label{sec:long-term}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
-\bibliographystyle{named}
+\bibliographystyle{plain}
 \bibliography{library}
 
 \end{document}
