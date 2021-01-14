@@ -57,7 +57,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Problem formulations - 13.1.21} \label{sec:formulation}
+\section{Problem formulations - 14.1.21} \label{sec:formulation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{defn}
 	A \textbf{task} (sometimes called an environment) is defined as a MDP $<S,A,P,R,\gamma>$,
@@ -66,7 +66,7 @@
 \end{defn}
 
 \begin{defn} \label{defn:curriculum-pomdp}
-	Given a (possibly infinite) set of possible tasks $\mathcal{T}$, a \textbf{curriculum} is the policy rollout of the POMDP $<S,A,P,R,\Omega,O, \gamma_T>$, where:
+	Given a (possibly infinite) set of possible tasks $\mathcal{T}$, a \textbf{curriculum} is the policy rollout of the POMDP $<S,A,P,R,\Omega,O, \gamma>$, where:
 	\begin{itemize}
 		\item $S$ is the (unobserved) set of student states. In the case of neural networks, $s_t$ is the vector of network parameters.
 		\item $a_{t}^{\tau, k}\in A$ is the action of training the student on task $\tau\in \mathcal{T}$ for $k$ time steps.
@@ -79,14 +79,28 @@
 	%\]
 \end{defn}
 
-A \textit{teacher algorithm} is defined by specifying the observation method and the teacher's reward. It is often assumed that tasks in $\mathcal{T}$ have the same internal state and action space, with dynamics and task-level rewards varying between tasks.
+A \textit{teacher algorithm} is defined by specifying the observation method $o_t$ and the teacher's reward $R$. It is often assumed that tasks in $\mathcal{T}$ have the same internal state and action space, with dynamics and task-level rewards varying between tasks.
 Note that changing the start state or goal state for a task is also possible, since this is part of the specification of the task.
 %There are no works (that I found) that define RL curricula with a control measure smaller than a full episode on a task.
 
 \begin{defn} \label{defn:curriculum-pomdp-shaping}
 	A \textbf{reward-shaped curriculum} is a variant curriculum where the actions are different:
-	Given a set of tasks $\mathcal{T}=\{\tau|\tau=<S,A,P_i,R_i,\gamma>\}$, the action $a_{t}^{\tau', k}$ is the action of training the student on task $\tau'=<S,A,P_i,R',\gamma'>$ for $k$ time steps, where $\gamma'\leq \gamma$ and $R'(s,a)=R_i(s,a)+R'(s,a)$ for a given shaped reward $R'$.
+	Given a set of tasks $\mathcal{T}=\{\tau|\tau=<\hat{S},\hat{A},\hat{P_i},\hat{R_i},\hat{\gamma}>\}$, the action $a_{t}^{\tau', k}$ is the action of training the student on task $\tau'=<\hat{S},\hat{A},\hat{P_i},R',\gamma'>$ for $k$ time steps, where $\gamma'\leq \hat{\gamma}$ and $R'(s,a)=\hat{R_i(s,a)}+R'(s,a)$ for a given shaped reward $R'$.
 \end{defn}
+
+An alternative formulation to the curriculum problem is embedded in game theory:
+\begin{defn} \label{defn:curriculum-game-theory}
+	A \textbf{collaborative curriculum} is defined according to the following sequential, asymmetric two-player game:
+	\begin{itemize}
+	\item $H$ is the game's history, and is available to both players.
+	\item A teacher player's action is to provide a task $\tau$ and a time step budget $k$,
+	\item A student player's action is to train on the given task, as well as other tasks in $H$, for a total time of $k$.
+	\item The action-payoff function $v:\mathcal{T}\times \mathbb{N^+} \times H \rightarrow \mathbb{R}\times \mathbb{R}$ is the paired payoff for the teacher and student. 
+	\end{itemize}
+\end{defn}
+
+We note that this game may be a zero-sum game (the teacher and student have opposed payoffs) or more cooperative, depending on the payoff function.
+It is also important to note that if the student is required to perform the given task for all $k$ time steps, and the only goal is to maximize the teacher's payoff, we get a formulation that is equivalent to definition \ref{defn:curriculum-pomdp}, and in fact would be reasonable to solve using reinforcement learning.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -242,7 +256,7 @@ See table \ref{methods-table}
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Short-term goals - 12.1.21} \label{sec:short-term}
+\section{Short-term goals - 14.1.21} \label{sec:short-term}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{itemize}
@@ -250,7 +264,7 @@ See table \ref{methods-table}
 	\item \sout{Add reward shaping to the problem formulation}
 	\item Make a `mixture of experts' method with multiple teachers, consider how to weigh them
 	\item Create a starting code-base with environments and simple method
-	\item Consider a game theory formulation of the problem
+	\item \sout{Consider a game theory formulation of the problem}
 	\item Try to see how in-task intervention would change the formulations
 \end{itemize}
 
