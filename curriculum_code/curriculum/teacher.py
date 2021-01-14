@@ -1,17 +1,33 @@
+from abc import ABC, abstractmethod
+
+from stable_baselines3.common.base_class import BaseAlgorithm
+
+from curriculum.history import History
 
 
-class Teacher(object):
-    def __init__(self, teacher_parameters, environment_parameters, seed=None):
-        pass # TODO: environment_parameters -> generator? selector? how to API?
+class Teacher(ABC):
+    def __init__(self, teacher_parameters, environment_parameters, history_parameters=None, seed=None):
+        # is the parameter range/value set required here?
+        # TODO: environment_parameters -> generator? selector? how to API?
+        self.history = History(history_parameters)
+        self.seed = seed
 
-    def train_single_episode(self, student, max_episode_length):
-        # TODO: generate task (using history)
-        # TODO: give the student an episode? or k actions?
-        # TODO: observe reward/trajectory, put in history
-        # TODO: do parameter updates
+    def train_single_episode(self, student: BaseAlgorithm, max_episode_length: int):
+        training_task = self.generate_task()
+        trajectory, rewards = self.train_student_on_task(student, training_task, max_episode_length)
+        self.history.update(training_task, trajectory, rewards)
+        self.update_teacher_policy()
+
+    def train_student_on_task(self, student, training_task, max_episode_length):
+        action_limit = max_episode_length
+        # TODO: run student for action_limit steps. Can this be done with student.learn?
+        # TODO: return the trajectory and rewards
+        return [], []
+
+    @abstractmethod
+    def generate_task(self):
         pass
 
-    def test_single_episode(self, student, test_task, max_episode_length):
-        # TODO: give the student an episode
-        # TODO: observe reward
-        pass #TODO
+    @abstractmethod
+    def update_teacher_policy(self):
+        pass

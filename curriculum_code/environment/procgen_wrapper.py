@@ -2,7 +2,8 @@ import gym
 import procgen
 
 # TODO: add optional shaped reward, discount -> in the curriculum
-# TODO: customize the environments manually somehow
+# TODO: customize the environments manually somehow?
+# TODO: make a "get_train", "get_test"?
 
 
 class ProcgenEnv(gym.Env):
