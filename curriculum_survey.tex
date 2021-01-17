@@ -191,7 +191,7 @@ In \cite{Jabri2019}, a curriculum to learn an MDP without a reward is proposed. 
 In \cite{Kaddour2020}, tasks are characterized by a learned low-dimensional task embedding. This is done by learning an encoder on trajectories that tries to maximize likelihood of parameters and rewards given the observations. To pick a task, a point in the latent space is picked to maximize some utility.
 The utility used in the paper was picking maximal surprise (self-information) - a latent point with low likelihood according to the estimate task distribution.
 
-In \cite{Wang2019}, \textit{POET}, a genetic algorithm for varied task generation is proposed. A set of environments and a set of agents are maintained, and at each step, environment parameters are randomly changed (with a ranking based on euclidean distance of parameters from already existing environments), each agent is trained on each environment (using a single step of ES - exploration strategies), and if an environment is challenging (mean reward at least $x$ and at most $y$), it is kept.
+In \cite{Wang2019}, \textit{POET}, a genetic algorithm for varied task generation is proposed. A set of environments and a set of agents are maintained, and at each step, environment parameters are randomly changed (with a ranking based on euclidean distance of parameters from already existing environments), each agent is trained on each environment (using a single step of ES - evolution strategies), and if an environment is challenging (mean reward at least $x$ and at most $y$), it is kept.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Method summary - 11.1.21} \label{sec:summary}
