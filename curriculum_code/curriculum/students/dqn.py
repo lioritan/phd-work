@@ -55,7 +55,7 @@ class DQN(Student):
             self.exploration_initial_eps, self.exploration_final_eps, self.exploration_fraction
         )
         self.exploration_rate = exploration_initial_eps
-        self._explore_annealing = 0
+        self._explore_annealing = 1
 
         self.learning_rate = learning_rate
         self.lr_schedule = get_schedule_fn(self.learning_rate)
@@ -117,7 +117,7 @@ class DQN(Student):
         if self.num_timesteps % self.target_update_interval == 0:
             polyak_update(self.q_net.parameters(), self.q_net_target.parameters(), self.tau)
 
-        self._explore_annealing = min(1, self._explore_annealing + 0.01)  # custom exploration annealing
+        self._explore_annealing = max(0, self._explore_annealing - 0.001)  # custom exploration annealing
         self.exploration_rate = self.exploration_schedule(self._explore_annealing)
         logger.record("rollout/exploration rate", self.exploration_rate)
 
