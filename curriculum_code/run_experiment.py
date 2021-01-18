@@ -1,11 +1,13 @@
 # TODO: parse teacher params, parse env params, run & evaluate
 # consider splitting some of the code here
 import gym
+import procgen
+from stable_baselines3 import PPO, A2C, DQN
 from stable_baselines3.common.utils import constant_fn
 import stable_baselines3.dqn as dqn
 
-from curriculum.students.dqn import DQN
 from curriculum.teacher import Teacher
+from curriculum.teachers.random_env_teacher import RandTeacher
 
 
 class SanTeacher(Teacher):
@@ -16,17 +18,17 @@ class SanTeacher(Teacher):
     def generate_task(self):
         return gym.make('CartPole-v1')
 
-
 def check_sanity():
-    #student = PPO(policy='MlpPolicy', env="CartPole-v1", batch_size=1)
-    env = gym.make("CartPole-v1")
-    policy = dqn.MlpPolicy(observation_space=env.observation_space, action_space=env.action_space,
-                           lr_schedule=constant_fn(0.1))
-    policy = policy.to("cuda")
-    student = DQN(policy, env, learning_rate=0.1, learning_starts=10, gradient_steps=1, tau=0.8)
+    env_id = "CartPole-v1"
+    student = PPO(policy='MlpPolicy', env=env_id, batch_size=100, verbose=0, n_steps=200)
+
+    #student = A2C(policy='MlpPolicy', env=env_id, verbose=1, n_steps=200)
+
+    #student = DQN(policy='MlpPolicy', env=env_id, verbose=0, learning_starts=0, buffer_size=10000)
+    env = gym.make(env_id)
 
     teacher = SanTeacher(None, None)
     for i in range(101):
-        teacher.train_single_episode(student, 200)
+        teacher.train_k_actions(student, 200)
 
 check_sanity()
