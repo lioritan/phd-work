@@ -11,7 +11,7 @@ class Student(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _handle_done_signal(self, obs):
+    def _handle_done_signal(self):
         pass
 
     @abc.abstractmethod
@@ -39,5 +39,5 @@ class Student(abc.ABC):
             self._record_action(old_obs, action, reward, obs, done)
 
             if done:
-                self._handle_done_signal(obs)
+                self._handle_done_signal()
         self._after_episode()

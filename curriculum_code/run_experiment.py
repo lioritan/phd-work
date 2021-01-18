@@ -3,8 +3,10 @@
 import gym
 from stable_baselines3.common.utils import constant_fn
 import stable_baselines3.dqn as dqn
+from stable_baselines3.common.policies import ActorCriticPolicy
 
 from curriculum.students.dqn import DQN
+from curriculum.students.vpg import VPG
 from curriculum.teacher import Teacher
 
 
@@ -29,4 +31,15 @@ def check_sanity():
     for i in range(101):
         teacher.train_single_episode(student, 200)
 
-check_sanity()
+def check_sanity2():
+    env = gym.make("CartPole-v1")
+    policy = ActorCriticPolicy(observation_space=env.observation_space, action_space=env.action_space,
+                           lr_schedule=constant_fn(0.05))
+    policy = policy.to("cuda")
+    student = VPG(policy, env, learning_rate=0.05, iters_per_episode=10)
+
+    teacher = SanTeacher(None, None)
+    for i in range(301):
+        teacher.train_single_episode(student, 200)
+
+check_sanity2()

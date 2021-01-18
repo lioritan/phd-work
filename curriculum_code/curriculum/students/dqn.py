@@ -1,5 +1,4 @@
-from timeit import time
-from typing import Optional, Tuple, Type, Dict, Any, Union, List, Callable
+from typing import Union, List, Callable
 
 import numpy as np
 import torch as th
@@ -11,7 +10,6 @@ from stable_baselines3.common.utils import is_vectorized_observation, polyak_upd
 from torch.nn import functional as th_funcs
 
 from curriculum.student import Student
-
 # Based on the implementation from https://github.com/DLR-RM/stable-baselines3
 from utilities.replay_buffer import ReplayBuffer
 
@@ -35,10 +33,8 @@ class DQN(Student):
                  exploration_final_eps: float = 0.05,
                  buffer_size: int = 1000000,
                  ):
-        pass
         self.observation_space = env.observation_space
         self.action_space = env.action_space
-        self.num_timesteps = 0
         self.target_update_interval = target_update_interval
         self.tau = tau
         self.gamma = gamma
@@ -72,6 +68,7 @@ class DQN(Student):
         self.q_net_target = self.policy.q_net_target
 
         # For logging
+        self.num_timesteps = 0
         self._n_updates = 0
         self._episode_num = 0
         self.episode_rewards = []
@@ -96,7 +93,7 @@ class DQN(Student):
         if self.num_timesteps > self.learning_starts:  # minimal time to put some data in the buffer
             self.__train(batch_size=self.batch_size, gradient_steps=self.gradient_steps)
 
-    def _handle_done_signal(self, obs):
+    def _handle_done_signal(self):
         self._episode_num += 1
         self.episode_rewards.append(self.episode_reward)
         # Log training infos
@@ -117,7 +114,7 @@ class DQN(Student):
         if self.num_timesteps % self.target_update_interval == 0:
             polyak_update(self.q_net.parameters(), self.q_net_target.parameters(), self.tau)
 
-        self._explore_annealing = max(0, self._explore_annealing - 0.001)  # custom exploration annealing
+        self._explore_annealing = max(0, self._explore_annealing - 0.001)  # FIXME: custom exploration annealing
         self.exploration_rate = self.exploration_schedule(self._explore_annealing)
         logger.record("rollout/exploration rate", self.exploration_rate)
 
@@ -187,8 +184,6 @@ class DQN(Student):
         mean_reward = np.mean(self.episode_rewards)
         logger.record("mean_reward", mean_reward, exclude="tensorboard")
         logger.record("time/total timesteps", self.num_timesteps, exclude="tensorboard")
-        # if self.use_sde:
-        #     logger.record("train/std", (self.actor.get_std()).mean().item())
 
         # Pass the number of timesteps for tensorboard
         logger.dump(step=self.num_timesteps)
