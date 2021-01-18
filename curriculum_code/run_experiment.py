@@ -9,13 +9,10 @@ from stable_baselines3.common.utils import constant_fn
 import stable_baselines3.dqn as dqn
 
 from curriculum.teacher import Teacher
+from curriculum.teachers.learning_rate_teacher import LearningRateTeacher
 from curriculum.teachers.random_teacher import RandomTeacher
 from environment.environment_wrapper import EnvironmentWrapper
-
-
-class MyEnvWrapper(EnvironmentWrapper):
-    def create_env(self, parameter_values: Dict[str, Any]):
-        return gym.make("CartPole-v1")
+from environment.simple_envs.parametric_cartpole import CartpoleWrapper
 
 
 def check_sanity():
@@ -26,7 +23,10 @@ def check_sanity():
 
     #student = DQN(policy='MlpPolicy', env=env_id, verbose=0, learning_starts=0, buffer_size=10000)
 
-    teacher = RandomTeacher(None, MyEnvWrapper(env_id, {}))
+    #teacher = RandomTeacher(None, CartpoleWrapper())
+
+    teacher = LearningRateTeacher({"alpha": 0.9, "epsilon": 0.1}, CartpoleWrapper())
+
     for i in range(101):
         teacher.train_k_actions(student, 200)
 

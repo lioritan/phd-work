@@ -22,8 +22,8 @@ class LearningRateTeacher(Teacher):
                 sampled_value = self.env_wrapper.parameters[param_name].sample()  # TODO: seed
                 chosen_params[param_name] = sampled_value
         else:
-            task_rates = map(abs, self.task_rate.values())
-            best_rate_ind = np.argmax(task_rates)[0]
+            task_rates = list(map(abs, self.task_rate.values()))
+            best_rate_ind = np.argmax(task_rates)
             chosen_params = self.task_mapping[best_rate_ind].copy()
 
         new_env = self.env_wrapper.create_env(chosen_params)

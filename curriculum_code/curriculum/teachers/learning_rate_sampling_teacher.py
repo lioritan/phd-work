@@ -6,7 +6,7 @@ from curriculum.teacher import Teacher
 from typing import Tuple, Dict, Any
 
 
-class LearningRateTeacher(Teacher):
+class LearningRateSamplingTeacher(Teacher):
     def __init__(self, teacher_parameters, environment_parameters):
         super().__init__(teacher_parameters, environment_parameters)
         self.alpha = teacher_parameters["alpha"]

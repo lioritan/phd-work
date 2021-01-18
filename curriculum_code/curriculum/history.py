@@ -6,6 +6,9 @@ class History(object):
         self.history = []
         # TODO: also have option for bounded length
 
+    def __getitem__(self, key):
+        return self.history.__getitem__(key)
+
     def update(self, task, trajectory, rewards, dones):
         reward = self.calculate_reward(dones, rewards)  # TODO: discount
         self.history.append((task, reward))
