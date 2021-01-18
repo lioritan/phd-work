@@ -39,10 +39,9 @@ class StudentTrackingCallback(BaseCallback):
 
 
 class Teacher(ABC):
-    def __init__(self, teacher_parameters, environment_parameters, history_parameters=None, seed=None):
-        # is the parameter range/value set required here?
-        # TODO: environment_parameters -> generator? selector? how to API?
+    def __init__(self, teacher_parameters, environment_wrapper, history_parameters=None, seed=None):
         self.history = History(history_parameters)
+        self.env_wrapper = environment_wrapper
         self.seed = seed
 
     def train_k_actions(self, student: BaseAlgorithm, action_limit: int):
@@ -55,7 +54,6 @@ class Teacher(ABC):
         student.set_env(training_task)
         data_callback = StudentTrackingCallback(action_limit, training_task.observation_space, training_task.action_space)
         student.learn(action_limit, callback=data_callback)
-        #print(data_callback.wtf_count, data_callback.ind)
 
         # return the trajectory and rewards
         return (data_callback.obs, data_callback.action), data_callback.reward, data_callback.done
