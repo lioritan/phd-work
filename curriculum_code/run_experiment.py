@@ -15,13 +15,18 @@ from curriculum.teachers.random_teacher import RandomTeacher
 from environment.environment_wrapper import EnvironmentWrapper
 from environment.parametric_walker_env.bodies.BodyTypesEnum import BodyTypesEnum
 from environment.parametric_walker_env.parametric_continuous_flat_parkour import ParametricContinuousWalker
+from environment.parametric_walker_env.parametric_walker_wrapper import get_classic_walker
 from environment.simple_envs.parametric_cartpole import CartpoleWrapper
 
 
 def learn_parameteric():
-    env = ParametricContinuousWalker(0, "classic_bipedal")
-    env.set_environment(gap_pos=3, obstacle_spacing=6, gap_size=10, climbing_surface_size=0)
-    env.reset()
+    env = get_classic_walker().create_env({
+        "climbing_surface_size": 0,
+        "gap_size": 10,
+        "gap_pos": 3,
+        "obstacle_spacing": 6,
+        "motors_torque": 80
+    })
     student = PPO(policy='MlpPolicy', env=env, verbose=0, n_steps=1024)
     student.learn(20000)
     s = env.reset()
