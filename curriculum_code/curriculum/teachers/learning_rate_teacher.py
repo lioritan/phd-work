@@ -6,6 +6,7 @@ from curriculum.teacher import Teacher
 from typing import Tuple, Dict, Any
 
 
+# Teacher-Student Curriculum Learning algorithm 1
 class LearningRateTeacher(Teacher):
     def __init__(self, teacher_parameters, environment_parameters):
         super().__init__(teacher_parameters, environment_parameters)
