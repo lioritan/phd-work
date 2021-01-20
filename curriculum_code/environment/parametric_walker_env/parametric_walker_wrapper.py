@@ -35,6 +35,7 @@ class WalkerWrapper(EnvironmentWrapper):
         env.reset()
         return env
 
+# TODO: torques must be integer!
 
 def get_classic_walker():
     return WalkerWrapper(walker_type="classic_bipedal", walker_params={
@@ -44,44 +45,44 @@ def get_classic_walker():
 
 def get_small_walker():
     return WalkerWrapper(walker_type="small_bipedal", walker_params={
-        "motors_torque": ContinuousParameter(1, 160)
+        #"motors_torque": ContinuousParameter(1, 160)
     })
 
 
 def get_human_walker():
     return WalkerWrapper(walker_type="human", walker_params={
-        "motors_torque": ContinuousParameter(1, 200)
+        #"motors_torque": ContinuousParameter(1, 200)
     })
 
 
 def get_monkey_walker():
     return WalkerWrapper(walker_type="profile_chimpanzee", walker_params={
-        "motors_torque": ContinuousParameter(1, 200)
+        #"motors_torque": ContinuousParameter(1, 200)
     })
 
 
 def get_quadro_walker():
     return WalkerWrapper(walker_type="big_quadru", walker_params={
-        "motors_torque": ContinuousParameter(1, 500)
+        #"motors_torque": ContinuousParameter(1, 500)
     })
 
 
 def get_spider_walker():
     return WalkerWrapper(walker_type="spider", walker_params={
-        "motors_torque": ContinuousParameter(1, 200),
+        #"motors_torque": ContinuousParameter(1, 200),
         "nb_pairs_of_legs": CategoricalParameter(list(range(2, 9)))
     })
 
 
 def get_millipede_walker():
     return WalkerWrapper(walker_type="millipede", walker_params={
-        "motors_torque": ContinuousParameter(1, 500),
+        #"motors_torque": ContinuousParameter(1, 500),
         "nb_of_bodies": CategoricalParameter(list(range(2, 9)))
     })
 
 
 def get_wheel_walker():
     return WalkerWrapper(walker_type="wheel", walker_params={
-        "motors_torque": ContinuousParameter(100, 1000),
+        #"motors_torque": ContinuousParameter(100, 1000),
         "body_scale": ContinuousParameter(0.1, 1.5)
     })

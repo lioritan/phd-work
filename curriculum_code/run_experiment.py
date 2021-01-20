@@ -9,6 +9,7 @@ from stable_baselines3.common.utils import constant_fn
 import stable_baselines3.dqn as dqn
 
 from curriculum.teacher import Teacher
+from curriculum.teachers.adr_teacher import AdrTeacher
 from curriculum.teachers.learning_rate_sampling_teacher import LearningRateSamplingTeacher
 from curriculum.teachers.learning_rate_teacher import LearningRateTeacher
 from curriculum.teachers.random_teacher import RandomTeacher
@@ -46,6 +47,7 @@ def eval_run(student, env):
             return
     print(r)
 
+
 def check_sanity():
     env_id = "CartPole-v1"
     student = PPO(policy='MlpPolicy', env=env_id, batch_size=100, verbose=0, n_steps=200)
@@ -70,11 +72,14 @@ def check_continuous():
         "gap_size": 10,
         "gap_pos": 3,
         "obstacle_spacing": 6,
-        "motors_torque": 80
+        # "motors_torque": 80
     })
     student = PPO(policy='MlpPolicy', env=env, verbose=0, n_steps=200)
 
-    teacher = RiacTeacher({"max_region_size": 30}, get_classic_walker())
+    # teacher = RiacTeacher({"max_region_size": 30}, get_classic_walker())
+
+    teacher = AdrTeacher({"reward_thr": 0, "initial_task": [0, 10, 3, 6]}, get_classic_walker())
+
     for i in range(300):
         teacher.train_k_actions(student, 400)
 
@@ -84,4 +89,4 @@ def check_continuous():
 # check_sanity()
 check_continuous()
 
-#earn_parameteric()
+# earn_parameteric()
