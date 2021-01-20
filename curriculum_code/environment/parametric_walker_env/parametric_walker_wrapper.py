@@ -38,7 +38,7 @@ class WalkerWrapper(EnvironmentWrapper):
 
 def get_classic_walker():
     return WalkerWrapper(walker_type="classic_bipedal", walker_params={
-        "motors_torque": ContinuousParameter(1, 160)
+        #"motors_torque": ContinuousParameter(1, 160)
     })
 
 

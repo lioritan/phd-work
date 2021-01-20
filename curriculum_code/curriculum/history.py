@@ -10,7 +10,7 @@ class History(object):
         return self.history.__getitem__(key)
 
     def update(self, task, trajectory, rewards, dones):
-        reward = self.calculate_reward(dones, rewards)  # TODO: discount
+        reward = self.calculate_reward(dones, rewards)  # not discounted!
         self.history.append((task, reward))
 
     def calculate_reward(self, dones, rewards):

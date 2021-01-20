@@ -12,6 +12,7 @@ from curriculum.teacher import Teacher
 from curriculum.teachers.learning_rate_sampling_teacher import LearningRateSamplingTeacher
 from curriculum.teachers.learning_rate_teacher import LearningRateTeacher
 from curriculum.teachers.random_teacher import RandomTeacher
+from curriculum.teachers.riac_teacher import RiacTeacher
 from environment.environment_wrapper import EnvironmentWrapper
 from environment.parametric_walker_env.bodies.BodyTypesEnum import BodyTypesEnum
 from environment.parametric_walker_env.parametric_continuous_flat_parkour import ParametricContinuousWalker
@@ -29,6 +30,11 @@ def learn_parameteric():
     })
     student = PPO(policy='MlpPolicy', env=env, verbose=0, n_steps=1024)
     student.learn(20000)
+
+    eval_run(student, env)
+
+
+def eval_run(student, env):
     s = env.reset()
 
     for i in range(200):
@@ -39,7 +45,6 @@ def learn_parameteric():
             print(r)
             return
     print(r)
-
 
 def check_sanity():
     env_id = "CartPole-v1"
@@ -59,6 +64,24 @@ def check_sanity():
         teacher.train_k_actions(student, 200)
 
 
-# check_sanity()
+def check_continuous():
+    env = get_classic_walker().create_env({
+        "climbing_surface_size": 0,
+        "gap_size": 10,
+        "gap_pos": 3,
+        "obstacle_spacing": 6,
+        "motors_torque": 80
+    })
+    student = PPO(policy='MlpPolicy', env=env, verbose=0, n_steps=200)
 
-learn_parameteric()
+    teacher = RiacTeacher({"max_region_size": 30}, get_classic_walker())
+    for i in range(300):
+        teacher.train_k_actions(student, 400)
+
+    eval_run(student, env)
+
+
+# check_sanity()
+check_continuous()
+
+#earn_parameteric()
