@@ -8,6 +8,7 @@ from stable_baselines3 import PPO, A2C, DQN, TD3
 from stable_baselines3.common.utils import constant_fn
 import stable_baselines3.dqn as dqn
 
+from curriculum.eval.history_metrics import plot_reward_graph, plot_diversity_graph, plot_tsne_task_distribution
 from curriculum.teacher import Teacher
 from curriculum.teachers.adr_teacher import AdrTeacher
 from curriculum.teachers.learning_rate_sampling_teacher import LearningRateSamplingTeacher
@@ -56,14 +57,17 @@ def check_sanity():
 
     # student = DQN(policy='MlpPolicy', env=env_id, verbose=0, learning_starts=0, buffer_size=10000)
 
-    # teacher = RandomTeacher(None, CartpoleWrapper())
+    #teacher = RandomTeacher(None, CartpoleWrapper())
 
-    # teacher = LearningRateTeacher({"alpha": 0.9, "epsilon": 0.1}, CartpoleWrapper())
+    teacher = LearningRateTeacher({"alpha": 0.9, "epsilon": 0.1}, CartpoleWrapper())
 
-    teacher = LearningRateSamplingTeacher({"k": 5}, CartpoleWrapper())
+    #teacher = LearningRateSamplingTeacher({"k": 5}, CartpoleWrapper())
 
-    for i in range(300):
+    for i in range(200):
         teacher.train_k_actions(student, 200)
+    #plot_reward_graph(teacher)
+    #plot_diversity_graph(teacher)
+    #plot_tsne_task_distribution(teacher)
 
 
 def check_continuous():
@@ -76,17 +80,20 @@ def check_continuous():
     })
     student = PPO(policy='MlpPolicy', env=env, verbose=0, n_steps=200)
 
-    # teacher = RiacTeacher({"max_region_size": 30}, get_classic_walker())
+    teacher = RiacTeacher({"max_region_size": 30}, get_classic_walker())
 
-    teacher = AdrTeacher({"reward_thr": 0, "initial_task": [0, 10, 3, 6]}, get_classic_walker())
+    #teacher = AdrTeacher({"reward_thr": 0, "initial_task": [0, 10, 3, 6]}, get_classic_walker())
 
-    for i in range(300):
+    for i in range(100):
         teacher.train_k_actions(student, 400)
 
+    plot_reward_graph(teacher)
+    plot_diversity_graph(teacher)
+    plot_tsne_task_distribution(teacher)
     eval_run(student, env)
 
 
-# check_sanity()
+#check_sanity()
 check_continuous()
 
-# earn_parameteric()
+# l()
