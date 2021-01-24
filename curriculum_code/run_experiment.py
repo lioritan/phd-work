@@ -11,6 +11,8 @@ import stable_baselines3.dqn as dqn
 from curriculum.eval.history_metrics import plot_reward_graph, plot_diversity_graph, plot_tsne_task_distribution
 from curriculum.teacher import Teacher
 from curriculum.teachers.adr_teacher import AdrTeacher
+from curriculum.teachers.again_teacher import AgainTeacher
+from curriculum.teachers.alp_gmm_teacher import AlpGmmTeacher
 from curriculum.teachers.learning_rate_sampling_teacher import LearningRateSamplingTeacher
 from curriculum.teachers.learning_rate_teacher import LearningRateTeacher
 from curriculum.teachers.random_teacher import RandomTeacher
@@ -45,7 +47,9 @@ def eval_run(student, env):
         s, r, d, _ = env.step(a)
         if d == 1:
             print(r)
+            env.close()
             return
+    env.close()
     print(r)
 
 
@@ -80,9 +84,13 @@ def check_continuous():
     })
     student = PPO(policy='MlpPolicy', env=env, verbose=0, n_steps=200)
 
-    teacher = RiacTeacher({"max_region_size": 30}, get_classic_walker())
+    #teacher = RiacTeacher({"max_region_size": 30}, get_classic_walker())
 
     #teacher = AdrTeacher({"reward_thr": 0, "initial_task": [0, 10, 3, 6]}, get_classic_walker())
+
+    #teacher = AlpGmmTeacher({"gmm_fitness_fun": "aic", "fit_rate": 20}, get_classic_walker())
+
+    teacher = AgainTeacher({"gmm_fitness_fun": "aic", "fit_rate": 20, "student_params":{}}, get_classic_walker())
 
     for i in range(100):
         teacher.train_k_actions(student, 400)
