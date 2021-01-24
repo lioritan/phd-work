@@ -8,7 +8,8 @@ from stable_baselines3 import PPO, A2C, DQN, TD3
 from stable_baselines3.common.utils import constant_fn
 import stable_baselines3.dqn as dqn
 
-from curriculum.eval.history_metrics import plot_reward_graph, plot_diversity_graph, plot_tsne_task_distribution
+from curriculum.eval.history_metrics import plot_reward_graph, plot_diversity_graph, plot_tsne_task_distribution, \
+    plot_eval_performance, plot_eval_to_pretrain_performance
 from curriculum.teacher import Teacher
 from curriculum.teachers.adr_teacher import AdrTeacher
 from curriculum.teachers.again_teacher import AgainTeacher
@@ -74,14 +75,15 @@ def check_sanity():
     #plot_tsne_task_distribution(teacher)
 
 
-def check_continuous():
-    env = get_classic_walker().create_env({
+def check_continuous(eval=False):
+    env_params = {
         "climbing_surface_size": 0,
         "gap_size": 10,
         "gap_pos": 3,
         "obstacle_spacing": 6,
         # "motors_torque": 80
-    })
+    }
+    env = get_classic_walker().create_env(env_params)
     student = PPO(policy='MlpPolicy', env=env, verbose=0, n_steps=200)
 
     #teacher = RiacTeacher({"max_region_size": 30}, get_classic_walker())
@@ -93,15 +95,21 @@ def check_continuous():
     teacher = AgainTeacher({"gmm_fitness_fun": "aic", "fit_rate": 20, "student_params":{}}, get_classic_walker())
 
     for i in range(100):
-        teacher.train_k_actions(student, 400)
+        if eval:
+            teacher.train_k_actions(student, 400, eval_task_params=env_params, pretrain=True)
+        else:
+            teacher.train_k_actions(student, 400)
 
     plot_reward_graph(teacher)
     plot_diversity_graph(teacher)
     plot_tsne_task_distribution(teacher)
+    if eval:
+        plot_eval_performance(teacher)
+        plot_eval_to_pretrain_performance(teacher)
     eval_run(student, env)
 
 
 #check_sanity()
-check_continuous()
+check_continuous(eval=False)
 
 # l()

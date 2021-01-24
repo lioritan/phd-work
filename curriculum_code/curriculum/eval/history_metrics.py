@@ -66,11 +66,38 @@ def plot_tsne_task_distribution(teacher: Teacher, fname=None):
     embedder = TSNE(n_components=2,  # dimensions
                     perplexity=50.0)
     low_dim = embedder.fit_transform(df)
-    plt.scatter(low_dim[:, 0], low_dim[:, 1])
+    rews = np.array([x[1] for x in history])
+    normalized_rews = (rews - np.min(rews))/np.ptp(rews)
+    plt.scatter(low_dim[:, 0], low_dim[:, 1], c=normalized_rews, cmap='Blues')
 
-    plt.xlabel('# tasks')
-    plt.ylabel('# unique tasks')
+    plt.xlabel('task embedding X')
+    plt.ylabel('task embedding Y')
+    plt.colorbar()
     plt.show()
     if fname is not None:
         plt.savefig(fname)
     pass
+
+
+def plot_eval_performance(teacher: Teacher, fname=None):
+    eval_data = teacher.eval_data
+
+    plt.scatter(range(len(eval_data)), [x["eval_reward"] for x in eval_data])
+    plt.xlabel('# tasks')
+    plt.ylabel('eval reward')
+    plt.show()
+    if fname is not None:
+        plt.savefig(fname)
+
+
+def plot_eval_to_pretrain_performance(teacher: Teacher, fname=None):
+    eval_data = teacher.eval_data
+
+    pretrain_postrain_diff = [x["eval_reward"] - x["pretrain_reward"] for x in eval_data]
+
+    plt.scatter(range(len(pretrain_postrain_diff)), pretrain_postrain_diff)
+    plt.xlabel('# tasks')
+    plt.ylabel('eval post-pre reward')
+    plt.show()
+    if fname is not None:
+        plt.savefig(fname)
