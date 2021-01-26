@@ -127,11 +127,11 @@ def check_mixture(eval=False):
     teacher2 = RiacTeacher({"max_region_size": 30}, get_classic_walker())
     teacher3 = AdrTeacher({"reward_thr": 0, "initial_task": [0, 10, 3, 6]}, get_classic_walker())
 
-    teacher = PredictionMixtureTeacher({"teachers": [teacher1, teacher2, teacher3],
-                                        "regression": True}, get_classic_walker())
-
     # teacher = PredictionMixtureTeacher({"teachers": [teacher1, teacher2, teacher3],
-    #                                     "network_dimensions": [16, 16]}, get_classic_walker())
+    #                                     "regression": True}, get_classic_walker())
+
+    teacher = PredictionMixtureTeacher({"teachers": [teacher1, teacher2, teacher3],
+                                        "network_dimensions": [16, 16]}, get_classic_walker())
 
     # teacher = ConstMixtureTeacher({"teachers": [teacher1, teacher2, teacher3],
     #                                 "step_size": 0.1}, get_classic_walker())
@@ -142,7 +142,7 @@ def check_mixture(eval=False):
     # teacher = RewardMixtureTeacher({"teachers": [teacher1, teacher2, teacher3],
     #                                 "step_size": 0.1}, get_classic_walker())
 
-    for i in range(30):
+    for i in range(100):
         if eval:
             teacher.train_k_actions(student, 400, eval_task_params=env_params, pretrain=True)
         else:
@@ -159,5 +159,3 @@ def check_mixture(eval=False):
 #check_sanity()
 #check_continuous(eval=False)
 check_mixture(eval=False)
-
-# l()
