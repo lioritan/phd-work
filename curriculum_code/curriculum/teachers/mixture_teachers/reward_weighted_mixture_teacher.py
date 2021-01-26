@@ -24,7 +24,7 @@ class RewardMixtureTeacher(Teacher):
         for teacher in self.teachers:
             rewards = [r for t, r in teacher.history.history]
             if len(rewards) == 0:
-                mean_rewards.append(1)
+                mean_rewards.append(np.mean([r for t, r in self.history.history]))
             else:
                 mean_rewards.append(np.mean(rewards))
         self.teacher_weights = mean_rewards
