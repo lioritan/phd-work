@@ -16,6 +16,10 @@ from curriculum.teachers.again_teacher import AgainTeacher
 from curriculum.teachers.alp_gmm_teacher import AlpGmmTeacher
 from curriculum.teachers.learning_rate_sampling_teacher import LearningRateSamplingTeacher
 from curriculum.teachers.learning_rate_teacher import LearningRateTeacher
+from curriculum.teachers.mixture_teachers.const_change_mixture_teacher import ConstMixtureTeacher
+from curriculum.teachers.mixture_teachers.predicted_value_mixture_teacher import PredictionMixtureTeacher
+from curriculum.teachers.mixture_teachers.reward_stepsize_mixture_teacher import RewardStepsizeMixtureTeacher
+from curriculum.teachers.mixture_teachers.reward_weighted_mixture_teacher import RewardMixtureTeacher
 from curriculum.teachers.random_teacher import RandomTeacher
 from curriculum.teachers.riac_teacher import RiacTeacher
 from environment.environment_wrapper import EnvironmentWrapper
@@ -109,7 +113,51 @@ def check_continuous(eval=False):
     eval_run(student, env)
 
 
+def check_mixture(eval=False):
+    env_params = {
+        "climbing_surface_size": 0,
+        "gap_size": 10,
+        "gap_pos": 3,
+        "obstacle_spacing": 6,
+    }
+    env = get_classic_walker().create_env(env_params)
+    student = PPO(policy='MlpPolicy', env=env, verbose=0, n_steps=200)
+
+    teacher1 = RandomTeacher(None, get_classic_walker())
+    teacher2 = RiacTeacher({"max_region_size": 30}, get_classic_walker())
+    teacher3 = AdrTeacher({"reward_thr": 0, "initial_task": [0, 10, 3, 6]}, get_classic_walker())
+
+    teacher = PredictionMixtureTeacher({"teachers": [teacher1, teacher2, teacher3],
+                                        "regression": True}, get_classic_walker())
+
+    # teacher = PredictionMixtureTeacher({"teachers": [teacher1, teacher2, teacher3],
+    #                                     "network_dimensions": [16, 16]}, get_classic_walker())
+
+    # teacher = ConstMixtureTeacher({"teachers": [teacher1, teacher2, teacher3],
+    #                                 "step_size": 0.1}, get_classic_walker())
+
+    # teacher = RewardStepsizeMixtureTeacher({"teachers": [teacher1, teacher2, teacher3],
+    #                                 "step_size": 0.1}, get_classic_walker())
+
+    # teacher = RewardMixtureTeacher({"teachers": [teacher1, teacher2, teacher3],
+    #                                 "step_size": 0.1}, get_classic_walker())
+
+    for i in range(30):
+        if eval:
+            teacher.train_k_actions(student, 400, eval_task_params=env_params, pretrain=True)
+        else:
+            teacher.train_k_actions(student, 400)
+
+    plot_reward_graph(teacher)
+    plot_diversity_graph(teacher)
+    plot_tsne_task_distribution(teacher)
+    if eval:
+        plot_eval_performance(teacher)
+        plot_eval_to_pretrain_performance(teacher)
+    eval_run(student, env)
+
 #check_sanity()
-check_continuous(eval=False)
+#check_continuous(eval=False)
+check_mixture(eval=False)
 
 # l()

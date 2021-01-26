@@ -17,16 +17,16 @@ class ConstMixtureTeacher(Teacher):
         self.chosen_teacher = 0
 
     def generate_task(self) -> Tuple[GymEnv, Dict[str, Any]]:
-        choice_idx = np.random.choice(np.arange(stop=len(self.teachers)), size=1, p=self.teacher_weights)
-        self.chosen_teacher = choice_idx
-        return self.teachers[choice_idx].generate_task()
+        choice_idx = np.random.choice(np.arange(len(self.teachers)), size=1, p=self.teacher_weights)
+        self.chosen_teacher = int(choice_idx[0])
+        return self.teachers[self.chosen_teacher].generate_task()
 
     def update_teacher_policy(self):
         self.teachers[self.chosen_teacher].history.history.append(self.history[-1])
         self.teachers[self.chosen_teacher].update_teacher_policy()
 
         teacher_history = self.teachers[self.chosen_teacher].history
-        if len(teacher_history) == 1:
+        if len(teacher_history.history) == 1:
             return
         else:
             last_reward = teacher_history[-2][1]
