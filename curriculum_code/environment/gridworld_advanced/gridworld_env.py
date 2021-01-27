@@ -1,17 +1,13 @@
 import random
-from typing import Any, Dict
 
 from gym_minigrid.minigrid import MiniGridEnv, Grid, Goal, Key, Door, Lava, Wall, COLOR_NAMES, Floor
 from mazelib import Maze
 from mazelib.generate.AldousBroder import AldousBroder
 
-# can pick up key, opens door of same color
-# lava kills, wall blocks
 
 ROOM_SIZE = 5  # assumed to be odd
 
 
-# TODO: complex env, randomization rules
 class GridworldEnv(MiniGridEnv):
     """
     Environment of multiple 5x5 rooms
