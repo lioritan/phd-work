@@ -5,3 +5,4 @@ stable-baselines3
 treelib
 gym-minigrid
 sklearn
+mazelib
