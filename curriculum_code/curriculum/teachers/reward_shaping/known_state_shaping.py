@@ -4,18 +4,17 @@ from curriculum.teachers.reward_shaping.reward_shaping_wrapper_teacher import Re
 import numpy as np
 
 
-class NewStateShaping(RewardShapingTeacher):
-
+class KnownStateShaping(RewardShapingTeacher):
     def __init__(self, teacher_parameters, environment_parameters, base_teacher):
         super().__init__(teacher_parameters, environment_parameters, base_teacher)
         self.similiarity_dist = teacher_parameters["state_distance"]
         self.scale = teacher_parameters["scale"]
-        self.reward = teacher_parameters.get("new_state_reward", None)
+        self.reward = teacher_parameters.get("familiar_state_reward", None)
         self.known_states = []
         self.mean_reward = RunningMeanStd()
 
     def shaping_function(self, s, a):
-        if self.has_similar_state(s):
+        if not self.has_similar_state(s):
             tot_reward = 0
         else:
             if self.reward is not None:
