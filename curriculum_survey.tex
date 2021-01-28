@@ -165,7 +165,7 @@ In \cite{Akkaya2019}, a method to randomize environment parameters was proposed.
 In \cite{Fang2020}, a combination of task feasibility and the closeness to the test environment are used to estimate progress. A good curriculum will give tasks closer to the test environment, but still feasible. Task generation is done with a GAN setup: A generator creates tasks (by choosing task parameters), and a discriminator tries to estimate `task progress' - the similarity of the trajectory for the generated task to a trajectory on the test task. To do this, rollouts on the test task are required. The generator loss is a combination of the discriminator error and the task's expected return.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Ensuring task variety - 11.1.21} \label{sec:variety}
+\section{Ensuring task variety - 24.1.21} \label{sec:variety}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In \cite{Jiang2020}, a probability bonus is given proportional to the number of tasks seen since a given task was sampled, thus forcing the task to eventually be re-played.
@@ -183,6 +183,7 @@ The teacher agent tries to choose environment parameters to maximize this reward
 Expanding on the previous apporach, \cite{Raparthy2020} create a method with two teacher agents: one uses a discriminator to force environment parameters away from the reference environment like in \cite{Mehta2019}, and the other that chooses a task from the given distribution in an adversarial manner: the task selector uses the student policy and a stopping policy to act in the reference environment and find a goal state. The student must then reach that goal in the generated environment. To update the stopping policy, the adversary is rewarded for finding a goal in few actions that also requires many actions to reach, and is therefore hopefully hard but solvable. 
 In a continuation paper, \cite{Mehta2020}, a meta-RL algorithm is used to adapt the student policy to the generated environment, and the discriminator tries to predict whether the trajectory came from the policy before or after adaptation, thus encouraging tasks with large changes during adaptation. Notably this removes the need to have reference environments.
 
+In \cite{Sukhbaatar2017}, a goal-choosing agent acts in the environment to try and find states that will be difficult to solve. This was the direct inspiration to \cite{Raparthy2020}, and where its stopping policy notion comes from. In a later paper, \cite{OpenAI2021} expanded on this approach by: filtering goal states to goals not solved by the student, the teacher having a set number of time steps to propose goals, and the student measured on achieving one of five generated goals. Additionally, a custom reward function to the teacher, and a clipped behavior cloning loss are used to improve stability.
 
 In \cite{Gupta2018}, the environment parameters are not given directly to the trained student, but are used as latent variables to generate an environment. A discriminator is learned to try and predict the latent task that was used to generate a given trajectory, with high confidence prediction yielding high reward. Since a high variety between tasks leads to good prediction, this helps with variety.
 
@@ -194,7 +195,7 @@ The utility used in the paper was picking maximal surprise (self-information) - 
 In \cite{Wang2019}, \textit{POET}, a genetic algorithm for varied task generation is proposed. A set of environments and a set of agents are maintained, and at each step, environment parameters are randomly changed (with a ranking based on euclidean distance of parameters from already existing environments), each agent is trained on each environment (using a single step of ES - evolution strategies), and if an environment is challenging (mean reward at least $x$ and at most $y$), it is kept.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Method summary - 11.1.21} \label{sec:summary}
+\section{Method summary - 24.1.21} \label{sec:summary}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 See table \ref{methods-table}
@@ -227,6 +228,8 @@ See table \ref{methods-table}
 	\textit{GoalGAN} \cite{Florensa2018} & return in range & none (GAN helps) & goal state \\ \hline
 	\cite{Mehta2019} & none & learned trajectory difference & task parameters \\ \hline
 	\cite{Raparthy2020} & adversarial reward & learned trajectory difference & task parameters \\ \hline
+	\cite{Sukhbaatar2017} & adversarial reward & None & task parameters \\ \hline
+	\cite{OpenAI2021} & adversarial reward & new goals & task parameters \\ \hline
 	\cite{Mehta2020} & none & learned adaptation difference & task parameters \\ \hline
 	\cite{Gupta2018} & none & learned state difference & task parameters \\ \hline
 	\cite{Jabri2019} & none & trajectory clustering & task parameters \\ \hline
@@ -256,15 +259,16 @@ See table \ref{methods-table}
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Short-term goals - 14.1.21} \label{sec:short-term}
+\section{Short-term goals - 25.1.21} \label{sec:short-term}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{itemize}
 	\item \sout{Create a POMDP problem formulation (based on Teacher-Student paper) }
 	\item \sout{Add reward shaping to the problem formulation}
 	\item Make a `mixture of experts' method with multiple teachers, consider how to weigh them
-	\item Create a starting code-base with environments and simple method
+	\item \sout{Create a starting code-base with environments and simple method}
 	\item \sout{Consider a game theory formulation of the problem}
+	\item Add Mujoco env based on PEARL code (seems not to work on Windows)
 	\item Try to see how in-task intervention would change the formulations
 \end{itemize}
 

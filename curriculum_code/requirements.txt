@@ -2,3 +2,7 @@ numpy
 gym
 torch>=1.7.0
 stable-baselines3
+treelib
+gym-minigrid
+sklearn
+mazelib
