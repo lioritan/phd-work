@@ -15,6 +15,9 @@ class ShapedRewardWrapperEnv(gym.Env):
         self.shaping_update = shaping_update_function
         self.last_state = None
 
+        self.observation_space = self.base_env.observation_space
+        self.action_space = self.base_env.action_space
+
     def step(self, action):
         next_state, base_reward, done, info = self.base_env.step(action)
         new_reward = self.shaping(self.last_state, action) + base_reward

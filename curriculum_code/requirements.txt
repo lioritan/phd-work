@@ -6,3 +6,4 @@ treelib
 gym-minigrid
 sklearn
 mazelib
+scipy

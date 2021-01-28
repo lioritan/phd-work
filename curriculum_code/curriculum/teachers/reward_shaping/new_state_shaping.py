@@ -15,7 +15,7 @@ class NewStateShaping(RewardShapingTeacher):
         self.mean_reward = RunningMeanStd()
 
     def shaping_function(self, s, a):
-        if self.has_similar_state(s):
+        if self.has_similar_state(s):  # consider improving efficiency, this is slow
             tot_reward = 0
         else:
             if self.reward is not None:
@@ -30,7 +30,7 @@ class NewStateShaping(RewardShapingTeacher):
         self.mean_reward.update(np.array([r]))
 
     def update_shaping_function(self):
-        self.known_states = list(set(self.known_states))
+        pass  # consider improving efficiency, this is slow
 
     def has_similar_state(self, state):
         state_array = np.array(state)

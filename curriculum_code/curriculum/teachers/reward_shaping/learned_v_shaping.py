@@ -3,6 +3,7 @@ import numpy as np
 import torch
 
 from curriculum.teachers.utils.neural_net_utils import SimpleNet
+from curriculum.teachers.utils.task_space_utils import discount_cumsum
 
 
 class LearnedVShaping(RewardShapingTeacher):
@@ -15,10 +16,9 @@ class LearnedVShaping(RewardShapingTeacher):
         self.net = SimpleNet(teacher_parameters["network_dimensions"], obs_space_size, 1)
         self.discount = teacher_parameters["discount"]
         self.episode_obs = []
-        self.episode_rewards = []
+        self.episode_rewards = [[]]
 
     def shaping_function(self, s, a):
-        self.episode_obs.append(s)
         with torch.no_grad():
             obs_tensor = torch.tensor(s, dtype=torch.float32)
             predicted_v = self.net(obs_tensor)
@@ -26,16 +26,21 @@ class LearnedVShaping(RewardShapingTeacher):
 
     def shaping_step_update_function(self, s, a, r, s_new, done):
         self.episode_obs.append(s)
-        self.episode_rewards.append(r + self.discount * self.episode_rewards[-1])
+        self.episode_rewards[-1].append(r)
         if done:
-            pass  # TODO: ?
+            self.episode_rewards.append([])
 
     def update_shaping_function(self):
+        reward_arrays = []
+        for ep_rewards in self.episode_rewards:
+            reward_arrays.extend(discount_cumsum(np.array(ep_rewards), self.discount))
+
+        reward_array = np.array(reward_arrays)
         obs = torch.tensor(self.episode_obs, dtype=torch.float32)
-        task_reward = torch.tensor(self.episode_rewards, dtype=torch.float32)
-        predict_loss = torch.nn.MSELoss()(task_reward, self.net(obs))
+        task_reward = torch.tensor([reward_array], dtype=torch.float32).transpose(0, 1)
+        predict_loss = torch.nn.MSELoss()(task_reward, self.net(obs)) * self.step_size
         self.net.zero_grad()
-        predict_loss.backward()  # TODO: step size?
+        predict_loss.backward()
 
         self.episode_obs = []
-        self.episode_rewards = []
+        self.episode_rewards = [[]]
