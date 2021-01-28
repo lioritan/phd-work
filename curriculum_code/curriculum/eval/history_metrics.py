@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.manifold import TSNE
 
+from curriculum.teachers.utils.task_space_utils import has_similar_task
 from environment.environment_parameter import ContinuousParameter
 
 
@@ -17,32 +18,13 @@ def plot_reward_graph(teacher: Teacher, fname=None):
         plt.savefig(fname)
 
 
-def __has_similar_task(task, params, task_bins, continuous_sensativity):
-    continuous_params = [k for k, v in params.items() if isinstance(v, ContinuousParameter)]
-    for candidate in task_bins:
-        is_similar = True
-        for param_name in params.keys():
-            if param_name in continuous_params:
-                value_bin = continuous_sensativity * (params[param_name].max_val - params[param_name].min_val)
-                if abs(candidate[param_name] - task[param_name]) > value_bin:  # too far apart
-                    is_similar = False
-                    break
-            else:
-                if candidate[param_name] != task[param_name]:  # not the same
-                    is_similar = False
-                    break
-        if is_similar:
-            return True
-    return False
-
-
 def plot_diversity_graph(teacher: Teacher, continuous_sensativity=0.05, fname=None):
     params = teacher.env_wrapper.parameters
     history = teacher.history.history
     task_bins = []
     unique_tasks_over_time = np.zeros(len(history))
     for i, (task, _) in enumerate(history):
-        if not __has_similar_task(task, params, task_bins, continuous_sensativity):
+        if not has_similar_task(task, params, task_bins, continuous_sensativity):
             task_bins.append(task)
         unique_tasks_over_time[i] = len(task_bins)
     plt.scatter(range(len(unique_tasks_over_time)), unique_tasks_over_time)

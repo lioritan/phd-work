@@ -45,7 +45,7 @@ class RewardShapingTeacher(Teacher, ABC):
         self.update_shaping_function()
 
     @abstractmethod
-    def shaping_function(self, s, a):
+    def shaping_function(self, s, a) -> float:
         pass
 
     @abstractmethod
