@@ -17,6 +17,7 @@ class LongEpisodeShaping(RewardShapingTeacher):
             return self.scale * 1
 
     def shaping_step_update_function(self, s, a, r, s_new, done):
+        super(LongEpisodeShaping, self).shaping_step_update_function(s, a, r, s_new, done)
         if self.is_strong_shaping:
             self.episode_length += 1
 

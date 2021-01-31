@@ -25,6 +25,7 @@ class KnownStateShaping(RewardShapingTeacher):
         return tot_reward
 
     def shaping_step_update_function(self, s, a, r, s_new, done):
+        super(KnownStateShaping, self).shaping_step_update_function(s, a, r, s_new, done)
         self.known_states.append(s)
         self.mean_reward.update(np.array([r]))
 

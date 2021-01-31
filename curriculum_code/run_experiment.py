@@ -180,17 +180,17 @@ def check_shaping(eval=False):
     #                                   "discount": 0.9},
     #                                  get_classic_walker(), teacher1)
 
-    shaped_teacher = LearnedQShaping({"scale": 1.0,
-                                      "step_size": 0.1,
-                                      "obs_shape": env.observation_space.shape[0],
-                                      "action_shape": env.action_space.shape[0],
-                                      "network_dimensions": [16, 16],
-                                      "discount": 0.9},
-                                     get_classic_walker(), teacher1)
+    # shaped_teacher = LearnedQShaping({"scale": 1.0,
+    #                                   "step_size": 0.1,
+    #                                   "obs_shape": env.observation_space.shape[0],
+    #                                   "action_shape": env.action_space.shape[0],
+    #                                   "network_dimensions": [16, 16],
+    #                                   "discount": 0.9},
+    #                                  get_classic_walker(), teacher1)
 
-    # shaped_teacher = LongEpisodeShaping({"scale": 1.0,
-    #                                      "is_strong": False},
-    #                                     get_classic_walker(), teacher1)
+    shaped_teacher = LongEpisodeShaping({"scale": 1.0,
+                                         "is_strong": False},
+                                        get_classic_walker(), teacher1)
 
     # shaped_teacher = NewStateShaping({"scale": 1.0,
     #                                   "state_distance": 0.5,

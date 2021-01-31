@@ -25,6 +25,7 @@ class LearnedVShaping(RewardShapingTeacher):
             return self.scale * predicted_v.item()
 
     def shaping_step_update_function(self, s, a, r, s_new, done):
+        super(LearnedVShaping, self).shaping_step_update_function(s, a, r, s_new, done)
         self.episode_obs.append(s)
         self.episode_rewards[-1].append(r)
         if done:

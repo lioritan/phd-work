@@ -28,6 +28,7 @@ class LearnedQShaping(RewardShapingTeacher):
             return self.scale * predicted_q.item()
 
     def shaping_step_update_function(self, s, a, r, s_new, done):
+        super(LearnedQShaping, self).shaping_step_update_function(s, a, r, s_new, done)
         self.episode_obs.append(s)
         self.episode_actions.append(a)
         self.episode_rewards[-1].append(r)
