@@ -7,3 +7,4 @@ gym-minigrid
 sklearn
 mazelib
 scipy
+tqdm

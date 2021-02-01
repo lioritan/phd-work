@@ -30,9 +30,11 @@ def plot_diversity_graph(teacher: Teacher, continuous_sensativity=0.05, fname=No
     plt.scatter(range(len(unique_tasks_over_time)), unique_tasks_over_time)
     plt.xlabel('# tasks')
     plt.ylabel('# unique tasks')
-    plt.show()
-    if fname is not None:
+    if fname is None:
+        plt.show()
+    else:
         plt.savefig(fname)
+        plt.clf()
 
 
 def plot_tsne_task_distribution(teacher: Teacher, fname=None):
