@@ -72,9 +72,11 @@ def check_sanity():
 
     # teacher = RandomTeacher(None, CartpoleWrapper())
 
-    teacher = LearningRateTeacher({"alpha": 0.9, "epsilon": 0.1}, CartpoleWrapper())
+    #teacher = LearningRateTeacher({"alpha": 0.9, "epsilon": 0.1}, CartpoleWrapper())
 
     # teacher = LearningRateSamplingTeacher({"k": 5}, CartpoleWrapper())
+
+    teacher = AgainTeacher({"gmm_fitness_fun": "aic", "fit_rate": 20, "student_params": {}}, CartpoleWrapper())
 
     for i in range(200):
         teacher.train_k_actions(student, 200)
@@ -217,7 +219,7 @@ def check_shaping(eval=False):
     eval_run(student, env)
 
 
-# check_sanity()
-# check_continuous(eval=False)
+#check_sanity()
+#check_continuous(eval=False)
 # check_mixture(eval=False)
-check_shaping(eval=False)
+#check_shaping(eval=False)

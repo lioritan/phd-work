@@ -9,6 +9,8 @@ from itertools import islice
 from curriculum.teacher import Teacher
 from treelib import Tree
 
+from curriculum.teachers.utils.task_space_utils import box_to_params, continuous_to_discrete, params_to_array
+
 
 def proportional_choice(v, eps=0.):
     if np.sum(v) == 0 or np.random.rand() < eps:
@@ -112,7 +114,7 @@ class RiacTeacher(Teacher):
                 # clip to stay within region (add small epsilon to avoid falling in multiple regions)
                 task = np.clip(task, self.regions_bounds[region_id].low + 1e-5,
                                self.regions_bounds[region_id].high - 1e-5)
-                task_params = self.box_to_params(task)
+                task_params = box_to_params(self.ordered_params, task)
 
                 self.sampled_tasks.append(task_params)
 
@@ -121,20 +123,15 @@ class RiacTeacher(Teacher):
 
         else:  # "mode 1" (70%) -> proportional sampling on regions based on ALP and then random task in selected region
             region_id = proportional_choice(self.regions_alp, eps=0.0)
-            task_params = self.box_to_params(self.regions_bounds[region_id].sample())
+            task_params = box_to_params(self.ordered_params, self.regions_bounds[region_id].sample())
+            task_params = continuous_to_discrete(self.env_wrapper, self.ordered_params, task_params)
             self.sampled_tasks.append(task_params)
 
         return self.env_wrapper.create_env(self.sampled_tasks[-1]), self.sampled_tasks[-1]
 
-    def box_to_params(self, box_sample):
-        return {self.ordered_params[i]: box_sample[i] for i in range(len(self.ordered_params))}
-
-    def params_to_array(self, params):
-        return np.array([params[p] for p in self.ordered_params])
-
     def update_teacher_policy(self):
         task, reward = self.history[-1]
-        task_array = self.params_to_array(task)
+        task_array = params_to_array(self.ordered_params, task)
         self.update_nb += 1
 
         # Add new (task, reward) to regions nodes
@@ -180,7 +177,7 @@ class RiacTeacher(Teacher):
         return new_split, None
 
     def sample_random_task(self):
-        return self.box_to_params(self.regions_bounds[0].sample())  # First region is root region
+        return box_to_params(self.ordered_params, self.regions_bounds[0].sample())  # First region is root region
 
     def compute_alp(self, sub_region):
         if len(sub_region[0]) > 2:

@@ -26,6 +26,24 @@ class CategoricalParameter(EnvironmentParameter):
                 return self.values[round(new_index)]
 
 
+class DiscreteParameter(EnvironmentParameter):
+    def __init__(self, minimum, maximum):
+        self.min_val = minimum
+        self.max_val = maximum
+
+    def sample(self, nearest_value=None):
+        if nearest_value is None:
+            return random.randint(self.min_val, self.max_val)
+        else:
+            new_value = random.normalvariate(nearest_value, min(self.max_val - nearest_value, nearest_value - self.min_val))
+            if new_value < self.min_val:
+                return self.min_val
+            if new_value > self.max_val:
+                return self.max_val
+            else:
+                return round(new_value)
+
+
 class ContinuousParameter(EnvironmentParameter):
     def __init__(self, minimum, maximum):
         self.min_val = minimum

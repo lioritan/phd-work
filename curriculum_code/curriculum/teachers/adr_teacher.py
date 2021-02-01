@@ -9,6 +9,9 @@ import numpy as np
 
 
 # Automatic Domain Randomization, see https://arxiv.org/abs/1910.07113 for details
+from curriculum.teachers.utils.task_space_utils import params_to_array, box_to_params, continuous_to_discrete
+
+
 class AdrTeacher(Teacher):
     def __init__(self, teacher_parameters, environment_parameters):
         super().__init__(teacher_parameters, environment_parameters)
@@ -68,12 +71,13 @@ class AdrTeacher(Teacher):
             elif not is_min_max_capped[1]:
                 new_task[idx] = self.cur_maxs[idx]
 
-        task_params = self.box_to_params(new_task)
+        task_params = box_to_params(self.ordered_params, new_task)
+        task_params = continuous_to_discrete(self.env_wrapper, self.ordered_params, task_params)
         return self.env_wrapper.create_env(task_params), task_params
 
     def update_teacher_policy(self):
         task_params, reward = self.history[-1]
-        task = self.params_to_array(task_params)
+        task = params_to_array(self.ordered_params, task_params)
         self.episode_nb += 1
         # check for updates
         for i, (min_q, max_q, cur_min, cur_max) in enumerate(
@@ -98,9 +102,3 @@ class AdrTeacher(Teacher):
             self.bk['task_space'].append((self.cur_mins.copy(), self.cur_maxs.copy()))
             self.bk['episodes'].append(self.episode_nb)
             print(self.bk['task_space'][-1])
-
-    def box_to_params(self, box_sample):
-        return {self.ordered_params[i]: box_sample[i] for i in range(len(self.ordered_params))}
-
-    def params_to_array(self, params):
-        return np.array([params[p] for p in self.ordered_params])

@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 import gym
 
-from environment.environment_parameter import CategoricalParameter
+from environment.environment_parameter import CategoricalParameter, ContinuousParameter
 from environment.environment_wrapper import EnvironmentWrapper
 
 
@@ -11,9 +11,9 @@ class CartpoleWrapper(EnvironmentWrapper):
         super().__init__()
         self.name = "CartPole-v1"
         self.parameters = {
-            "pole_length": CategoricalParameter([0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]),
-            "cart_mass": CategoricalParameter([0.8, 0.9, 1.0, 1.1, 1.2]),
-            "pole_mass": CategoricalParameter([0.05, 0.1, 0.2]),
+            "pole_length": ContinuousParameter(0.2, 0.8),
+            "cart_mass": ContinuousParameter(0.8,  1.2),
+            "pole_mass": ContinuousParameter(0.05, 0.2),
         }
 
     def create_env(self, parameter_values: Dict[str, Any]):

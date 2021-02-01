@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 import gym
 
-from environment.environment_parameter import ContinuousParameter, CategoricalParameter
+from environment.environment_parameter import ContinuousParameter, CategoricalParameter, DiscreteParameter
 from environment.environment_wrapper import EnvironmentWrapper
 
 
@@ -13,7 +13,7 @@ class GridworldKeyWrapper(EnvironmentWrapper):
         super().__init__()
         self.name = "Gridworld key corridor"  # a classic curriculum learning env
         self.parameters = {
-            "difficulty": CategoricalParameter([1, 2, 3, 4, 5, 6]),
+            "difficulty": DiscreteParameter(1, 6),
         }
         self.envs = ["MiniGrid-KeyCorridorS3R1-v0", "MiniGrid-KeyCorridorS3R2-v0", "MiniGrid-KeyCorridorS3R3-v0",
                      "MiniGrid-KeyCorridorS4R3-v0", "MiniGrid-KeyCorridorS5R3-v0", "MiniGrid-KeyCorridorS6R3-v0"]

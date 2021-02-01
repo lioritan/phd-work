@@ -17,6 +17,9 @@ from curriculum.teachers.utils.knn_data import BufferedDataset
 
 
 # FUNCTION PERFORMING THE KC-BASED STUDENT SELECTION PROCESS
+from curriculum.teachers.utils.task_space_utils import box_to_params, continuous_to_discrete
+
+
 def get_k_experts(current_student_param, current_test_vec, initial_test_vec_history, last_test_vec_history,
                   student_id_history, student_params, last_perfs, k=5, test_vec_idx=1, use_ground_truth=False,
                   is_toy_env=False, is_v2=False):
@@ -268,7 +271,8 @@ class AgainTeacher(Teacher):
                                                          self.alpgmm.gmm.covariances_[idx])[:-1]
                 new_task = np.clip(new_task, self.mins, self.maxs).astype(np.float32)
             self.bk['cegt_tasks_origin'].append(task_origin)
-            task_params = self.box_to_params(new_task)
+            task_params = box_to_params(self.ordered_params, new_task)
+            task_params = continuous_to_discrete(self.env_wrapper, self.ordered_params, task_params)
             return self.env_wrapper.create_env(task_params), task_params
 
         # print(self.random_task_ratio)
@@ -298,7 +302,8 @@ class AgainTeacher(Teacher):
         # print(task_origin)
         # boring book-keeping
         self.bk['cegt_tasks_origin'].append(task_origin)
-        task_params = self.box_to_params(new_task)
+        task_params = box_to_params(self.ordered_params, new_task)
+        task_params = continuous_to_discrete(self.env_wrapper, self.ordered_params, task_params)
         return self.env_wrapper.create_env(task_params), task_params
 
     def update_teacher_policy(self):
@@ -442,13 +447,6 @@ class AgainTeacher(Teacher):
         else:
             print('Unknown expert type')
             exit(1)
-
-    def box_to_params(self, box_sample):
-        return {self.ordered_params[i]: box_sample[i] for i in range(len(self.ordered_params))}
-
-    def params_to_array(self, params):
-        return np.array([params[p] for p in self.ordered_params])
-
 
     def send_test_info(self, test_vec, epoch_0=False):
         self.bk['cegt_test_vectors'].append(test_vec)

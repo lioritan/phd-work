@@ -1,7 +1,7 @@
 
 from typing import Any, Dict
 
-from environment.environment_parameter import ContinuousParameter, CategoricalParameter
+from environment.environment_parameter import ContinuousParameter, CategoricalParameter, DiscreteParameter
 from environment.environment_wrapper import EnvironmentWrapper
 
 
@@ -10,9 +10,9 @@ class GridworldsCustomWrapper(EnvironmentWrapper):
         super().__init__()
         self.name = "Gridworlds Custom"
         self.parameters = {
-            "depth": CategoricalParameter([2, 3, 4, 5, 6, 7, 8, 9, 10]),
-            "width": CategoricalParameter([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-            "keys": CategoricalParameter(list(range(7))),
+            "depth": DiscreteParameter(2, 10),
+            "width": DiscreteParameter(1, 10),
+            "keys": DiscreteParameter(0, 6),
             "maze_percentage": ContinuousParameter(0, 1),
         }
 

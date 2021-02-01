@@ -1,5 +1,6 @@
-from environment.environment_parameter import ContinuousParameter
+from environment.environment_parameter import ContinuousParameter, DiscreteParameter
 import scipy.signal
+import numpy as np
 
 
 def has_similar_task(task, params, task_bins, continuous_sensativity):
@@ -19,6 +20,22 @@ def has_similar_task(task, params, task_bins, continuous_sensativity):
         if is_similar:
             return True
     return False
+
+
+def box_to_params(ordered_params, box_sample):
+    return {ordered_params[i]: box_sample[i] for i in range(len(ordered_params))}
+
+
+def params_to_array(ordered_params, params):
+    return np.array([params[p] for p in ordered_params])
+
+
+def continuous_to_discrete(env_params, ordered_params, task):
+    new_task = task.copy()
+    for i, param_name in enumerate(ordered_params):
+        if isinstance(env_params.parameters[param_name], DiscreteParameter):
+            new_task[i] = round(new_task[i])
+    return new_task
 
 
 def discount_cumsum(x, discount):

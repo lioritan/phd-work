@@ -7,6 +7,7 @@ from curriculum.teacher import Teacher
 from typing import Tuple, Dict, Any
 
 from curriculum.teachers.utils.knn_data import BufferedDataset
+from curriculum.teachers.utils.task_space_utils import box_to_params, continuous_to_discrete, params_to_array
 
 
 def proportional_choice(v, eps=0.):
@@ -116,12 +117,13 @@ class AlpGmmTeacher(Teacher):
 
         # boring book-keeping
         self.bk['tasks_origin'].append(task_origin)
-        task_params = self.box_to_params(new_task)
+        task_params = box_to_params(self.ordered_params, new_task)
+        task_params = continuous_to_discrete(self.env_wrapper, self.ordered_params, task_params)
         return self.env_wrapper.create_env(task_params), task_params
 
     def update_teacher_policy(self):
         task, reward = self.history[-1]
-        task_array = self.params_to_array(task)
+        task_array = params_to_array(self.ordered_params, task)
         self.tasks.append(task_array)
 
         # Compute corresponding ALP
@@ -163,12 +165,6 @@ class AlpGmmTeacher(Teacher):
                 self.bk['tasks_alps'] = self.tasks_alps
                 self.bk['tasks_lps'].append(lp)
                 self.bk['episodes'].append(len(self.tasks))
-
-    def box_to_params(self, box_sample):
-        return {self.ordered_params[i]: box_sample[i] for i in range(len(self.ordered_params))}
-
-    def params_to_array(self, params):
-        return np.array([params[p] for p in self.ordered_params])
 
     def init_gmm(self, nb_gaussians):
         return GMM(n_components=nb_gaussians, covariance_type='full', random_state=self.seed,
