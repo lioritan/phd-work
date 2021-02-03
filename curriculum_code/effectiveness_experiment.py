@@ -164,7 +164,7 @@ def run_custom_gridworld():
         "keys": 6,
         "maze_percentage": 1.0,
     }
-    run_effectiveness(5 * 5 * 4 * 4, 1000, GridworldsCustomWrapper(), easy_params, hard_params, image_based=False)  # TODO
+    run_effectiveness(5 * 5 * 4 * 4, 1000, GridworldsCustomWrapper(), easy_params, hard_params, image_based=False)
 
 
 def run_random_gridworld():
@@ -181,12 +181,11 @@ def run_random_gridworld():
     random.seed(12)  # solvable maze
     for i in range(32 * 32):
         hard_params[f"pos {i}"] = random.choice([1, 1, 1, 1, 2, 9])  # 66% empty, 33% obstacles
-    run_effectiveness(32 * 32 * 2, 1000, GridworldsRandomizedWrapper(), easy_params, hard_params, image_based=False)  # TODO
+    run_effectiveness(32 * 32 * 4, 1000, GridworldsRandomizedWrapper(), easy_params, hard_params, image_based=False)
 
 
-# run_cartpole()
-# run_lunarlander()
-
+run_cartpole()
+run_lunarlander()
 run_custom_gridworld()
-# run_random_gridworld()
+run_random_gridworld()
 run_walker()

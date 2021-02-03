@@ -44,13 +44,14 @@
 \theoremstyle{definition}
 \newtheorem{defn}{Definition}[section]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{Curriculum metrics survey}
+\title{Curriculum learning in RL}
 \begin{document}
 	\maketitle
 	\begin{abstract}
 		%Added most methods not focused on varied tasks
 		%Added methods focused on task variety and exploration
-		Added short-term goals, blog, POMDP fomulation
+		%Added short-term goals, blog, POMDP fomulation
+		Added parameter and code base sections, updated goals
 	\end{abstract}
 
 \tableofcontents
@@ -241,6 +242,18 @@ See table \ref{methods-table}
 \end{table*}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Measurable problem parameters - 3.2.21} \label{sec:experiments}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{enumerate}
+	\item Task complexity/difficulty measure - this needs to also consider the student
+	\item Student knowledge on other tasks - measured by rewards for other tasks or learning progress
+	\item Student knowledge on the current task - measured by pre-train mean reward
+	\item Teacher knowledge on task space - whether a well-defined measurement of task difficulty is available to the teacher
+	\item Teacher knowledge on student performance - number of task rewards, possibly normalized by the size of the task space and how tasks are sampled from it
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Relevant posts - 13.1.21} \label{sec:blogs}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -259,22 +272,61 @@ See table \ref{methods-table}
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Short-term goals - 25.1.21} \label{sec:short-term}
+\section{Code bases - 3.2.21} \label{sec:code}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{enumerate}
+	
+	\item 
+	\href{https://github.com/flowersteam/meta-acl}{Meta ACL} - Curriculum RL code by R. Portelas for \cite{Portelas2020a}. Has multiple teacher algorithms.
+	
+	\item 
+	\href{https://github.com/lioritan/phd-work}{My codebase} - The code I'm working on for curriculum learning.
+	
+	\item 
+	\href{https://github.com/ray-project/ray}{Ray} - one of the most popular frameworks for RL algorithms, originally by Berkley. Hard to extend but supports most known methods.
+	
+	\item \href{https://github.com/openai/baselines}{Baselines} - OpenAI's original library for stable, open-source implementations of common RL algorithms, no longer active.
+	
+	\item 
+	\href{https://github.com/DLR-RM/stable-baselines3}{Stable baselines} - a community (German Aerospace Center) continuation and improvement of the baselines library.
+	
+	\item 
+	\href{https://github.com/google/dopamine}{Dopamine} - Google's RL agent library, has very few algorithms.
+	
+	\item 
+	\href{https://github.com/facebookresearch/ReAgent}{ReAgent} - Facebook research's RL agent library, has few algorithms focusing on off-policy methods.
+	
+	\item 
+	\href{https://github.com/deepmind/acme}{Acme} - Deepmind's RL agent library, relatively new, has few algorithms focusing on off-policy methods. 
+	
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Short-term goals - 3.2.21} \label{sec:short-term}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{itemize}
 	\item \sout{Create a POMDP problem formulation (based on Teacher-Student paper) }
 	\item \sout{Add reward shaping to the problem formulation}
-	\item Make a `mixture of experts' method with multiple teachers, consider how to weigh them
+	\item \sout{Make a `mixture of experts' method with multiple teachers, consider how to weigh them}
 	\item \sout{Create a starting code-base with environments and simple method}
 	\item \sout{Consider a game theory formulation of the problem}
+	\item Run and analyze experiments on curriculum effectiveness for existing environments
 	\item Add Mujoco env based on PEARL code (seems not to work on Windows)
+	\item Attempt to quantify problem complexity for each environment - there's probably a teacher algorithm here
 	\item Try to see how in-task intervention would change the formulations
+
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Long-term goals - 10.1.21} \label{sec:long-term}
+\section{Long-term goals - 3.2.21} \label{sec:long-term}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{itemize}
+	\item Create a measurable parametrization of student types based on response to tasks and teaching curricula
+	\item Find a way to isolate and interpret policy building blocks that were learned on simple problems and were successfully transferred to hard problem
+\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
