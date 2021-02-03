@@ -1,8 +1,11 @@
 
 from typing import Any, Dict
 
+from gym_minigrid.wrappers import ImgObsWrapper
+
 from environment.environment_parameter import ContinuousParameter, CategoricalParameter, DiscreteParameter
 from environment.environment_wrapper import EnvironmentWrapper
+from environment.gridworld_advanced.gridworld_env import GridworldEnv
 
 
 class GridworldsCustomWrapper(EnvironmentWrapper):
@@ -17,4 +20,4 @@ class GridworldsCustomWrapper(EnvironmentWrapper):
         }
 
     def create_env(self, parameter_values: Dict[str, Any]):
-        return None
+        return ImgObsWrapper(GridworldEnv(parameter_values["depth"], parameter_values["width"], parameter_values["keys"], parameter_values["maze_percentage"]))

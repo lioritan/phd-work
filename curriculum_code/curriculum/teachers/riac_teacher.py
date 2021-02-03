@@ -124,9 +124,9 @@ class RiacTeacher(Teacher):
         else:  # "mode 1" (70%) -> proportional sampling on regions based on ALP and then random task in selected region
             region_id = proportional_choice(self.regions_alp, eps=0.0)
             task_params = box_to_params(self.ordered_params, self.regions_bounds[region_id].sample())
-            task_params = continuous_to_discrete(self.env_wrapper, self.ordered_params, task_params)
             self.sampled_tasks.append(task_params)
 
+        self.sampled_tasks[-1] = continuous_to_discrete(self.env_wrapper, self.ordered_params, self.sampled_tasks[-1])
         return self.env_wrapper.create_env(self.sampled_tasks[-1]), self.sampled_tasks[-1]
 
     def update_teacher_policy(self):

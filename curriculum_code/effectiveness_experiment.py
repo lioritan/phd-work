@@ -1,4 +1,5 @@
 # consider splitting some of the code here
+import random
 from typing import Dict, Any
 
 import gym
@@ -24,9 +25,11 @@ from curriculum.teachers.predefined_tasks_teacher import PredefinedTasksTeacher
 from curriculum.teachers.random_teacher import RandomTeacher
 from curriculum.teachers.riac_teacher import RiacTeacher
 from environment.environment_wrapper import EnvironmentWrapper
+from environment.gridworld_advanced.parametric_gridworld_advanced import GridworldsCustomWrapper
+from environment.gridworld_advanced.parametric_gridworld_randomized import GridworldsRandomizedWrapper
 from environment.parametric_walker_env.bodies.BodyTypesEnum import BodyTypesEnum
 from environment.parametric_walker_env.parametric_continuous_flat_parkour import ParametricContinuousWalker
-from environment.parametric_walker_env.parametric_walker_wrapper import get_classic_walker
+from environment.parametric_walker_env.parametric_walker_wrapper import get_classic_walker, WalkerWrapper
 from environment.simple_envs.parametric_cartpole import CartpoleWrapper
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,7 +37,7 @@ import matplotlib.pyplot as plt
 from environment.simple_envs.parametric_lunarlander import LunarLanderWrapper
 
 
-def run_effectiveness(steps_per_task, tasks, wrapper, easy_task, hard_task):
+def run_effectiveness(steps_per_task, tasks, wrapper, easy_task, hard_task, image_based=False):
     random_teacher = RandomTeacher(None, wrapper)
 
     student_tasks = [easy_task, hard_task]
@@ -50,7 +53,8 @@ def run_effectiveness(steps_per_task, tasks, wrapper, easy_task, hard_task):
     teacher_ind = 0
     for teacher in [random_teacher, repeating_custom_teacher, simple_teacher] + baselines:
         print(f"teacher {teacher_ind}")
-        student_agent = PPO(policy='MlpPolicy', env=wrapper.create_env(easy_task), verbose=0,
+        student_agent = PPO(policy='MlpPolicy' if not image_based else "CnnPolicy", env=wrapper.create_env(easy_task),
+                            verbose=0,
                             n_steps=steps_per_task // 4)
 
         for i in tqdm(range(tasks)):  # tqdm adds a progress bar
@@ -66,7 +70,7 @@ def run_effectiveness(steps_per_task, tasks, wrapper, easy_task, hard_task):
     os.makedirs(f"./results/{date_string}/effectiveness/{wrapper.name}", exist_ok=True)
 
     plot_diversity_graph(simple_teacher, fname=f"./results/{date_string}/effectiveness/{wrapper.name}/diversity.jpg",
-                         continuous_sensativity=0.1)
+                         continuous_sensativity=1.0)
     plt.clf()
 
     sub_step = 10
@@ -81,7 +85,7 @@ def run_effectiveness(steps_per_task, tasks, wrapper, easy_task, hard_task):
     plt.plot(subsampled_task_range, [x[1] for x in baselines[1].history[::sub_step]], label="Train on Hard")
     plt.xlabel('# tasks')
     plt.ylabel('mean train reward')
-    plt.legend(loc='upper right', bbox_to_anchor=(1.1, 1))
+    plt.legend(loc='lower right', bbox_to_anchor=(1.05, 1))
     date_string = datetime.datetime.today().strftime('%Y-%m-%d')
     plt.savefig(f"./results/{date_string}/effectiveness/{wrapper.name}/train.jpg")
     plt.clf()
@@ -95,7 +99,7 @@ def run_effectiveness(steps_per_task, tasks, wrapper, easy_task, hard_task):
         plt.plot(subsampled_task_range, eval_rewards[4, ::sub_step, i], label="Train on Hard")
         plt.xlabel('# tasks')
         plt.ylabel(f'mean eval reward - {difficulty}')
-        plt.legend(loc='upper right', bbox_to_anchor=(1.1, 1))
+        plt.legend(loc='lower right', bbox_to_anchor=(1.05, 1))
         date_string = datetime.datetime.today().strftime('%Y-%m-%d')
         plt.savefig(f"./results/{date_string}/effectiveness/{wrapper.name}/eval_{difficulty}.jpg")
         plt.clf()
@@ -128,8 +132,61 @@ def run_lunarlander():
         "main_engine_power": 10.0,
         "side_engine_power": 1.0,
     }
-    run_effectiveness(400, 500, LunarLanderWrapper(), easy_params, hard_params)  # TODO
+    run_effectiveness(400, 500, LunarLanderWrapper(), easy_params, hard_params)
 
 
-#run_cartpole()
-run_lunarlander()
+def run_walker():
+    easy_params = {
+        "climbing_surface_size": 0.0,
+        "gap_pos": 10,
+        "gap_size": 0.0,
+        "obstacle_spacing": 10.0,
+    }
+    hard_params = {
+        "climbing_surface_size": 1.0,
+        "gap_pos": 5.0,
+        "gap_size": 10.0,
+        "obstacle_spacing": 5.0,
+    }
+    run_effectiveness(10000, 500, WalkerWrapper(walker_type="classic_bipedal", walker_params={}), easy_params, hard_params)  # TODO
+
+
+def run_custom_gridworld():
+    easy_params = {
+        "depth": 2,
+        "width": 1,
+        "keys": 0,
+        "maze_percentage": 0.0,
+    }
+    hard_params = {
+        "depth": 4,
+        "width": 1,
+        "keys": 6,
+        "maze_percentage": 1.0,
+    }
+    run_effectiveness(5 * 5 * 4 * 4, 1000, GridworldsCustomWrapper(), easy_params, hard_params, image_based=False)  # TODO
+
+
+def run_random_gridworld():
+    easy_params = {
+        "start_pos": 0,
+        "goal_pos": 42,
+    }
+    for i in range(32 * 32):
+        easy_params[f"pos {i}"] = 1
+    hard_params = {
+        "start_pos": 0,
+        "goal_pos": 32 * 32 - 1,
+    }
+    random.seed(12)  # solvable maze
+    for i in range(32 * 32):
+        hard_params[f"pos {i}"] = random.choice([1, 1, 1, 1, 2, 9])  # 66% empty, 33% obstacles
+    run_effectiveness(32 * 32 * 2, 1000, GridworldsRandomizedWrapper(), easy_params, hard_params, image_based=False)  # TODO
+
+
+# run_cartpole()
+# run_lunarlander()
+
+run_custom_gridworld()
+# run_random_gridworld()
+run_walker()

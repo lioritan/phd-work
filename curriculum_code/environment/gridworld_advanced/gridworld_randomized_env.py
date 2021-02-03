@@ -34,15 +34,25 @@ class GridworldRandomizedEnv(MiniGridEnv):
         self.mission = "get to the goal"
 
         super().__init__(
-            grid_size=32,
+            grid_size=(32+2),
             max_steps=10 * 32 * 32
         )
 
     def _gen_grid(self, width, height):
         # Create an empty grid
         self.grid = Grid(width, height)
-        row = 0
-        col = 0
+
+        # TODO: make walls
+        for col in range(32+2):
+            for row in [0, 32+1]:
+                self.put_obj(Wall(), col, row)
+
+        for row in range(32+2):
+            for col in [0, 32+1]:
+                self.put_obj(Wall(), col, row)
+
+        row = 1
+        col = 1
         door_colors = set()
         key_colors = set()
         for i, cell in enumerate(self.positions):
@@ -66,5 +76,16 @@ class GridworldRandomizedEnv(MiniGridEnv):
                 self.put_obj(Lava(), col, row)
             else:  # empty tile
                 pass
-            col = (col + 1) % width
-            row += 1 if col == 0 else 0
+            col = (col + 1) % (width - 1)
+            if col == 0:
+                col = 1
+                row += 1
+
+
+a = []
+random.seed(12)
+for i in range(32 * 32):
+    a.append(random.choice([1, 1, 1, 1, 2, 9]))  # 60% empty, 20% wall, 20% lava
+g = GridworldRandomizedEnv(a, 0, 32*32-1)
+g.render()
+5+4==9

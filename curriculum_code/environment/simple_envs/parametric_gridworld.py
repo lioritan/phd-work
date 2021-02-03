@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 import gym
 
-from environment.environment_parameter import ContinuousParameter, CategoricalParameter
+from environment.environment_parameter import ContinuousParameter, CategoricalParameter, DiscreteParameter
 from environment.environment_wrapper import EnvironmentWrapper
 
 
@@ -14,7 +14,7 @@ class GridworldsWrapper(EnvironmentWrapper):
         self.name = "Gridworlds"
         self.parameters = {
             "room_size": CategoricalParameter([3, 4, 6, 14]),
-            "has_key": CategoricalParameter([0, 1]),
+            "has_key": DiscreteParameter(0, 1),
         }
 
     def create_env(self, parameter_values: Dict[str, Any]):

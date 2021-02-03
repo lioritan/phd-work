@@ -32,9 +32,11 @@ def params_to_array(ordered_params, params):
 
 def continuous_to_discrete(env_params, ordered_params, task):
     new_task = task.copy()
-    for i, param_name in enumerate(ordered_params):
+    for param_name in task.keys():
         if isinstance(env_params.parameters[param_name], DiscreteParameter):
-            new_task[i] = round(new_task[i])
+            new_task[param_name] = int(round(task[param_name]))
+        else:
+            new_task[param_name] = task[param_name]
     return new_task
 
 
