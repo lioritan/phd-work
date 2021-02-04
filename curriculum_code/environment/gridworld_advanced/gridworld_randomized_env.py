@@ -80,12 +80,3 @@ class GridworldRandomizedEnv(MiniGridEnv):
             if col == 0:
                 col = 1
                 row += 1
-
-
-a = []
-random.seed(12)
-for i in range(32 * 32):
-    a.append(random.choice([1, 1, 1, 1, 2, 9]))  # 60% empty, 20% wall, 20% lava
-g = GridworldRandomizedEnv(a, 0, 32*32-1)
-g.render()
-5+4==9

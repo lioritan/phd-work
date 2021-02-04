@@ -1,39 +1,21 @@
 # consider splitting some of the code here
-import random
-from typing import Dict, Any
-
-import gym
-import procgen
-from tqdm import tqdm
-import os
 import datetime
-from stable_baselines3 import PPO, A2C, DQN, TD3
-from stable_baselines3.common.utils import constant_fn
-import stable_baselines3.dqn as dqn
+import os
+import random
 
-from curriculum.eval.history_metrics import plot_reward_graph, plot_diversity_graph, plot_tsne_task_distribution, \
-    plot_eval_performance, plot_eval_to_pretrain_performance
-from curriculum.teacher import Teacher
-from curriculum.teachers.adr_teacher import AdrTeacher
-from curriculum.teachers.again_teacher import AgainTeacher
-from curriculum.teachers.alp_gmm_teacher import AlpGmmTeacher
-from curriculum.teachers.learning_rate_sampling_teacher import LearningRateSamplingTeacher
-from curriculum.teachers.learning_rate_teacher import LearningRateTeacher
-from curriculum.teachers.mixture_teachers.const_change_mixture_teacher import ConstMixtureTeacher
+import matplotlib.pyplot as plt
+import numpy as np
+from stable_baselines3 import PPO
+from tqdm import tqdm
+
+from curriculum.eval.history_metrics import plot_diversity_graph
 from curriculum.teachers.predefined_tasks_teacher import PredefinedTasksTeacher
-
 from curriculum.teachers.random_teacher import RandomTeacher
 from curriculum.teachers.riac_teacher import RiacTeacher
-from environment.environment_wrapper import EnvironmentWrapper
 from environment.gridworld_advanced.parametric_gridworld_advanced import GridworldsCustomWrapper
 from environment.gridworld_advanced.parametric_gridworld_randomized import GridworldsRandomizedWrapper
-from environment.parametric_walker_env.bodies.BodyTypesEnum import BodyTypesEnum
-from environment.parametric_walker_env.parametric_continuous_flat_parkour import ParametricContinuousWalker
-from environment.parametric_walker_env.parametric_walker_wrapper import get_classic_walker, WalkerWrapper
+from environment.parametric_walker_env.parametric_walker_wrapper import WalkerWrapper
 from environment.simple_envs.parametric_cartpole import CartpoleWrapper
-import numpy as np
-import matplotlib.pyplot as plt
-
 from environment.simple_envs.parametric_lunarlander import LunarLanderWrapper
 
 
@@ -148,7 +130,7 @@ def run_walker():
         "gap_size": 10.0,
         "obstacle_spacing": 5.0,
     }
-    run_effectiveness(10000, 500, WalkerWrapper(walker_type="classic_bipedal", walker_params={}), easy_params, hard_params)  # TODO
+    run_effectiveness(10000, 200, WalkerWrapper(walker_type="classic_bipedal", walker_params={}), easy_params, hard_params)
 
 
 def run_custom_gridworld():
@@ -164,7 +146,7 @@ def run_custom_gridworld():
         "keys": 6,
         "maze_percentage": 1.0,
     }
-    run_effectiveness(5 * 5 * 4 * 4, 1000, GridworldsCustomWrapper(), easy_params, hard_params, image_based=False)
+    run_effectiveness(5 * 5 * 4 * 4, 500, GridworldsCustomWrapper(), easy_params, hard_params, image_based=False)
 
 
 def run_random_gridworld():
@@ -181,11 +163,11 @@ def run_random_gridworld():
     random.seed(12)  # solvable maze
     for i in range(32 * 32):
         hard_params[f"pos {i}"] = random.choice([1, 1, 1, 1, 2, 9])  # 66% empty, 33% obstacles
-    run_effectiveness(32 * 32 * 4, 1000, GridworldsRandomizedWrapper(), easy_params, hard_params, image_based=False)
+    run_effectiveness(32 * 32 * 4, 500, GridworldsRandomizedWrapper(), easy_params, hard_params, image_based=False)
 
 
-run_cartpole()
-run_lunarlander()
-run_custom_gridworld()
+# run_cartpole()
+# run_lunarlander()
+# run_custom_gridworld()
 run_random_gridworld()
-run_walker()
+#run_walker()
