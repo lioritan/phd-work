@@ -2,10 +2,11 @@
 import datetime
 import os
 import random
+import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, A2C
 from tqdm import tqdm
 
 from curriculum.eval.history_metrics import plot_diversity_graph
@@ -35,9 +36,11 @@ def run_effectiveness(steps_per_task, tasks, wrapper, easy_task, hard_task, imag
     teacher_ind = 0
     for teacher in [random_teacher, repeating_custom_teacher, simple_teacher] + baselines:
         print(f"teacher {teacher_ind}")
-        student_agent = PPO(policy='MlpPolicy' if not image_based else "CnnPolicy", env=wrapper.create_env(easy_task),
-                            verbose=0,
-                            n_steps=steps_per_task // 4)
+        # student_agent = PPO(policy='MlpPolicy' if not image_based else "CnnPolicy", env=wrapper.create_env(easy_task),
+        #                     verbose=0,
+        #                     n_steps=steps_per_task // 4)
+        student_agent = A2C(policy='MlpPolicy' if not image_based else "CnnPolicy", env=wrapper.create_env(easy_task),
+                            verbose=0)
 
         for i in tqdm(range(tasks)):  # tqdm adds a progress bar
             teacher.train_k_actions(student_agent, steps_per_task)
@@ -51,6 +54,14 @@ def run_effectiveness(steps_per_task, tasks, wrapper, easy_task, hard_task, imag
     date_string = datetime.datetime.today().strftime('%Y-%m-%d')
     os.makedirs(f"./results/{date_string}/effectiveness/{wrapper.name}", exist_ok=True)
 
+    with open(f"./results/{date_string}/effectiveness/{wrapper.name}/teacher_hists.pkl", "wb") as fptr:
+        pickle.dump(np.vstack([x[1] for x in random_teacher.history],
+                              [x[1] for x in repeating_custom_teacher.history],
+                              [x[1] for x in simple_teacher.history],
+                              [x[1] for x in baselines[0].history],
+                              [x[1] for x in baselines[1].history]))
+    with open(f"./results/{date_string}/effectiveness/{wrapper.name}/eval_rewards.pkl", "wb") as fptr:
+        pickle.dump(eval_rewards)
     plot_diversity_graph(simple_teacher, fname=f"./results/{date_string}/effectiveness/{wrapper.name}/diversity.jpg",
                          continuous_sensativity=1.0)
     plt.clf()
@@ -114,7 +125,7 @@ def run_lunarlander():
         "main_engine_power": 10.0,
         "side_engine_power": 1.0,
     }
-    run_effectiveness(400, 500, LunarLanderWrapper(), easy_params, hard_params)
+    run_effectiveness(400, 1000, LunarLanderWrapper(), easy_params, hard_params)
 
 
 def run_walker():
@@ -130,7 +141,8 @@ def run_walker():
         "gap_size": 10.0,
         "obstacle_spacing": 5.0,
     }
-    run_effectiveness(10000, 200, WalkerWrapper(walker_type="classic_bipedal", walker_params={}), easy_params, hard_params)
+    run_effectiveness(10000, 500, WalkerWrapper(walker_type="classic_bipedal", walker_params={}), easy_params,
+                      hard_params)
 
 
 def run_custom_gridworld():
@@ -166,8 +178,8 @@ def run_random_gridworld():
     run_effectiveness(32 * 32 * 4, 500, GridworldsRandomizedWrapper(), easy_params, hard_params, image_based=False)
 
 
-# run_cartpole()
-# run_lunarlander()
-# run_custom_gridworld()
+run_cartpole()
+run_lunarlander()
+run_custom_gridworld()
 run_random_gridworld()
-#run_walker()
+run_walker()
