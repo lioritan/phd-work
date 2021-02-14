@@ -54,14 +54,14 @@ def run_effectiveness(steps_per_task, tasks, wrapper, easy_task, hard_task, imag
     date_string = datetime.datetime.today().strftime('%Y-%m-%d')
     os.makedirs(f"./results/{date_string}/effectiveness/{wrapper.name}", exist_ok=True)
 
-    with open(f"./results/{date_string}/effectiveness/{wrapper.name}/teacher_hists.pkl", "wb") as fptr:
-        pickle.dump(np.vstack([x[1] for x in random_teacher.history],
-                              [x[1] for x in repeating_custom_teacher.history],
-                              [x[1] for x in simple_teacher.history],
-                              [x[1] for x in baselines[0].history],
-                              [x[1] for x in baselines[1].history]))
+    with open(f"./results/{date_string}/effectiveness/{wrapper.name}/teacher_histories.pkl", "wb") as fptr:
+        pickle.dump(([x for x in random_teacher.history],
+                     [x for x in repeating_custom_teacher.history],
+                     [x for x in simple_teacher.history],
+                     [x for x in baselines[0].history],
+                     [x for x in baselines[1].history]), fptr)
     with open(f"./results/{date_string}/effectiveness/{wrapper.name}/eval_rewards.pkl", "wb") as fptr:
-        pickle.dump(eval_rewards)
+        pickle.dump(eval_rewards, fptr)
     plot_diversity_graph(simple_teacher, fname=f"./results/{date_string}/effectiveness/{wrapper.name}/diversity.jpg",
                          continuous_sensativity=1.0)
     plt.clf()
