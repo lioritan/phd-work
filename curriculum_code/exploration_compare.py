@@ -89,18 +89,19 @@ def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_b
 
     # for each teacher, reward for eval over time (3 graphs)
     for i, difficulty in enumerate(["easy", "hard"]):
-        for j in range(len(teachers_list)):
-            t_name = str(teachers_list[j].__class__.__name__)
+        for j in range(len(teachers_list)+2):
+            t_name = str((teachers_list + baselines)[j].__class__.__name__)
             p = bokeh.plotting.figure(plot_width=1000, plot_height=600)
             for k in range(len(students_list)):
                 p.line(subsampled_task_range, eval_rewards[j, k, ::sub_step, i], line_width=2, color=Spectral11[k],
                        alpha=0.8,
                        legend_label=str(students_list[k].exploration_initial_eps))
-        p.legend.location = "top_left"
-        p.legend.click_policy = "hide"
-        bokeh.plotting.output_file(
-            f"./results/{date_string}/exploration/{wrapper.name}/eval_{difficulty}_{t_name}.html",
-            title=f"{difficulty}-{t_name}")
+            p.legend.location = "top_left"
+            p.legend.click_policy = "hide"
+            bokeh.plotting.output_file(
+                f"./results/{date_string}/exploration/{wrapper.name}/eval_{difficulty}_{t_name}.html",
+                title=f"{difficulty}-{t_name}")
+            bokeh.plotting.save(p)
 
 
 def run_custom_gridworld():
