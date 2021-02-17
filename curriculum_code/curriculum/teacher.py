@@ -78,7 +78,7 @@ class Teacher(ABC):
         total_reward = 0
         episode_length = 0
         for i in range(action_limit):
-            a, _ = student.predict(observation=s)
+            a, _ = student.predict(observation=s, deterministic=True)
             s, r, d, _ = eval_env.step(a)
             episode_length += 1
             total_reward += r

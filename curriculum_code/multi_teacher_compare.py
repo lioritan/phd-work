@@ -32,11 +32,12 @@ from environment.simple_envs.parametric_lunarlander import LunarLanderWrapper
 
 def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_based=False):
     ref_env = wrapper.create_env(easy_task)
+    i_task = [2, 1, 0, 0]
 
     teachers_list = [
         RandomTeacher(None, wrapper),
         RiacTeacher({"max_region_size": tasks // 10}, wrapper),
-        AdrTeacher({"initial_task": [2, 1, 0, 0],  # TODO: code cleanup
+        AdrTeacher({"initial_task": i_task,  # TODO: code cleanup
                     "boundary_sampling_p": 0.7,
                     "reward_thr": 0.5,
                     "queue_len": 10}, wrapper),
@@ -58,20 +59,20 @@ def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_b
         #                  "discount": 0.99
         #                  },
         #                 wrapper, RandomTeacher(None, wrapper)),
-        LearnedVShaping({"scale": 1.0,
-                         "step_size": 0.01,
-                         "obs_shape": ref_env.observation_space.shape[0],
-                         "network_dimensions": [16, 16],
-                         "discount": 0.99
-                         },
-                        wrapper, RandomTeacher(None, wrapper)),
+        # LearnedVShaping({"scale": 1.0,
+        #                  "step_size": 0.01,
+        #                  "obs_shape": ref_env.observation_space.shape[0],
+        #                  "network_dimensions": [16, 16],
+        #                  "discount": 0.99
+        #                  },
+        #                 wrapper, RandomTeacher(None, wrapper)),
         LongEpisodeShaping({"scale": 0.1,
                             "is_strong": False
                             }, wrapper, RandomTeacher(None, wrapper)),
 
         ConstMixtureTeacher({"step_size": 0.01,
                              "teachers": [
-                                 AdrTeacher({"initial_task": [2, 1, 0, 0],  # TODO: code cleanup
+                                 AdrTeacher({"initial_task": i_task,  # TODO: code cleanup
                                              "boundary_sampling_p": 0.7,
                                              "reward_thr": 0.5,
                                              "queue_len": 10}, wrapper),
@@ -80,7 +81,7 @@ def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_b
                              }, wrapper),
         RewardStepsizeMixtureTeacher({
             "teachers": [
-                AdrTeacher({"initial_task": [2, 1, 0, 0],  # TODO: code cleanup
+                AdrTeacher({"initial_task": i_task,  # TODO: code cleanup
                             "boundary_sampling_p": 0.7,
                             "reward_thr": 0.5,
                             "queue_len": 10}, wrapper),
@@ -89,7 +90,7 @@ def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_b
         }, wrapper),
         RewardMixtureTeacher({
             "teachers": [
-                AdrTeacher({"initial_task": [2, 1, 0, 0],  # TODO: code cleanup
+                AdrTeacher({"initial_task": i_task,  # TODO: code cleanup
                             "boundary_sampling_p": 0.7,
                             "reward_thr": 0.5,
                             "queue_len": 10}, wrapper),
@@ -98,7 +99,7 @@ def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_b
         }, wrapper),
         PredictionMixtureTeacher({"network_dimensions": [8, 8],
                                   "teachers": [
-                                      AdrTeacher({"initial_task": [2, 1, 0, 0],  # TODO: code cleanup
+                                      AdrTeacher({"initial_task": i_task,  # TODO: code cleanup
                                                   "boundary_sampling_p": 0.7,
                                                   "reward_thr": 0.5,
                                                   "queue_len": 10}, wrapper),
@@ -107,7 +108,7 @@ def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_b
                                   }, wrapper),
         PredictionMixtureTeacher({"regression": True,
                                   "teachers": [
-                                      AdrTeacher({"initial_task": [2, 1, 0, 0],  # TODO: code cleanup,
+                                      AdrTeacher({"initial_task": i_task,  # TODO: code cleanup,
                                                   "boundary_sampling_p": 0.7,
                                                   "reward_thr": 0.5,
                                                   "queue_len": 10}, wrapper),
@@ -128,11 +129,11 @@ def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_b
     teacher_ind = 0
     for teacher in teachers_list + baselines:
         print(f"teacher {teacher_ind}")
-        student_agent = PPO(policy='MlpPolicy' if not image_based else "CnnPolicy", env=wrapper.create_env(easy_task),
-                            verbose=0,
-                            n_steps=steps_per_task // 4)
-        # student_agent = A2C(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env,
-        #                     verbose=0)
+        # student_agent = PPO(policy='MlpPolicy' if not image_based else "CnnPolicy", env=wrapper.create_env(easy_task),
+        #                     verbose=0,
+        #                     n_steps=steps_per_task // 4)
+        student_agent = A2C(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env,
+                            verbose=0)
 
 
         for i in tqdm(range(tasks)):  # tqdm adds a progress bar
@@ -182,4 +183,21 @@ def run_custom_gridworld():
     run_comparison(5 * 5 * 4 * 4, 1000, GridworldsCustomWrapper(), easy_params, hard_params, image_based=False)
 
 
+def run_lunarlander():
+    easy_params = {
+        "leg_height": 20,
+        "leg_width": 5,
+        "main_engine_power": 50.0,
+        "side_engine_power": 10.0,
+    }
+    hard_params = {
+        "leg_height": 40,
+        "leg_width": 2,
+        "main_engine_power": 50.0,
+        "side_engine_power": 10.0,
+    }
+    run_comparison(400, 1000, LunarLanderWrapper(), easy_params, hard_params)
+
+
 run_custom_gridworld()
+#run_lunarlander()

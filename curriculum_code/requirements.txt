@@ -1,3 +1,5 @@
+matplotlib
+bokeh
 numpy
 gym
 torch>=1.7.0

@@ -1,6 +1,9 @@
 
 from typing import Any, Dict
+import operator
+from functools import reduce
 
+import gym
 from gym_minigrid.wrappers import ImgObsWrapper
 
 from environment.environment_parameter import ContinuousParameter, CategoricalParameter, DiscreteParameter
@@ -20,4 +23,6 @@ class GridworldsCustomWrapper(EnvironmentWrapper):
         }
 
     def create_env(self, parameter_values: Dict[str, Any]):
+        # note: stable baselines automatically flattens images for the Mlp policy net, and runs 2Dconv for the Cnn
+        # policy net, so image observations are fine. This DOES make the net deeper for the Mlp case.
         return ImgObsWrapper(GridworldEnv(parameter_values["depth"], parameter_values["width"], parameter_values["keys"], parameter_values["maze_percentage"]))
