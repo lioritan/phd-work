@@ -9,7 +9,8 @@ import bokeh.plotting
 import matplotlib.pyplot as plt
 import numpy as np
 from bokeh.palettes import Spectral11
-from stable_baselines3 import PPO, A2C, SAC, DQN
+from stable_baselines3 import PPO, A2C, SAC, DQN, TD3, DDPG, HER
+from stable_baselines3.common.noise import NormalActionNoise
 from tqdm import tqdm
 
 from curriculum.eval.history_metrics import plot_diversity_graph
@@ -29,6 +30,7 @@ from curriculum.teachers.riac_teacher import RiacTeacher
 from environment.gridworld_advanced.parametric_gridworld_advanced import GridworldsCustomWrapper
 from environment.gridworld_advanced.parametric_gridworld_randomized import GridworldsRandomizedWrapper
 from environment.parametric_walker_env.parametric_walker_wrapper import WalkerWrapper
+from environment.simple_envs.gridworld_key_dynamic_difficulty import GridworldKeyWrapper
 from environment.simple_envs.parametric_cartpole import CartpoleWrapper
 from environment.simple_envs.parametric_lunarlander import LunarLanderWrapper
 
@@ -120,4 +122,62 @@ def run_custom_gridworld():
     run_comparison(5 * 5 * 4 * 4, 1000, GridworldsCustomWrapper(), easy_params, hard_params, image_based=False)
 
 
-run_custom_gridworld()
+def run_lunarlander():
+    easy_params = {
+        "leg_height": 20,
+        "leg_width": 5,
+        "main_engine_power": 50.0,
+        "side_engine_power": 10.0,
+    }
+    hard_params = {
+        "leg_height": 40,
+        "leg_width": 2,
+        "main_engine_power": 50.0,
+        "side_engine_power": 10.0,
+    }
+    run_comparison(400, 1000, LunarLanderWrapper(), easy_params, hard_params)
+
+def run_random_gridworld():
+    easy_params = {
+        "start_pos": 0,
+        "goal_pos": 42,
+    }
+    for i in range(32 * 32):
+        easy_params[f"pos {i}"] = 1
+    hard_params = {
+        "start_pos": 0,
+        "goal_pos": 32 * 32 - 1,
+    }
+    random.seed(12)  # solvable maze
+    for i in range(32 * 32):
+        hard_params[f"pos {i}"] = random.choice([1, 1, 1, 1, 2, 9])  # 66% empty, 33% obstacles
+    run_comparison(32 * 32 * 4, 500, GridworldsRandomizedWrapper(), easy_params, hard_params, image_based=False)
+
+def run_cartpole():
+    easy_params = {
+        "pole_length": 0.2,
+        "cart_mass": 1.2,
+        "pole_mass": 0.05
+    }
+    hard_params = {
+        "pole_length": 0.8,
+        "cart_mass": 0.8,
+        "pole_mass": 0.2
+    }
+    run_comparison(300, 250, CartpoleWrapper(), easy_params, hard_params)
+
+
+def run_grid_key():
+    easy_params = {
+        "difficulty": 1,
+    }
+    hard_params = {
+        "difficulty": 6,
+    }
+    run_comparison(1000, 1000, GridworldKeyWrapper(), easy_params, hard_params)
+
+#run_cartpole()
+#run_custom_gridworld()
+#run_lunarlander()
+#run_random_gridworld()
+run_grid_key()

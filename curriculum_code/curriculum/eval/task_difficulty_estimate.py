@@ -8,7 +8,7 @@ from sklearn.manifold import TSNE
 
 from curriculum.teachers.random_teacher import RandomTeacher
 from curriculum.teachers.utils.task_space_utils import has_similar_task
-from environment.environment_parameter import ContinuousParameter
+from environment.environment_parameter import ContinuousParameter, DiscreteParameter
 from environment.environment_wrapper import EnvironmentWrapper
 from environment.simple_envs.parametric_cartpole import CartpoleWrapper
 
@@ -30,11 +30,18 @@ def estimate_task_difficulties(student, task_wrapper: EnvironmentWrapper, num_se
     indices = np.zeros(len(param_names), dtype=np.int)
     while free_ind < task_estimates.shape[0]:
         chosen_params = [param_ranges[i][indices[i]] for i in range(len(param_names))]
+        for i, param_name in enumerate(param_names):
+            if isinstance(task_wrapper.parameters[param_name], DiscreteParameter):
+                chosen_params[i] = int(round(chosen_params[i]))
         task_params.append(chosen_params)
         for trial_num in range(trials_per_task):
-            total_reward, _ = dummy_teacher.evaluate(max_episode_len,
+            try:
+                total_reward, _ = dummy_teacher.evaluate(max_episode_len,
                                                      {param_names[i]: chosen_params[i] for i in range(len(param_names))},
-                                                     student)
+                                                         student)
+            except:
+                print(chosen_params)
+                total_reward = 0
             task_estimates[free_ind, trial_num] = total_reward
 
         free_ind += 1
@@ -48,7 +55,7 @@ def estimate_task_difficulties(student, task_wrapper: EnvironmentWrapper, num_se
     return task_estimates, task_params
 
 
-def plot_estimated_task_difficulties(task_estimates, task_params):
+def plot_estimated_task_difficulties(task_estimates, task_params, filename=None):
 
     avg_task_estimates = task_estimates.mean(axis=1)
     tasks = pd.DataFrame(task_params)
@@ -62,4 +69,8 @@ def plot_estimated_task_difficulties(task_estimates, task_params):
     plt.xlabel('task embedding X')
     plt.ylabel('task embedding Y')
     plt.colorbar()
-    plt.show()
+    if filename:
+        plt.savefig(filename)
+        plt.clf()
+    else:
+        plt.show()

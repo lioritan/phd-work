@@ -3,6 +3,7 @@ import gym_minigrid
 from typing import Any, Dict
 
 import gym
+from gym_minigrid.wrappers import ImgObsWrapper
 
 from environment.environment_parameter import ContinuousParameter, CategoricalParameter, DiscreteParameter
 from environment.environment_wrapper import EnvironmentWrapper
@@ -25,4 +26,4 @@ class GridworldsWrapper(EnvironmentWrapper):
             base_env = gym.make(f"MiniGrid-Empty-{room_size}x{room_size}-v0")
 
         base_env.reset()
-        return base_env
+        return ImgObsWrapper(base_env)
