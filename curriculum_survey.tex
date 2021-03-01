@@ -51,7 +51,8 @@
 		%Added most methods not focused on varied tasks
 		%Added methods focused on task variety and exploration
 		%Added short-term goals, blog, POMDP fomulation
-		Added parameter and code base sections, updated goals
+		%Added parameter and code base sections, updated goals
+		Added model-based RL section
 	\end{abstract}
 
 \tableofcontents
@@ -105,7 +106,7 @@ It is also important to note that if the student is required to perform the give
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Measuring task difficulty and curriculum - 11.1.21} \label{sec:difficulty}
+\section{Measuring task difficulty and curriculum - 23.2.21} \label{sec:difficulty}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In \cite{Matiisen2020}, the task probability is based on the absolute value of the reward improvement rate, measured by the difference between the trained task reward $r_t$ and the trained task reward last measured for the same task $r_{t'}$.
@@ -165,6 +166,8 @@ In \cite{Akkaya2019}, a method to randomize environment parameters was proposed.
 
 In \cite{Fang2020}, a combination of task feasibility and the closeness to the test environment are used to estimate progress. A good curriculum will give tasks closer to the test environment, but still feasible. Task generation is done with a GAN setup: A generator creates tasks (by choosing task parameters), and a discriminator tries to estimate `task progress' - the similarity of the trajectory for the generated task to a trajectory on the test task. To do this, rollouts on the test task are required. The generator loss is a combination of the discriminator error and the task's expected return.
 
+In \cite{Milano2021}, task parameters are chosen from a finite set for use in evaluations of the gradient in an Evolutionary Strategies algorithm. After a warm-up period where tasks are chosen randomly, possible parameters are organized into subsets based on average reward, and evaluations pick randomly from a subset based on this ``difficulty. Notably, they show empirically that dividing subsets into difficulties non-uniformly is preferable, using $x^2$ and $x^3$ as the difficulty measures, thus creating larger subsets of easy tasks and smaller subsets of hard tasks. 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Ensuring task variety - 24.1.21} \label{sec:variety}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -196,7 +199,7 @@ The utility used in the paper was picking maximal surprise (self-information) - 
 In \cite{Wang2019}, \textit{POET}, a genetic algorithm for varied task generation is proposed. A set of environments and a set of agents are maintained, and at each step, environment parameters are randomly changed (with a ranking based on euclidean distance of parameters from already existing environments), each agent is trained on each environment (using a single step of ES - evolution strategies), and if an environment is challenging (mean reward at least $x$ and at most $y$), it is kept.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Method summary - 24.1.21} \label{sec:summary}
+\section{Method summary - 23.2.21} \label{sec:summary}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 See table \ref{methods-table}
@@ -238,8 +241,23 @@ See table \ref{methods-table}
 	\cite{Akkaya2019} & return, fixed change size & none & task parameters \\ \hline
 	\cite{Kaddour2020} & none & surprise (low likelihood) & task parameters \\ \hline
 	\textit{POET} \cite{Wang2019} & return in range & distance in parameter space & task parameters \\ \hline
+	\cite{Milano2021} & average reward & none & task parameters \\ \hline
 \end{tabular}
 \end{table*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Model-Based RL - 1.3.21} \label{sec:mbrl}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+papers
+
+\cite{Curi2020}
+
+\cite{Chua2018} - PETS
+
+\cite{Ha2018} - world models
+
+\cite{Raileanu2020} - RIDE
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Measurable problem parameters - 3.2.21} \label{sec:experiments}
@@ -303,7 +321,7 @@ See table \ref{methods-table}
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Short-term goals - 3.2.21} \label{sec:short-term}
+\section{Short-term goals - 14.2.21} \label{sec:short-term}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{itemize}
@@ -312,11 +330,14 @@ See table \ref{methods-table}
 	\item \sout{Make a `mixture of experts' method with multiple teachers, consider how to weigh them}
 	\item \sout{Create a starting code-base with environments and simple method}
 	\item \sout{Consider a game theory formulation of the problem}
-	\item Run and analyze experiments on curriculum effectiveness for existing environments
+	\item \sout{Run and analyze experiments on curriculum effectiveness for existing environments}
 	\item Add Mujoco env based on PEARL code (seems not to work on Windows)
 	\item Attempt to quantify problem complexity for each environment - there's probably a teacher algorithm here
-	\item Try to see how in-task intervention would change the formulations
-
+	\item Add PAIRED / similar adversarial generation method (Rancarnier?)
+	\item Add GoID-like implementation (using estimated task difficulty or starting V). Also check high v low v goid
+	\item Incorporate latent variable from trajectory as parameter or reward bottleneck
+	\item Try using off-policy evaluation to estimate task performance
+		\item Try to see how in-task intervention would change the formulations
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -326,6 +347,7 @@ See table \ref{methods-table}
 \begin{itemize}
 	\item Create a measurable parametrization of student types based on response to tasks and teaching curricula
 	\item Find a way to isolate and interpret policy building blocks that were learned on simple problems and were successfully transferred to hard problem
+	% saliency maps are not good enough, something like SARFA (ICLR20, add state noise and measure actions relative and absolute)
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

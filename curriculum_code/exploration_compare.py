@@ -33,6 +33,7 @@ from environment.parametric_walker_env.parametric_walker_wrapper import WalkerWr
 from environment.simple_envs.gridworld_key_dynamic_difficulty import GridworldKeyWrapper
 from environment.simple_envs.parametric_cartpole import CartpoleWrapper
 from environment.simple_envs.parametric_lunarlander import LunarLanderWrapper
+from student_algorithms.ensemble_dqn.ebql import EBQL
 
 
 def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_based=False):
@@ -52,18 +53,29 @@ def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_b
     baselines = [PredefinedTasksTeacher({"tasks": [student_task]}, wrapper) for student_task in student_tasks]
 
     students_list = [
-        DQN(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env, learning_starts=200,
-            tau=0.8,
-            exploration_fraction=1.0, exploration_initial_eps=0.05, exploration_final_eps=0.05,
-            verbose=0),
-        DQN(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env, learning_starts=200,
-            tau=0.8,
-            exploration_fraction=1.0, exploration_initial_eps=1.0, exploration_final_eps=0.05,
-            verbose=0),
-        DQN(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env, learning_starts=200,
-            tau=0.8,
-            exploration_fraction=1.0, exploration_initial_eps=0.3, exploration_final_eps=0.3,
-            verbose=0),
+        # DQN(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env, learning_starts=200,
+        #     tau=0.8,
+        #     exploration_fraction=1.0, exploration_initial_eps=0.05, exploration_final_eps=0.05,
+        #     verbose=0),
+        # DQN(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env, learning_starts=200,
+        #     tau=0.8,
+        #     exploration_fraction=1.0, exploration_initial_eps=1.0, exploration_final_eps=0.05,
+        #     verbose=0),
+        # DQN(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env, learning_starts=200,
+        #     tau=0.8,
+        #     exploration_fraction=1.0, exploration_initial_eps=0.3, exploration_final_eps=0.3,
+        #     verbose=0),
+
+        EBQL(policy='MlpPolicy', env=ref_env, learning_starts=200, tau=0.8, exploration_fraction=1.0, exploration_initial_eps=0.05, exploration_final_eps=0.05,
+             ensemble_size=9, verbose=0),
+
+        EBQL(policy='MlpPolicy', env=ref_env, learning_starts=200, tau=0.8, exploration_fraction=1.0,
+             exploration_initial_eps=1.0, exploration_final_eps=0.05,
+             ensemble_size=9, verbose=0),
+
+        EBQL(policy='MlpPolicy', env=ref_env, learning_starts=200, tau=0.8, exploration_fraction=1.0,
+             exploration_initial_eps=0.3, exploration_final_eps=0.3,
+             ensemble_size=9, verbose=0),
     ]
 
     eval_rewards = np.zeros((len(teachers_list) + 2, len(students_list), tasks, 2))
@@ -177,7 +189,7 @@ def run_grid_key():
     run_comparison(1000, 1000, GridworldKeyWrapper(), easy_params, hard_params)
 
 #run_cartpole()
-#run_custom_gridworld()
+run_custom_gridworld()
 #run_lunarlander()
 #run_random_gridworld()
-run_grid_key()
+#run_grid_key()
