@@ -69,7 +69,7 @@ class EBQL(OffPolicyAlgorithm):
                          use_sde=use_sde,
                          sde_sample_freq=sde_sample_freq,
                          use_sde_at_warmup=use_sde_at_warmup,
-                         sde_support=sde_support,
+                         sde_support=False, # TODO: consider this
                          remove_time_limit_termination=remove_time_limit_termination
                          )
 
@@ -94,7 +94,6 @@ class EBQL(OffPolicyAlgorithm):
         )
 
     def train(self, gradient_steps: int, batch_size: int) -> None:
-        # TODO: this whole thing
         # Update learning rate according to schedule
 
         losses = []
@@ -130,7 +129,6 @@ class EBQL(OffPolicyAlgorithm):
                                            index=replay_data.actions).reshape(-1, 1)
             loss = F.mse_loss(actual_q, target_loss)
 
-            # TODO: should this be MSE between this and update_net_q_value ? seems so
             losses.append(loss.item())
 
             self.policy.optimizers[update_net_index].zero_grad()

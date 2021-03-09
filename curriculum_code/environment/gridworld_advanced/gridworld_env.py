@@ -22,7 +22,7 @@ class GridworldEnv(MiniGridEnv):
         super().__init__(
             width=(ROOM_SIZE + 2) * depth,
             height=(ROOM_SIZE + 2) * width,
-            max_steps=2 * (ROOM_SIZE ** 2) * depth * width,
+            max_steps=10 * (ROOM_SIZE ** 2) * depth * width,
         )
 
     def _gen_grid(self, width, height):

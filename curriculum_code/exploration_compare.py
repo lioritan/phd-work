@@ -42,40 +42,41 @@ def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_b
 
     teachers_list = [
         RandomTeacher(None, wrapper),
-        AdrTeacher({"initial_task": i_task,  # TODO: code cleanup
-                    "boundary_sampling_p": 0.7,
-                    "reward_thr": 0.5,
-                    "queue_len": 10}, wrapper),
+        # AdrTeacher({"initial_task": i_task,  # TODO: code cleanup
+        #             "boundary_sampling_p": 0.7,
+        #             "reward_thr": 0.5,
+        #             "queue_len": 10}, wrapper),
     ]
 
-    student_tasks = [easy_task, hard_task]
+    student_tasks = [easy_task]
 
     baselines = [PredefinedTasksTeacher({"tasks": [student_task]}, wrapper) for student_task in student_tasks]
 
     students_list = [
-        # DQN(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env, learning_starts=200,
+        # DQN(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env, learning_starts=50,
         #     tau=0.8,
         #     exploration_fraction=1.0, exploration_initial_eps=0.05, exploration_final_eps=0.05,
-        #     verbose=0),
-        # DQN(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env, learning_starts=200,
+        #     verbose=0, policy_kwargs={"net_arch": [32]}, buffer_size=10000, learning_rate=1e-2),
+        # DQN(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env, learning_starts=50,
         #     tau=0.8,
         #     exploration_fraction=1.0, exploration_initial_eps=1.0, exploration_final_eps=0.05,
-        #     verbose=0),
-        # DQN(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env, learning_starts=200,
+        #     verbose=0, policy_kwargs={"net_arch": [32]}, buffer_size=10000, learning_rate=1e-2),
+        # DQN(policy='MlpPolicy' if not image_based else "CnnPolicy", env=ref_env, learning_starts=50,
         #     tau=0.8,
         #     exploration_fraction=1.0, exploration_initial_eps=0.3, exploration_final_eps=0.3,
-        #     verbose=0),
+        #     verbose=0, policy_kwargs={"net_arch": [32]}, buffer_size=10000, learning_rate=1e-2),
 
-        EBQL(policy='MlpPolicy', env=ref_env, learning_starts=200, tau=0.8, exploration_fraction=1.0, exploration_initial_eps=0.05, exploration_final_eps=0.05,
-             ensemble_size=9, verbose=0),
+        EBQL(policy='MlpPolicy', env=ref_env, learning_starts=50, tau=0.8, exploration_fraction=1.0, exploration_initial_eps=0.05, exploration_final_eps=0.05,
+             ensemble_size=9, verbose=0, policy_kwargs={"net_arch": [32]}, buffer_size=10000, learning_rate=1e-2
+             ),
 
-        EBQL(policy='MlpPolicy', env=ref_env, learning_starts=200, tau=0.8, exploration_fraction=1.0,
+        EBQL(policy='MlpPolicy', env=ref_env, learning_starts=50, tau=0.8, exploration_fraction=1.0,
              exploration_initial_eps=1.0, exploration_final_eps=0.05,
-             ensemble_size=9, verbose=0),
+             ensemble_size=9, verbose=0, policy_kwargs={"net_arch": [32]}, buffer_size=10000, learning_rate=1e-2),
 
-        EBQL(policy='MlpPolicy', env=ref_env, learning_starts=200, tau=0.8, exploration_fraction=1.0,
+        EBQL(policy='MlpPolicy', env=ref_env, learning_starts=50, tau=0.8, exploration_fraction=1.0,
              exploration_initial_eps=0.3, exploration_final_eps=0.3,
-             ensemble_size=9, verbose=0),
+             ensemble_size=9, verbose=0, policy_kwargs={"net_arch": [32]}, buffer_size=10000, learning_rate=1e-2),
     ]
 
     eval_rewards = np.zeros((len(teachers_list) + 2, len(students_list), tasks, 2))
@@ -95,6 +96,7 @@ def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_b
                 eval_rewards[teacher_ind, student_index, i, 0] = total_reward
                 total_reward2, _ = teacher.evaluate(steps_per_task, hard_task, student_agent)
                 eval_rewards[teacher_ind, student_index, i, 1] = total_reward2
+            print(eval_rewards[teacher_ind, student_index, :].max())
 
     date_string = datetime.datetime.today().strftime('%Y-%m-%d')
     os.makedirs(f"./results/{date_string}/exploration/{wrapper.name}", exist_ok=True)
@@ -103,7 +105,7 @@ def run_comparison(steps_per_task, tasks, wrapper, easy_task, hard_task, image_b
 
     # for each teacher, reward for eval over time (3 graphs)
     for i, difficulty in enumerate(["easy", "hard"]):
-        for j in range(len(teachers_list)+2):
+        for j in range(len(teachers_list)+1):
             t_name = str((teachers_list + baselines)[j].__class__.__name__)
             p = bokeh.plotting.figure(plot_width=1000, plot_height=600)
             for k in range(len(students_list)):
@@ -131,7 +133,7 @@ def run_custom_gridworld():
         "keys": 6,
         "maze_percentage": 1.0,
     }
-    run_comparison(5 * 5 * 4 * 4, 1000, GridworldsCustomWrapper(), easy_params, hard_params, image_based=False)
+    run_comparison(5 * 5 * 3 * 4 * 4, 1000, GridworldsCustomWrapper(), easy_params, hard_params, image_based=False)
 
 
 def run_lunarlander():
