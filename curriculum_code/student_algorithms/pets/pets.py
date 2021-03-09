@@ -96,8 +96,8 @@ class PETS(OffPolicyAlgorithm):  # because replay buffer
         self.action_lower_bound = self.env.action_space.low
         self.existing_actions = [(self.action_upper_bound + self.action_lower_bound) / 2 for i in
                                  range(self.mpc_horizon)]
-        self.action_variance = [(self.action_upper_bound - self.action_lower_bound) ** 2 / 16 for i in
-                                range(self.mpc_horizon)]
+        self.action_variance = np.array([(self.action_upper_bound - self.action_lower_bound) ** 2 / 16 for i in
+                                         range(self.mpc_horizon)])
 
     def train(self, gradient_steps: int, batch_size: int) -> None:
         # parameters should be set so that this is called exactly once per n_episodes_rollout episodes
@@ -148,16 +148,13 @@ class PETS(OffPolicyAlgorithm):  # because replay buffer
             action_l2_norm = np.linalg.norm(action, 2)
             step_rewards = [self.state_reward_func(s) - action_l2_norm for s in particle_states]
             particle_rewards = [particle_rewards[i] + step_rewards[i] for i in range(len(particle_rewards))]
-            particle_states = [self.policy.get_next(th.tensor(s, device=self.device),
-                                                    th.tensor(action.reshape(1, -1), device=self.device))
+            particle_states = [self.policy.get_next(th.tensor(s, dtype=th.float32, device=self.device),
+                                                    th.tensor(action.reshape(1, -1), dtype=th.float32, device=self.device))
                                for s in particle_states]
         return np.mean(particle_rewards)
 
 
-class CEM(object):
-    # TODO: this needs to run X iters and be heavy lifting. The cost here is the particle reward mean -
-    #  function that gets actions and uses model and cost funcs to estimate cost
-    #  which is where the reward disappeared to - try l2 norm of actions + negative of state reward?
+class CEM:
     def __init__(self, upper_bound, lower_bound, num_iterations, num_candidates, num_elites, minimum_variance, alpha):
         self.upper_bound = upper_bound
         self.lower_bound = lower_bound
@@ -168,39 +165,28 @@ class CEM(object):
         self.alpha = alpha
 
     def get_new_actions(self, current_actions, action_variance, reward_function, start_state):
-        action_dim = current_actions[0].shape
+        action_dim = current_actions[0].shape[0]
         horizon = len(current_actions)
-        random_normal = scipy.stats.truncnorm(-2, 2,
-                                              loc=np.zeros(horizon), scale=np.ones(horizon))
         # normal(0, 1) between -2 and 2
+        random_normal = scipy.stats.truncnorm(-2, 2,
+                                              loc=np.zeros(action_dim * horizon), scale=np.ones(action_dim * horizon))
 
-        curr_means = current_actions
+        curr_means = np.array(current_actions)
         curr_var = action_variance
         iter = 0
         while (iter < self.num_iterations) and np.max(curr_var) > self.min_variance:
-            candidates = random_normal.rvs(size=[self.num_candidates, action_dim*horizon]) * np.sqrt(curr_var) + np.array(curr_means)
-            candidate_costs = np.array([reward_function(candidates[i, :].reshape(horizon, action_dim), start_state) for i in range(self.num_candidates)])
+            lb_dist, ub_dist = curr_means - self.lower_bound, self.upper_bound - curr_means
+            constrained_var = np.minimum(np.minimum(np.square(lb_dist / 2), np.square(ub_dist / 2)), curr_var)
+
+            candidates = random_normal.rvs(size=[self.num_candidates, action_dim * horizon]) * np.sqrt(
+                constrained_var).reshape(-1) + np.array(curr_means).reshape(-1)
+            candidate_costs = np.array(
+                [reward_function(candidates[i, :].reshape(horizon, action_dim), start_state) for i in
+                 range(self.num_candidates)])
             elites = candidates[np.argsort(candidate_costs)][:self.num_elites]
 
-            curr_means = self.alpha * curr_means + (1-self.alpha) * np.mean(elites, axis=0)
-            curr_var = self.alpha * curr_var + (1-self.alpha) * np.var(elites, axis=0)
+            curr_means = self.alpha * curr_means + (1 - self.alpha) * np.mean(elites, axis=0).reshape(horizon, action_dim)
+            curr_var = self.alpha * curr_var + (1 - self.alpha) * np.var(elites, axis=0).reshape(horizon, action_dim)
 
             iter += 1
         return curr_means, curr_var
-
-        # TODO
-
-        actions = [(self.upper_bound + self.lower_bound) / 2 for i in
-                   range(len(current_actions))]
-        action_variance = [(self.upper_bound - self.lower_bound) ** 2 / 16 for i in
-                           range(len(current_actions))]
-        return actions, action_variance
-
-
-if __name__ == "__main__":
-    import gym
-
-    env = gym.make("LunarLanderContinuous-v2")
-    a = PETS(PETSPolicy, env, lambda obs: 6, 5, 4, 10, 10, 6) # TODO: state reward func
-    a.learn(500)
-    a.learn(500)
