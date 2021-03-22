@@ -47,7 +47,8 @@ class PETSPolicy(nn.Module):
                  features_extractor_kwargs: Optional[Dict[str, Any]] = None,
                  normalize_images: bool = True,
                  optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
-                 optimizer_kwargs: Optional[Dict[str, Any]] = None, ):
+                 optimizer_kwargs: Optional[Dict[str, Any]] = None,
+                 _init_setup_model=False):
         super(PETSPolicy, self).__init__()
         self.action_space = action_space
 

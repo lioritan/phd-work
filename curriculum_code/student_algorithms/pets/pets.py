@@ -18,15 +18,16 @@ class PETS(OffPolicyAlgorithm):  # because replay buffer
 
     # MPC controller with CEM for selecting actions
     # Note: only works for continuous actions
+    # Note: for serialization to work, all params need defaults
     def __init__(self,
                  policy: Union[Type[BasePolicy], str],
                  env: Union[GymEnv, str],
-                 env_state_reward_func: Callable,
-                 ensemble_size: int,
-                 mpc_horizon: int,
-                 num_iterations: int,
-                 num_candidates: int,
-                 num_elites: int,
+                 env_state_reward_func: Callable = None,
+                 ensemble_size: int = 5,
+                 mpc_horizon: int = 5,
+                 num_iterations: int = 10,
+                 num_candidates: int = 20,
+                 num_elites: int = 5,
                  min_variance: float = 1e-3,
                  cem_alpha: float = 0.25,
                  num_particles: int = 20,
@@ -47,6 +48,7 @@ class PETS(OffPolicyAlgorithm):  # because replay buffer
                  create_eval_env: bool = False,
                  monitor_wrapper: bool = True,
                  seed: Optional[int] = None,
+                 _init_setup_model= False,
                  ):
         super(PETS, self).__init__(policy,
                                    env,

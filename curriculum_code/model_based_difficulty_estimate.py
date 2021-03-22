@@ -53,7 +53,7 @@ class ParamLeakingEnvWrapper(EnvironmentWrapper):
 
 
 def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, state_func):
-    wrapper = ParamLeakingEnvWrapper(wrapper)  # TODO: does not work for maze
+    #wrapper = ParamLeakingEnvWrapper(wrapper)  # TODO: does not work for maze
     random_teacher = RandomTeacher(None, wrapper)
 
     ref_env = wrapper.create_env(easy_task)
@@ -62,16 +62,16 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, state_func):
                    verbose=0,
                    policy_kwargs={"net_arch": [8, 8]},
                    env_state_reward_func=state_func,
-                   ensemble_size=5,
+                   ensemble_size=3,
                    mpc_horizon=3,
-                   num_iterations=5,
-                   num_candidates=10,
+                   num_iterations=4,
+                   num_candidates=7,
                    num_elites=3,
                    n_episodes_rollout=2)
 
     for i in tqdm(range(tasks)):
         random_teacher.train_k_actions(student, steps_per_task)
-    difficulty_estimates, task_params = estimate_task_difficulties(student, wrapper, 10, 3, steps_per_task)
+    difficulty_estimates, task_params = estimate_task_difficulties(student, wrapper, 5, 3, steps_per_task)
 
     date_string = datetime.datetime.today().strftime('%Y-%m-%d')
     os.makedirs(f"./results/{date_string}/difficulty/{wrapper.name}", exist_ok=True)
@@ -91,13 +91,24 @@ def run_lunarlander():
         "main_engine_power": 50.0,
         "side_engine_power": 10.0,
     }
-    hard_params = {
-        "leg_height": 40,
-        "leg_width": 2,
-        "main_engine_power": 10.0,
-        "side_engine_power": 1.0,
-    }
-    measure_difficulty(400, 1000, LunarLanderContinuousWrapper(), easy_params, hard_params)
+
+    def reward(state):
+        if isinstance(state, np.array([]).__class__):
+            state = state.reshape(-1)
+        else:
+            state = state.cpu().numpy().reshape(-1)
+        shaping = \
+            - 100 * np.sqrt(state[0] * state[0] + state[1] * state[1]) \
+            - 100 * np.sqrt(state[2] * state[2] + state[3] * state[3]) \
+            - 100 * abs(state[4]) + 10 * state[6] + 10 * state[7]  # And ten points for legs contact, the idea is if you
+        # lose contact again after landing, you get negative reward
+        reward = shaping
+
+        if abs(state[0]) >= 1.0:
+            reward = -100
+        return reward
+
+    measure_difficulty(400, 40, LunarLanderContinuousWrapper(), easy_params, reward)
 
 
 if __name__ == "__main__":

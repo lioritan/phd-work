@@ -14,10 +14,11 @@ from student_algorithms.ensemble_dqn.ebql_policies import EBQLEnsemblePolicy
 
 
 class EBQL(OffPolicyAlgorithm):
+    # Note: for serialization to work, all params need defaults
     def __init__(self,
                  policy: Type[BasePolicy],
                  env: Union[GymEnv, str],
-                 ensemble_size: int,
+                 ensemble_size: int = 5,
                  learning_rate: Union[float, Callable] = 1e-4,
                  exploration_fraction: float = 0.1,
                  exploration_initial_eps: float = 1.0,
