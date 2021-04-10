@@ -168,6 +168,8 @@ In \cite{Fang2020}, a combination of task feasibility and the closeness to the t
 
 In \cite{Milano2021}, task parameters are chosen from a finite set for use in evaluations of the gradient in an Evolutionary Strategies algorithm. After a warm-up period where tasks are chosen randomly, possible parameters are organized into subsets based on average reward, and evaluations pick randomly from a subset based on this ``difficulty. Notably, they show empirically that dividing subsets into difficulties non-uniformly is preferable, using $x^2$ and $x^3$ as the difficulty measures, thus creating larger subsets of easy tasks and smaller subsets of hard tasks. 
 
+In \cite{Li}, if a goal-conditioned task is not achieved, random search is used to try and find a sub-goal such that the agent can easily reach the original goal from the sub goal. Once data has been collected on the new trajectory to the sub-goal, the agent is updated.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Ensuring task variety - 24.1.21} \label{sec:variety}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -223,7 +225,7 @@ See table \ref{methods-table}
 	\cite{Justesen2018} & $\pm$ difficulty, on success/fail & none & task parameter \\ \hline
 	\cite{Jain2017} & transfer improvement & none & task selection \\ \hline
 	\cite{Reny2019} & $V(s_0)-diff(g,g*)$ & Constrained goals & start state, goal state \\ \hline
-	\cite{Dennis2020} & adversarial reward & none & task parameters \\ \hline
+	\textit{PAIRED} \cite{Dennis2020} & adversarial reward & none & task parameters \\ \hline
 	\cite{Racaniere2019} & prob of task success & teacher entropy & goal state \\ \hline
 	\cite{Al-Shedivat2017} & self-play & none & opponent agent \\ \hline
 	\cite{Zhang2020} & ensemble confidence & none & goal state \\ \hline
@@ -242,6 +244,7 @@ See table \ref{methods-table}
 	\cite{Kaddour2020} & none & surprise (low likelihood) & task parameters \\ \hline
 	\textit{POET} \cite{Wang2019} & return in range & distance in parameter space & task parameters \\ \hline
 	\cite{Milano2021} & average reward & none & task parameters \\ \hline
+	\cite{Li} & solved before & none & sub-goal \\ \hline
 \end{tabular}
 \end{table*}
 
@@ -251,7 +254,7 @@ See table \ref{methods-table}
 
 papers
 
-\cite{Curi2020}
+\cite{Curi2020} - H-UCRL
 
 \cite{Chua2018} - PETS
 
@@ -321,7 +324,7 @@ papers
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Short-term goals - 14.2.21} \label{sec:short-term}
+\section{Short-term goals - 1.3.21} \label{sec:short-term}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{itemize}
@@ -331,14 +334,18 @@ papers
 	\item \sout{Create a starting code-base with environments and simple method}
 	\item \sout{Consider a game theory formulation of the problem}
 	\item \sout{Run and analyze experiments on curriculum effectiveness for existing environments}
+	\item \sout{Estimate model impact by leaking task parameters as state}
+	\item Measure impact of exploration using EBQL
+	\item Implement a model-based method (PETS / H-UCRL) and test it on existing environments
 	\item Add Mujoco env based on PEARL code (seems not to work on Windows)
 	\item Attempt to quantify problem complexity for each environment - there's probably a teacher algorithm here
 	\item Add PAIRED / similar adversarial generation method (Rancarnier?)
 	\item Add GoID-like implementation (using estimated task difficulty or starting V). Also check high v low v goid
-	\item Incorporate latent variable from trajectory as parameter or reward bottleneck
-	\item Try using off-policy evaluation to estimate task performance
-		\item Try to see how in-task intervention would change the formulations
+	%\item Incorporate latent variable from trajectory as parameter or reward bottleneck
+	%\item Try using off-policy evaluation to estimate task performance
+	%\item Try to see how in-task intervention would change the formulations
 \end{itemize}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Long-term goals - 3.2.21} \label{sec:long-term}
