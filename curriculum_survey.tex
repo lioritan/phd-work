@@ -52,7 +52,8 @@
 		%Added methods focused on task variety and exploration
 		%Added short-term goals, blog, POMDP fomulation
 		%Added parameter and code base sections, updated goals
-		Added model-based RL section
+		%Added model-based RL section
+		Added experiments section
 	\end{abstract}
 
 \tableofcontents
@@ -335,9 +336,9 @@ papers
 	\item \sout{Consider a game theory formulation of the problem}
 	\item \sout{Run and analyze experiments on curriculum effectiveness for existing environments}
 	\item \sout{Estimate model impact by leaking task parameters as state}
-	\item Measure impact of exploration using EBQL
-	\item Implement a model-based method (PETS / H-UCRL) and test it on existing environments
-	\item Add Mujoco env based on PEARL code (seems not to work on Windows)
+	\item \sout{Measure impact of exploration using EBQL}
+	\item \sout{Implement a model-based method (PETS / H-UCRL) and test it on existing environments}
+	\item \sout{Add Mujoco env based on PEARL code (seems not to work on Windows)}
 	\item Attempt to quantify problem complexity for each environment - there's probably a teacher algorithm here
 	\item Add PAIRED / similar adversarial generation method (Rancarnier?)
 	\item Add GoID-like implementation (using estimated task difficulty or starting V). Also check high v low v goid
@@ -356,6 +357,65 @@ papers
 	\item Find a way to isolate and interpret policy building blocks that were learned on simple problems and were successfully transferred to hard problem
 	% saliency maps are not good enough, something like SARFA (ICLR20, add state noise and measure actions relative and absolute)
 \end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Experiments - 16.4.21} \label{sec:experiment}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{table*}
+	%\centering
+	\caption{Experiments}
+	\label{experiment-table}
+	\begin{tabular}{|l | l | l | l|} 
+		\hline
+		Parameters & Metrics & Observations     \\ \hline	
+		
+		\begin{tabular}{@{}c@{}} Agent: PPO \\ Task: Pendulum angle \\ Episodes: 1000 \\ Teacher: Random tasks \\ Extra: random start state \end{tabular}  
+		&   
+		&  \begin{tabular}{@{}c@{}}Poor results \\ Similar issues as MB \end{tabular}  
+		\\ \hline
+		
+		\begin{tabular}{@{}c@{}} Agent: MB-MPO \\ Task: Pendulum angle \\ Episodes: 200 \\ Teacher: Random tasks \\ Extra: random start state \end{tabular}  
+		&  \begin{tabular}{@{}c@{}}Mean return (last state), 3 trys, 10 angles \\ 
+			50 eps: \{0:6, 40:10, 80:9, 120:108, 160:78, 200:14, 240:30, 280:7, 320:22\} \\
+		100 eps: \{0:0, 40:10, 80:0, 120:16, 160:105, 200:3, 240:12, 280:19, 320:5\} \\ 
+		150 eps: \{0:6, 40:5, 80:16, 120:257, 160:-8, 200:39, 240:4, 280:0, 320:5\} \\
+		200 eps: \{0:2, 40:4, 80:0, 120:139, 160:25, 200:138, 240:5, 280:19, 320:-2\} \\\end{tabular}    
+		&  \begin{tabular}{@{}c@{}}Better on tasks other than starting task \\ Worse on and near starting task \end{tabular}  
+		    \\ \hline
+		    
+		\begin{tabular}{@{}c@{}} Agent: MB-MPO \\ Task: Pendulum angle \\ Episodes: 200 \\ Teacher: ALP-GMM \\ Extra: random start state \end{tabular}  
+		&  \begin{tabular}{@{}c@{}}Mean retur (last state)n, 3 trys, 10 angles \\ 
+			50 eps: \{0:8, 40:24, 80:0, 120:115, 160:5, 200:61, 240:3, 280:27, 320:-8\} \\
+			100 eps: \{0:0, 40:5, 80:-6, 120:-3, 160:23, 200:23, 240:2, 280:6, 320:8\} \\ 
+			150 eps: \{0:12, 40:13, 80:40, 120:27, 160:-3, 200:9, 240:90, 280:8, 320:-2\} \\
+			200 eps: \{0:3, 40:32, 80:0, 120:39, 160:-6, 200:40, 240:54, 280:23, 320:15\} \\\end{tabular}    
+		&  \begin{tabular}{@{}c@{}}Good on more tasks \\ Lower best case \end{tabular}  
+		\\ \hline
+		
+		\begin{tabular}{@{}c@{}} Agent: MB-MPO \\ Task: Pendulum angle \\ Episodes: 100 \\ Teacher: custom \\
+			Schedule: 25 repsx$(45^\circ,90^\circ,180^\circ,225^\circ)$ \\ Extra: random start state \end{tabular}  
+		&  \begin{tabular}{@{}c@{}}Mean return (last state), 3 trys, 10 angles \\ 
+			25 eps: \{0:34, 40:26, 80:-3, 120:10, 160:47, 200:92, 240:27, 280:26, 320:7\} \\
+			50 eps: \{0:12, 40:4, 80:21, 120:126, 160:127, 200:-4, 240:75, 280:12, 320:2\} \\ 
+			75 eps: \{0:-6, 40:21, 80:8, 120:23, 160:-8, 200:-8, 240:11, 280:13, 320:12\} \\
+			100 eps: \{0:3, 40:19, 80:11, 120:21, 160:-3, 200:130, 240:39, 280:18, 320:16\} \\\end{tabular}    
+		&  \begin{tabular}{@{}c@{}}Some correlation between target and performance \\ Not as much as expected \end{tabular}  
+		\\ \hline
+   
+   		\begin{tabular}{@{}c@{}} Agent: MB-MPO \\ Task: Pendulum angle \\ Episodes: 100 \\ Teacher: constant \\
+   			Schedule: 100 repsx$180^\circ$ \\ Extra: random start state \end{tabular}  
+   		&  \begin{tabular}{@{}c@{}}Mean return (last state), 3 trys, 10 angles \\ 
+   			25 eps: \{0:8, 40:39, 80:13, 120:3, 160:27, 200:103, 240:25, 280:28, 320:-4\} \\
+   			50 eps: \{0:23, 40:7, 80:36, 120:5, 160:9, 200:69, 240:6, 280:14, 320:-6\} \\ 
+   			75 eps: \{0:4, 40:13, 80:7, 120:42, 160:14, 200:-8, 240:54, 280:14, 320:12\} \\
+   			100 eps: \{0:15, 40:15, 80:4, 120:125, 160:-5, 200:2, 240:87, 280:10, 320:2\} \\\end{tabular}    
+   		&  \begin{tabular}{@{}c@{}}No real relation between goal and learning \\ Very noisy \end{tabular}  
+   		\\ \hline
+		
+	\end{tabular}
+\end{table*}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
