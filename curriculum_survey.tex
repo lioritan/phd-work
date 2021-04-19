@@ -276,7 +276,7 @@ papers
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Relevant posts - 13.1.21} \label{sec:blogs}
+\section{Relevant posts - 19.4.21} \label{sec:blogs}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{enumerate}
@@ -290,6 +290,9 @@ papers
 	
 	\item 
 	\href{https://lilianweng.github.io/lil-log/2019/06/23/meta-reinforcement-learning.html}{MetaRL summary} - an OK summary of metaRL, interesting mostly for the discussion of exploration and task generation.
+	
+	\item 
+	\href{https://wandb.ai/liorf/curriculum_rl} - weights and biases project for experiments.
 
 \end{enumerate}
 
@@ -359,7 +362,7 @@ papers
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Experiments - 16.4.21} \label{sec:experiment}
+\section{Experiments - 19.4.21} \label{sec:experiment}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{table*}
@@ -371,46 +374,51 @@ papers
 		Parameters & Metrics & Observations     \\ \hline	
 		
 		\begin{tabular}{@{}c@{}} Agent: PPO \\ Task: Pendulum angle \\ Episodes: 1000 \\ Teacher: Random tasks \\ Extra: random start state \end{tabular}  
-		&   
+		&   Mean return (total), 3 trys: -2300
 		&  \begin{tabular}{@{}c@{}}Poor results \\ Similar issues as MB \end{tabular}  
+		\\ \hline
+		
+		\begin{tabular}{@{}c@{}} Agent: PPO \\ Task: Pendulum angle \\ Episodes: 1000 \\ Teacher: Fixed task \\ Extra: random start state \end{tabular}  
+		&   Mean return (total), 3 trys: -2000
+		&  \begin{tabular}{@{}c@{}}Very good results in and near known task \\ Poor results otherwise \end{tabular}  
+		\\ \hline
+		
+		\begin{tabular}{@{}c@{}} Agent: PPO \\ Task: Pendulum angle \\ Episodes: 1000 \\ Teacher: Random task \\ Extra: random start state \\ Extra: add goal angle to state \end{tabular}  
+		&   Mean return (total), 3 trys: -1000
+		&  \begin{tabular}{@{}c@{}}Much better on average \end{tabular}  
 		\\ \hline
 		
 		\begin{tabular}{@{}c@{}} Agent: MB-MPO \\ Task: Pendulum angle \\ Episodes: 200 \\ Teacher: Random tasks \\ Extra: random start state \end{tabular}  
 		&  \begin{tabular}{@{}c@{}}Mean return (last state), 3 trys, 10 angles \\ 
-			50 eps: \{0:6, 40:10, 80:9, 120:108, 160:78, 200:14, 240:30, 280:7, 320:22\} \\
-		100 eps: \{0:0, 40:10, 80:0, 120:16, 160:105, 200:3, 240:12, 280:19, 320:5\} \\ 
-		150 eps: \{0:6, 40:5, 80:16, 120:257, 160:-8, 200:39, 240:4, 280:0, 320:5\} \\
-		200 eps: \{0:2, 40:4, 80:0, 120:139, 160:25, 200:138, 240:5, 280:19, 320:-2\} \\\end{tabular}    
+			50 eps: \{highest:108, lowest:7\} \\
+			200 eps: \{highest:138, lowest:-2\} \\\end{tabular}    
 		&  \begin{tabular}{@{}c@{}}Better on tasks other than starting task \\ Worse on and near starting task \end{tabular}  
 		    \\ \hline
 		    
 		\begin{tabular}{@{}c@{}} Agent: MB-MPO \\ Task: Pendulum angle \\ Episodes: 200 \\ Teacher: ALP-GMM \\ Extra: random start state \end{tabular}  
-		&  \begin{tabular}{@{}c@{}}Mean retur (last state)n, 3 trys, 10 angles \\ 
-			50 eps: \{0:8, 40:24, 80:0, 120:115, 160:5, 200:61, 240:3, 280:27, 320:-8\} \\
-			100 eps: \{0:0, 40:5, 80:-6, 120:-3, 160:23, 200:23, 240:2, 280:6, 320:8\} \\ 
-			150 eps: \{0:12, 40:13, 80:40, 120:27, 160:-3, 200:9, 240:90, 280:8, 320:-2\} \\
-			200 eps: \{0:3, 40:32, 80:0, 120:39, 160:-6, 200:40, 240:54, 280:23, 320:15\} \\\end{tabular}    
-		&  \begin{tabular}{@{}c@{}}Good on more tasks \\ Lower best case \end{tabular}  
+		&  \begin{tabular}{@{}c@{}}Mean return (last state), 3 trys, 10 angles \\ 
+			50 eps: \{highest:115, lowest:-8\} \\
+			200 eps: \{highest:54, lowest:-6\} \\
+			 \\\end{tabular}    
+		&  \begin{tabular}{@{}c@{}} Better on average across tasks \\ Lower best case \end{tabular}  
 		\\ \hline
 		
 		\begin{tabular}{@{}c@{}} Agent: MB-MPO \\ Task: Pendulum angle \\ Episodes: 100 \\ Teacher: custom \\
-			Schedule: 25 repsx$(45^\circ,90^\circ,180^\circ,225^\circ)$ \\ Extra: random start state \end{tabular}  
+			25 tasks X$(45^\circ,90^\circ,180^\circ,225^\circ)$ \\ Extra: random start state \end{tabular}  
 		&  \begin{tabular}{@{}c@{}}Mean return (last state), 3 trys, 10 angles \\ 
-			25 eps: \{0:34, 40:26, 80:-3, 120:10, 160:47, 200:92, 240:27, 280:26, 320:7\} \\
-			50 eps: \{0:12, 40:4, 80:21, 120:126, 160:127, 200:-4, 240:75, 280:12, 320:2\} \\ 
-			75 eps: \{0:-6, 40:21, 80:8, 120:23, 160:-8, 200:-8, 240:11, 280:13, 320:12\} \\
-			100 eps: \{0:3, 40:19, 80:11, 120:21, 160:-3, 200:130, 240:39, 280:18, 320:16\} \\\end{tabular}    
+			25 eps: \{highest:92, lowest:-3\} \\
+			100 eps: \{highest:130, lowest:-3\} \\
+			\\\end{tabular}    
 		&  \begin{tabular}{@{}c@{}}Some correlation between target and performance \\ Not as much as expected \end{tabular}  
 		\\ \hline
    
    		\begin{tabular}{@{}c@{}} Agent: MB-MPO \\ Task: Pendulum angle \\ Episodes: 100 \\ Teacher: constant \\
-   			Schedule: 100 repsx$180^\circ$ \\ Extra: random start state \end{tabular}  
+   			100 tasks X$180^\circ$ \\ Extra: random start state \end{tabular}  
    		&  \begin{tabular}{@{}c@{}}Mean return (last state), 3 trys, 10 angles \\ 
-   			25 eps: \{0:8, 40:39, 80:13, 120:3, 160:27, 200:103, 240:25, 280:28, 320:-4\} \\
-   			50 eps: \{0:23, 40:7, 80:36, 120:5, 160:9, 200:69, 240:6, 280:14, 320:-6\} \\ 
-   			75 eps: \{0:4, 40:13, 80:7, 120:42, 160:14, 200:-8, 240:54, 280:14, 320:12\} \\
-   			100 eps: \{0:15, 40:15, 80:4, 120:125, 160:-5, 200:2, 240:87, 280:10, 320:2\} \\\end{tabular}    
-   		&  \begin{tabular}{@{}c@{}}No real relation between goal and learning \\ Very noisy \end{tabular}  
+   			50 eps: \{highest:103, lowest:-4, goal: 103\} \\
+   			200 eps: \{highest:125, lowest:-5, goal: 2\} \\
+   			 \\\end{tabular}    
+   		&  \begin{tabular}{@{}c@{}}No relation between goal performance and learning \\ Very noisy \end{tabular}  
    		\\ \hline
 		
 	\end{tabular}
