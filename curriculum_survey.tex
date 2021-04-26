@@ -53,7 +53,8 @@
 		%Added short-term goals, blog, POMDP fomulation
 		%Added parameter and code base sections, updated goals
 		%Added model-based RL section
-		Added experiments section
+		%Added experiments section
+		Added ensemble agent ideas
 	\end{abstract}
 
 \tableofcontents
@@ -171,6 +172,9 @@ In \cite{Milano2021}, task parameters are chosen from a finite set for use in ev
 
 In \cite{Li}, if a goal-conditioned task is not achieved, random search is used to try and find a sub-goal such that the agent can easily reach the original goal from the sub goal. Once data has been collected on the new trajectory to the sub-goal, the agent is updated.
 
+In \cite{Won2019}, a PPO-based agent learns a policy that is robust (to a degree) to changes in body type parameters by giving a curriculum where tasks with low expected rewards are sampled more often. 
+The expected reward for a task is estimated from the value function estimates for that task. The resulting trained policy can also adapt to online changes to the body parameters, since the parameters are included in the state representation.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Ensuring task variety - 24.1.21} \label{sec:variety}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -202,7 +206,7 @@ The utility used in the paper was picking maximal surprise (self-information) - 
 In \cite{Wang2019}, \textit{POET}, a genetic algorithm for varied task generation is proposed. A set of environments and a set of agents are maintained, and at each step, environment parameters are randomly changed (with a ranking based on euclidean distance of parameters from already existing environments), each agent is trained on each environment (using a single step of ES - evolution strategies), and if an environment is challenging (mean reward at least $x$ and at most $y$), it is kept.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Method summary - 23.2.21} \label{sec:summary}
+\section{Method summary - 25.5.21} \label{sec:summary}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 See table \ref{methods-table}
@@ -246,6 +250,8 @@ See table \ref{methods-table}
 	\textit{POET} \cite{Wang2019} & return in range & distance in parameter space & task parameters \\ \hline
 	\cite{Milano2021} & average reward & none & task parameters \\ \hline
 	\cite{Li} & solved before & none & sub-goal \\ \hline
+	\cite{Won2019} & expected $V(s|p)$ & none (sampling) & task parameters \\ \hline
+	
 \end{tabular}
 \end{table*}
 
@@ -388,6 +394,17 @@ papers
 		&  \begin{tabular}{@{}c@{}}Much better on average \end{tabular}  
 		\\ \hline
 		
+		\begin{tabular}{@{}c@{}} Agent: PPO \\ Task: Pendulum angle \\ Episodes: 1000 \\ Teacher: custom \\
+			25 tasks X$(45^\circ,90^\circ,180^\circ,225^\circ)$  \\ Extra: random start state \end{tabular}  
+		&   Mean return (total), 3 trys: -2800
+		&  \begin{tabular}{@{}c@{}} Specific tasks get better \\ No relation between goal and improvement \end{tabular}  
+		\\ \hline
+		
+		\begin{tabular}{@{}c@{}} Agent: PPO \\ Task: Pendulum angle \\ Episodes: 1000 \\ Teacher: Random tasks \\ Extra: random start state in $[-\frac{\pi}{8},\frac{\pi}{8}]$ \end{tabular}  
+		&   Mean return (total), 3 trys: -2600
+		&  \begin{tabular}{@{}c@{}} Worse on average than true random \\ Better worst case \end{tabular}  
+		\\ \hline
+		
 		\begin{tabular}{@{}c@{}} Agent: MB-MPO \\ Task: Pendulum angle \\ Episodes: 200 \\ Teacher: Random tasks \\ Extra: random start state \end{tabular}  
 		&  \begin{tabular}{@{}c@{}}Mean return (last state), 3 trys, 10 angles \\ 
 			50 eps: \{highest:108, lowest:7\} \\
@@ -420,10 +437,110 @@ papers
    			 \\\end{tabular}    
    		&  \begin{tabular}{@{}c@{}}No relation between goal performance and learning \\ Very noisy \end{tabular}  
    		\\ \hline
+   		
+   		\begin{tabular}{@{}c@{}} Agent: MB-MPO \\ Task: Pendulum angle \\ Episodes: 100 \\ Teacher: custom \\
+   			25 tasks X$(45^\circ,90^\circ,180^\circ,225^\circ)$ \\ Extra: random start state in $[-\frac{\pi}{8},\frac{\pi}{8}]$ \end{tabular}  
+   		&  \begin{tabular}{@{}c@{}}Mean return (last state), 3 trys, 10 angles \\ 
+   			25 eps: \{highest: 56, lowest:-6, goal: 56\} \\
+   			100 eps: \{highest:56, lowest:-6, goal: 18\} \\
+   			\\\end{tabular}    
+   		&  \begin{tabular}{@{}c@{}} Surprisingly worse than a wider variation \end{tabular}  
+   		\\ \hline
 		
 	\end{tabular}
 \end{table*}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Ensemble agent ideas - 26.4.21} \label{sec:ensemble}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{table}
+	%\centering
+	\caption{RL problem mapping with common solution methods. All solutions assume a dense reward function, since sparse rewards complicate all of them in similar methods.}
+	\label{table-rl-problems}
+	\begin{tabular}{|l | l |} 
+		\hline
+		\begin{tabular}{@{}c@{}}Static environment, Static dynamics \\ 
+			Standard RL \\
+			\end{tabular}
+		 & \begin{tabular}{@{}c@{}}Static environment, Variable dynamics \\ 
+		 	Meta-RL / Standard RL+Simple curricula\\
+		 \end{tabular}    \\ \hline	
+	 \begin{tabular}{@{}c@{}}Variable environment, Static dynamics \\ 
+	 	Standard RL + curriculum  \\
+	 \end{tabular}
+		 & 
+		 \begin{tabular}{@{}c@{}}Variable environment, Variable dynamics \\ 
+		 	Unsolved \\
+		 \end{tabular}  \\ \hline
+	\end{tabular}
+\end{table}
+
+\begin{algorithm}[H]
+	\caption{Basic curriculum-based agent}
+	\label{pseudo-basic}
+	\small
+	\begin{algorithmic}
+		\Function{Train}{$\mathcal{T}$, n, T, $\theta$}
+		\State agent $\leftarrow$ \Call{Initialize}{$\theta$}
+		\State teacher $\leftarrow$ \Call{Initialize}{$\theta$, $\mathcal{T}$}
+		\State history $\leftarrow$ \{\}
+		\For {task in n}
+			\State $s_0, env$ $\leftarrow$ \Call{teacher.choose}{history, $\mathcal{T}$}
+			\For {timestep in T}
+				\State $a_t$ $\leftarrow$ \Call{agent.next}{$s_t$}
+				\State $s_{t+1}, r_t$ $\leftarrow$ \Call{env.step}{$s_t$, $a_t$}
+				\State \Call{agent.update}{$s_t$, $a_t$, $s{t+1}$, $r_t$}
+			\EndFor
+			\State history $\leftarrow$ history $\cup$ $\{(s_0, env, r_0, ..., r_T)\}$
+		\EndFor
+		\State \Return agent
+		\EndFunction
+	\end{algorithmic}
+\end{algorithm}
+
+Let us begin by ignoring the design of the teacher in algorithm \ref{pseudo-basic}, and assume a random curriculum for simplicity.
+Looking at table \ref{table-rl-problems},  we can see that the main interesting case is a variable environment, meaning variations in start states, goals and environment elements such as obstacles.
+
+\subsection{Action selection}
+
+For an ensemble of model-free experts, the action selection is done with $\pi(s_t) = \sum_{i} g_i(s_t) \pi_i(s_t)$, and then actions are chosen by sampling or choosing the optimal action.
+
+For an ensemble of model-based experts, this is done by running MPC and calculating the best action according to a (assumed known) reward model, so $a_t = argmax_a \sum_{i} g_i(s_t) \sum_{t'=0}^{H} R(M(s_{t'}, a_{t'}))$.
+This can be calculated with some shooting method, using the same action sequence for each model.
+It is also possible (and may be preferable for parallelization) to calculate the optimal action for each expert by itself and using $g_i$ as a weighted average by normalizing it to be a weight measure.
+
+For both methods, we could do as previous papers did and pick only one expert (according to $g_i(s_t)$) instead.
+
+\subsection{Agent update}
+
+This section is fundamentally identical for model-free and model-based experts, with the only differences being how each expert uses points to update, and how experts may be unified if an adaptive number of experts is used.
+
+The main design choice for updates is one of credit assignment - given a data point $(s_t, a_t, s_{t+1}, r_t)$, should it be applied to expert $i$ proportionally to $g_i(s_t)$ or without regarding it.
+An additional minor concern is whether to apply updates immediately or aggregate in batches.
+
+If the number of experts is not fixed, we must choose how to learn new experts and how to combine existing ones to avoid a state of adding poor new experts.
+The simple approach would be to somehow choose (perhaps randomly) when to start collecting data to train a new expert. When we have gathered a large enough number of examples to train the expert, it can be evaluated alongside the others. 
+In order to unify experts, it may be wise to act in a similar way to \cite{Xu2020a}, keeping a set of data points for each expert and adding the new points to an expert when unifying. This would require re-calculating $g_i(s_t)$, but that is not a high cost. 
+
+
+\subsection{Choosing ensemble weights}
+
+There is a rather large array of potential options here. It may be wise to test all of them and see what works.
+These include:
+\begin{itemize}
+	\item A manual design, for example splitting the episode length to $k$ parts and having $g_i$ be proportional to the section in time, such that each expert has large weight in part of the episode.
+	\item $g_i(s)  = entropy(s, i)$ - give high (or low) weight to experts with high action entropy in a given state. This may be a function of timestep as well.
+	\item $g_i(s)  = V_i(s)$ - learn a value function for each expert (based on the return). This only really makes sense for the model-free case. 
+	\item $g_i(s) = \sum_{t=0}^{h}\gamma^t V(s_t)$ - n-step version of the previous method. Relies on the reward model. Since we follow a policy for each agent, we can train a shared value function.
+	\item $g_i(s) = \frac{P(s|i,s')}{\sum_j P(s|j, s')}$ - A simple likelihood estimate. Requires saving the last state and a bootstrap solution for $s_0$. We can also go farther back in time, but that seems superfluous.
+	\item Learn $g_i$ with some loss function. 
+	\begin{itemize}
+	 	\item MSE loss (compared to $r$) with only the expert's data. This is basically the same as $g_i(s)  = V_i(s)$ but with some data selection and normalization since the expert action is different from the chosen action. Encourages convergence to a single expert.
+	 	\item Some kind of discriminative loss between experts - train global $g$ as an embedding from state space to some small space (of size $k$) to maximally discriminate expert predictions, and weigh based on the most appropriate experts for a given state. It's not really clear how to achieve this. Using the predictions of other experts may be useful as a confidence measure here. Encourages very different experts.
+	 	\item Some tradeoff of the above two - minimize MSE loss but penalize low KL divergence between experts, as a simple example.
+	\end{itemize}
+\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
