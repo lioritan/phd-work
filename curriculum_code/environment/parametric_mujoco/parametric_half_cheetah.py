@@ -15,7 +15,7 @@ class HalfCheetahRewardModel(StateActionReward):
         self.expected_speed = expected_speed
         self.forward_reward_weight = forward_reward_weight
         self.healthy_reward = healthy_reward
-        super(StateActionReward).__init__(dim_action, ctrl_cost_weight, False, action_scale)
+        super(HalfCheetahRewardModel, self).__init__(dim_action, ctrl_cost_weight, False, action_scale)
 
     def state_reward(self, state, next_state=None):
         # state[0] is velocity
