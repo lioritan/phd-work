@@ -31,6 +31,8 @@ class DPMixture:
 
         self.new_comp = None
 
+        self.verbose = args.verbose
+
     @staticmethod
     def Discrete(a):
         r = np.random.uniform( ) *np.sum(a)
@@ -222,7 +224,8 @@ class DPMixture:
 
         # normalize rho
         rho = rho_old + rho_new
-        print('raw rho', *rho)
+        if self.verbose > 0:
+            print('raw rho', *rho)
         rho = rho / np.sum(rho)
 
         # print('------rho--------')

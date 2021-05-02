@@ -30,6 +30,7 @@ class DPGPMMPolicy(nn.Module):
                  optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
                  optimizer_kwargs: Optional[Dict[str, Any]] = None,
                  use_sde=None,
+                 verbose=0,
                  _init_setup_model=False):
         super(DPGPMMPolicy, self).__init__()
         self.action_space = action_space
@@ -60,6 +61,7 @@ class DPGPMMPolicy(nn.Module):
             "state_dim": observation_space.shape[0],
             "action_dim": action_space.shape[0],
 
+            "verbose": verbose
         })
 
 

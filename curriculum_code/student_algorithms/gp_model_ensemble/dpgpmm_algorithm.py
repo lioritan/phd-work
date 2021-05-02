@@ -78,6 +78,7 @@ class DPGPMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
         self.policy_kwargs["max_inducing_point"] = max_inducing_point
         self.policy_kwargs["trigger_induce"] = trigger_induce
         self.policy_kwargs["sample_number"] = sample_number
+        self.policy_kwargs["verbose"] = verbose
         self._setup_model()
 
         self.state_reward_func = env_state_reward_func
