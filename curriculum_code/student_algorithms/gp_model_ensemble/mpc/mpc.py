@@ -100,7 +100,7 @@ class MPC(object):
             else:
                 pass
 
-            cost = self.cost_func(state_next, action)  # compute cost
+            cost = self.cost_func(state_next, action).cpu().numpy()  # compute cost
             costs += cost * self.gamma ** t
             state = copy.deepcopy(state_next)
 
