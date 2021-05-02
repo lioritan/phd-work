@@ -21,11 +21,11 @@ class AntRewardModel(StateActionReward):
         super(AntRewardModel, self).__init__(dim_action, ctrl_cost_weight, False, action_scale)
 
     def state_reward(self, state, next_state=None):
-        # state[0] is velocity?
-        print(state.shape)  # TODO: where is x and y?
-        print()
-        forward_reward = self.forward_reward_weight*state[..., 0]
-        goal_reward = -torch.sum(torch.abs(state[..., 1:3] - self.goal_pos)) + 4.0
+        # state[0,1,2] are xyz of torso, state[3:7] are torso stuff, state[7:15] are leg pos,
+        # state[15,16,17] are xyz velocities of torso, state[18:21] are angular torso velocity,
+        # state[21:30] are leg velocities
+        forward_reward = self.forward_reward_weight*state[..., 15]
+        goal_reward = -torch.sum(torch.abs(state[..., 0:2] - self.goal_pos)) + 4.0
         return goal_reward + forward_reward + self.healthy_reward
 
 
@@ -95,7 +95,6 @@ class MBAntEnv(LocomotionEnv, AntEnv):
             'y_velocity': y_velocity,
             'forward_reward': forward_reward,
         }
-        #print(info)
 
         return observation, reward, done, info
 

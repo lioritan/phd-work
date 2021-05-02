@@ -54,10 +54,10 @@ class MPC(object):
         self.init_var = np.tile(np.square(self.action_low - self.action_high) / 16, [self.horizon])
 
     def act(self, task, model, state, ground_truth=False):
-        '''
+        """
         :param state: task, model, (numpy array) current state
         :return: (float) optimal action
-        '''
+        """
         self.task = task
         self.model = model
         self.state = state
@@ -70,13 +70,8 @@ class MPC(object):
         return action
 
     def preprocess(self, state):
-        # given state return observation
-        # state = (x, x_dot, theta, theta_dot)
-        # obs = np.array([x, x_dot, np.cos(theta), np.sin(theta), theta_dot])
-        obs = np.concatenate([state[:, 0:1], state[:, 1:2],
-                              np.cos(state[:, 2:3]), np.sin(state[:, 2:3]), state[:, 3:]], axis=1)
-        # print('obs shape ', obs.shape)
-        return obs
+        # TODO: in halfcheetah this is different, same
+        pass
 
     def action_cost_function(self, actions):
         """
@@ -101,16 +96,9 @@ class MPC(object):
             # state_next = self.model.predict(self.index, state, action)+state  # numpy array (batch_size x state dim)
             # the output of the prediction model is [state_next - state]
             if not self.ground_truth:
-                state_next = self.model.predict(state, action) + state
-                # state_next = self.model.predict( self.preprocess(state), action) + state  # numpy array (batch_si
+                state_next = self.model.predict(state, action) + state  # TODO: delta is only relevant to pos?
             else:
-                # change to ground truth one
-                state_next = []
-                for i in range(state.shape[0]):
-                    self.task.set_state(state[i])
-                    state_next_i, reward, done, info = self.task.step(action[i])
-                    state_next.append(state_next_i)
-                state_next = np.array(state_next)
+                pass
 
             cost = self.cost_func(state_next, action)  # compute cost
             costs += cost * self.gamma ** t
