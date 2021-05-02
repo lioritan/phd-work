@@ -151,6 +151,6 @@ class DPGPMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
         return self.mpc.act(None, self.policy.gpmm_model, observation, ground_truth=False), state
 
     def set_env(self, env) -> None:
-        super(OnPolicyAlgorithm).set_env(env)
+        super(OnPolicyAlgorithm, self).set_env(env)
         self.state_reward_func = env.reward_model()
-        self.mpc.set_cost_func(self, self.state_reward_func)
+        self.mpc.set_cost_func(self.state_reward_func)
