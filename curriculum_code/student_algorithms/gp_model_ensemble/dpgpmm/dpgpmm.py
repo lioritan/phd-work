@@ -35,6 +35,7 @@ class DPGPMM:
     def __init__(self, dpgp_config):
         # initiate the mixture model
         args = Config_Parser(dpgp_config=dpgp_config)
+        self.verbose = args.verbose
 
         # choose GP model type
         if args.model_type == 'sample':
@@ -74,9 +75,11 @@ class DPGPMM:
         data_per_class = []
         for d_i in self.DP_mix.comps:
             data_per_class.append(d_i.n)
-        print("label: {}, predict: {}, data size per cluster: {}".format(label,
-                                                                         self.DP_mix.assigns[len(self.DP_mix.data) - 1],
-                                                                         data_per_class))
+        if self.verbose > 0:
+            print("label: {}, predict: {}, data size per cluster: {}".format(label,
+                                                                             self.DP_mix.assigns[
+                                                                                 len(self.DP_mix.data) - 1],
+                                                                             data_per_class))
         # np.save('./gym_data.npy', self.DP_mix.data)
         return time_record
 
