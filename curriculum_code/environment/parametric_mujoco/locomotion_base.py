@@ -119,7 +119,7 @@ class StateActionReward(torch.nn.Module):
             reward = reward.type(torch.get_default_dtype()).unsqueeze(-1)
         except AttributeError:
             pass
-        return reward, torch.zeros_like(reward).unsqueeze(-1)
+        return reward
 
     @staticmethod
     def action_non_sparse_reward(action):

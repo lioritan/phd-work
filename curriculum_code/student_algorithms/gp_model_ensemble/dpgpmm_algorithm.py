@@ -109,10 +109,12 @@ class DPGPMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
         self.warm_up = False
         self.warm_up_buffer = None
         self.policy.forward = self.__wrap_policy_predict(lambda s:
-            self.mpc.act(None, self.policy.gpmm_model, s, ground_truth=False))
+                                                         self.mpc.act(None, self.policy.gpmm_model, s,
+                                                                      ground_truth=False))
 
     def __wrap_policy_predict(self, action_predict_func):
-        return lambda s: (th.tensor(action_predict_func(s.detach().cpu().numpy())).reshape(1, -1), th.zeros(1), th.zeros(1))
+        return lambda s: (
+        th.tensor(action_predict_func(s.detach().cpu().numpy())).reshape(1, -1), th.zeros(1), th.zeros(1))
 
     def train(self) -> None:
         existing_data = self.rollout_buffer.get(batch_size=None)
@@ -120,12 +122,11 @@ class DPGPMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
                        example.actions[0, :].cpu().numpy(),
                        ) for example in existing_data]
         for i in range(len(model_data)):
-            if i+1 >= len(model_data):
+            if i + 1 >= len(model_data):
                 break
-            model_data[i] = (model_data[i][0], model_data[i][1], model_data[i+1][0]-model_data[i][0])
+            model_data[i] = (model_data[i][0], model_data[i][1], model_data[i + 1][0] - model_data[i][0])
         last_obs = self._last_obs[0, :]
-        model_data[-1] = (model_data[-1][0], model_data[-1][1], last_obs-model_data[-1][0])
-
+        model_data[-1] = (model_data[-1][0], model_data[-1][1], last_obs - model_data[-1][0])
 
         if not self.warm_up:
             for data_point in model_data:
@@ -152,8 +153,7 @@ class DPGPMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
 
     def set_env(self, env) -> None:
         super(OnPolicyAlgorithm, self).set_env(env)
-        #TODO: fixme
         reward_model = env.reward_model()
-        reward_model_wrapper = lambda s,a: reward_model(s,a)[0].cpu().numpy()
-        self.state_reward_func = reward_model_wrapper
+        # torch->numpy
+        self.state_reward_func = lambda s, a: reward_model(s, a).cpu().numpy()
         self.mpc.set_cost_func(self.state_reward_func)

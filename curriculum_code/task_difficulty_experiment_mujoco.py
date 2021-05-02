@@ -28,7 +28,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task):
                               verbose=0,
                               env_state_reward_func=ref_env.reward_model(),
                               n_steps=1,
-                              warm_up_time=3)  # Note: assumes all envs have a reward model
+                              warm_up_time=500)  # Note: assumes all envs have a reward model
 
     date_string = datetime.datetime.today().strftime('%Y-%m-%d %H') + "random small var leaking"
     os.makedirs(f"./results/{date_string}/difficulty/{wrapper.name}", exist_ok=True)
@@ -61,5 +61,5 @@ def run_ant():
 
 
 if __name__ == "__main__":
-    # run_cheetah()
+    run_cheetah()
     run_ant()
