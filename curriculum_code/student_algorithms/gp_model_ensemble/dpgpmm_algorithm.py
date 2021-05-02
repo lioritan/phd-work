@@ -148,13 +148,4 @@ class DPGPMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
             mask: Optional[np.ndarray] = None,
             deterministic: bool = False,
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-        return self.mpc.act(None, self.policy.gpmm_model, observation, ground_truth=False)
-
-
-if __name__ == "__main__":
-    env = LunarLanderContinuousWrapper().create_env({"leg_height": 5,
-                                                     "leg_width": 5,
-                                                     "main_engine_power": 50,
-                                                     "side_engine_power": 10, })
-    alg = DPGPMMAlgorithm(DPGPMMPolicy, env, env_state_reward_func=lambda s, a: 1, warm_up_time=5)
-    alg.learn(20)
+        return self.mpc.act(None, self.policy.gpmm_model, observation, ground_truth=False), state

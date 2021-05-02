@@ -64,13 +64,9 @@ class MPC(object):
         self.ground_truth = ground_truth
 
         soln, var = self.optimizer.obtain_solution(self.prev_sol, self.init_var)
-        if self.type == "CEM":
-            self.prev_sol = np.concatenate([np.copy(soln)[self.action_dim:], np.zeros(self.action_dim)])
-        else:
-            pass
+        self.prev_sol = np.concatenate([np.copy(soln)[self.action_dim:], np.zeros(self.action_dim)])
 
-        # since cartpole has only one action dimension
-        action = soln[0]
+        action = soln[:self.action_dim]
         return action
 
     def preprocess(self, state):
