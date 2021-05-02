@@ -183,7 +183,7 @@ class LocomotionEnv(object):
 
     def reward_model(self):
         """Get reward model."""
-        return self._reward_model.copy()
+        return self._reward_model
 
     def termination_model(self):
         """Get default termination model."""
