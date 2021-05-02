@@ -3,22 +3,12 @@ import datetime
 import os
 import pickle
 
-import gym
-import numpy as np
-from stable_baselines3 import PPO
 from tqdm import tqdm
 
-from curriculum.eval.task_difficulty_estimate import estimate_task_difficulties, plot_estimated_task_difficulties
-from curriculum.teachers.predefined_tasks_teacher import PredefinedTasksTeacher
+from curriculum.eval.task_difficulty_estimate import estimate_task_difficulties
 from curriculum.teachers.random_teacher import RandomTeacher
-from environment.environment_wrapper import EnvironmentWrapper
-from environment.gridworld_advanced.parametric_gridworld_advanced import GridworldsCustomWrapper
 from environment.parametric_mujoco.parametric_ant import AntWrapper
 from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
-from environment.simple_envs.parametric_goal_pendulum_continuous import PendulumAngleContinuousWrapper
-from environment.parametric_walker_env.parametric_walker_wrapper import WalkerWrapper
-from environment.simple_envs.parametric_cartpole import CartpoleWrapper
-from environment.simple_envs.parametric_lunarlander import LunarLanderWrapper
 from student_algorithms.gp_model_ensemble.dpgpmm_algorithm import DPGPMMAlgorithm
 from student_algorithms.gp_model_ensemble.dpgpmm_policy import DPGPMMPolicy
 
