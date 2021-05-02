@@ -26,6 +26,8 @@ class Config_Parser(object):
         self.sample_number = dpgp_config['sample_number']
         self.param = dpgp_config['param']
 
+        self.verbose = dpgp_config['verbose']
+
 
 class DPGPMM:
     name = 'DPGPMM'
