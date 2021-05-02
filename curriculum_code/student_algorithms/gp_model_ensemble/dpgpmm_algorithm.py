@@ -149,3 +149,8 @@ class DPGPMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
             deterministic: bool = False,
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
         return self.mpc.act(None, self.policy.gpmm_model, observation, ground_truth=False), state
+
+    def set_env(self, env) -> None:
+        super(OnPolicyAlgorithm).set_env(env)
+        self.state_reward_func = env.reward_model()
+        self.mpc.set_cost_func(self, self.state_reward_func)
