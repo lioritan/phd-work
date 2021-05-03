@@ -70,7 +70,8 @@ class DPMixture:
         elif j < n_comps:
             self.comps[j].add_point(x, i)
         else:
-            logger.error('Index exceeds the length of components!')
+            pass
+            #logger.error('Index exceeds the length of components!')
 
     def _inner_update_alpha_posterior_dist(self, K, N, alpha_min, alpha_max, n_sample):
         alpha = np.linspace(alpha_min, alpha_max, n_sample)
@@ -160,7 +161,8 @@ class DPMixture:
             self.comps[k].add_point(x, i)
             self.comps[k].train_model()
         else:
-            logger.error('Index exceeds the length of components!')
+            pass
+            #logger.error('Index exceeds the length of components!')
 
         # # merge existing components
         # # NOTE that self.rho_sum should also be changed when two components are merged
@@ -280,7 +282,8 @@ class DPMixture:
             if comp_trainable[k] == 1:
                 self.comps[k].train_model()
         else:
-            logger.error('Index exceeds the length of components!')
+            pass
+            #logger.error('Index exceeds the length of components!')
 
         # # merge existing components
         # # NOTE that self.rho_sum should also be changed when two components are merged
@@ -347,7 +350,7 @@ class DPMixture:
             # if n_i != len(comps)-1 and c_i.n < self.merge_burnin:
             if n_i != self.index_chain[-1] and c_i.n < self.merge_burnin:
                 print('n_i:', n_i, 'self.index_chain[-1]:', self.index_chain[-1])
-                logger.warning('reach force merge')
+                #logger.warning('reach force merge')
                 rho_sum_ii = rho_sum[n_i]
                 comps.remove(c_i)
                 rho_sum.remove(rho_sum_ii)
@@ -377,7 +380,7 @@ class DPMixture:
                 if self.index_chain[-1] != min_index:
                     self.index_chain.append(min_index)
 
-                logger.warning('Force merging a small component to component {}', min_index)
+                #logger.warning('Force merging a small component to component {}', min_index)
 
             # Condition 2: check the new components that reaches the self.merge_burnin condition
             # if n_i == len(comps)-1 and c_i.n == self.merge_burnin:
@@ -403,11 +406,11 @@ class DPMixture:
                         self.assigns[i] = min_index
 
 
-                    logger.warning('Merge the new component to component {}', min_index)
+                    #logger.warning('Merge the new component to component {}', min_index)
                 else:
                     # return to the original comps
                     comps.append(c_i)
-                    logger.warning('Finish burnin and create a new component')
+                    #logger.warning('Finish burnin and create a new component')
 
         return comps, rho_sum
 
@@ -418,7 +421,7 @@ class DPMixture:
             # Intuitively, when a small group of component appears between two large groups, this is perhaps mis-classified
             if n_i != self.index_chain[-1] and c_i.n < self.merge_burnin:
                 print('n_i:', n_i, 'self.index_chain[-1]:', self.index_chain[-1])
-                logger.warning('reach force merge')
+                #logger.warning('reach force merge')
                 rho_transition_ii = rho_transition[n_i]
                 comps.remove(c_i)
                 rho_transition.remove(rho_transition_ii)
@@ -457,7 +460,7 @@ class DPMixture:
                 # change the index chain
                 self.index_chain.pop(pos)
 
-                logger.warning('Force merging a small component to component {}', min_index)
+                #logger.warning('Force merging a small component to component {}', min_index)
 
             # Condition 2: check the new components that reaches the self.merge_burnin condition
             if n_i == self.index_chain[-1] and c_i.n == self.merge_burnin:
@@ -491,11 +494,11 @@ class DPMixture:
                     self.index_chain.pop()
                     if self.index_chain[-1] != min_index:
                         self.index_chain.append(min_index)
-                    logger.warning('Merge the new component to component {}', min_index)
+                    #logger.warning('Merge the new component to component {}', min_index)
                 else:
                     # return to the original comps
                     comps.append(c_i)
-                    logger.warning('Finish burnin and create a new component')
+                    #logger.warning('Finish burnin and create a new component')
 
         # update parameters and models
         self.comps = comps
