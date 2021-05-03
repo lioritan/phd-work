@@ -133,7 +133,7 @@ class GPComponent(object):
 
     def train_model(self):
         if self.n > self.trigger_induce:
-            logger.warning('Running MC sample inducing method')
+            #logger.warning('Running MC sample inducing method')
             # prepare data
             train_x = self.data[:, :self.input_dim]
             train_y = self.data[:, self.input_dim:]
