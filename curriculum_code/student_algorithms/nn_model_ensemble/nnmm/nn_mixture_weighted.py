@@ -4,10 +4,11 @@ from typing import Callable, Optional, List, Type, Dict, Any
 from torch import nn
 import numpy as np
 import torch.nn.functional as F
+
 from student_algorithms.nn_model_ensemble.nnmm.single_nn import DynamicsNetwork
 
 
-class NNMixture(nn.Module):
+class NNMixtureWeighted(nn.Module):
     def __init__(self,
                  observation_space: gym.spaces.Space,
                  action_space: gym.spaces.Space,
@@ -22,7 +23,7 @@ class NNMixture(nn.Module):
                  activation_fn: Type[nn.Module] = nn.ReLU,
                  optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
                  optimizer_kwargs: Optional[Dict[str, Any]] = None, ):
-        super(NNMixture, self).__init__()
+        super(NNMixtureWeighted, self).__init__()
         self.obs_space = observation_space
         self.action_space = action_space
         self.lr_schedule = lr_schedule
@@ -42,7 +43,7 @@ class NNMixture(nn.Module):
         self.merge_thresh = merge_threshold
 
         self.data = []
-        self.assigns = []
+        self.assign_probs = []
         self.rho_sum = []
         self.new_net = None
 
@@ -94,7 +95,8 @@ class NNMixture(nn.Module):
 
         # get the max probability index
         k = np.argmax(rho, axis=0)
-        self.assigns.append(k)
+        self.assign_probs.append(th.tensor(rho))
+        # TODO: assign the point to all models by weight
         if k == self.n_nets:
             # \rho_{1:k+1} = [\rho_{1:k}, \rho_{k+1}]
             self.rho_sum.extend([0])
@@ -115,6 +117,8 @@ class NNMixture(nn.Module):
         return self.alpha
 
     def forward(self, obs: th.Tensor, action: th.Tensor):
-        most_likely_net = self.assigns[-1]
+        # keep last "likelihood distrib"
+        # do weighted average
+        net_probs = self.assign_probs[-1]
         with th.no_grad():
-            return self.networks[most_likely_net](obs, action)
+            return th.sum(net_probs * th.tensor([net(obs, action) for net in self.networks]))

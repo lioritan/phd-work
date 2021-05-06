@@ -35,3 +35,11 @@ class DynamicsNetwork(nn.Module):
     def forward(self, obs: th.Tensor, action: th.Tensor):
         combined_in = th.cat((obs, action), dim=1)
         return self.model(combined_in)
+
+    def log_likelihood(self, obs: th.Tensor, action: th.Tensor, target: th.Tensor):
+        # assume state is gaussian, so log likelihood is gaussian to the predicted point
+        with th.no_grad():
+            predicted_state = self.forward(obs, action)
+            noisy_prob = th.distributions.multivariate_normal.MultivariateNormal(predicted_state)
+            log_loss = noisy_prob.log_prob(target)
+            return log_loss
