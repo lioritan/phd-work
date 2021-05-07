@@ -4,9 +4,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import numpy as np
-import scipy.stats as stats
-import matplotlib.pyplot as plt
-import time
 import torch
 
 from .optimizer import Optimizer
@@ -15,7 +12,7 @@ from .optimizer import Optimizer
 class CEMOptimizer(Optimizer):
     """A Pytorch-compatible CEM optimizer.
     """
-    def __init__(self, sol_dim, popsize, upper_bound=None, lower_bound=None, max_iters=10, num_elites=100, epsilon=0.001, alpha=0.25):
+    def __init__(self, sol_dim, popsize, upper_bound=None, lower_bound=None, max_iters=10, num_elites=100, epsilon=0.001, alpha=0.25, device=None):
         """Creates an instance of this class.
 
         Arguments:
@@ -34,8 +31,9 @@ class CEMOptimizer(Optimizer):
         super().__init__()
         self.sol_dim, self.max_iters, self.popsize, self.num_elites = sol_dim, max_iters, popsize, num_elites
         action_tiling_dim = self.sol_dim//upper_bound.shape[0]
-        self.ub, self.lb = np.tile(upper_bound,action_tiling_dim), np.tile(lower_bound,action_tiling_dim)
+        self.ub, self.lb = torch.tile(upper_bound,[action_tiling_dim]), torch.tile(lower_bound,[action_tiling_dim])
         self.epsilon, self.alpha = epsilon, alpha
+        self.device = device
 
         if num_elites > popsize:
             raise ValueError("Number of elites must be at most the population size.")
@@ -68,8 +66,9 @@ class CEMOptimizer(Optimizer):
             ----------
                 @param tensor - x : size should be (popsize x sol_dim)
             '''
-            uniform = torch.rand(shape)
-            normal = torch.distributions.normal.Normal(0, 1)
+            uniform = torch.rand(shape, device=self.device)
+            normal = torch.distributions.normal.Normal(torch.tensor(0).to(device=self.device),
+                                                       torch.tensor(1).to(device=self.device))
 
             alpha = (a - mu) / sigma
             beta = (b - mu) / sigma
@@ -77,11 +76,10 @@ class CEMOptimizer(Optimizer):
             alpha_normal_cdf = normal.cdf(alpha)
             p = alpha_normal_cdf + (normal.cdf(beta) - alpha_normal_cdf) * uniform
 
-            p = p.numpy()
-            one = np.array(1, dtype=p.dtype)
-            epsilon = np.array(np.finfo(p.dtype).eps, dtype=p.dtype)
-            v = np.clip(2 * p - 1, -one + epsilon, one - epsilon)
-            x = mu + sigma * np.sqrt(2) * torch.erfinv(torch.from_numpy(v))
+            one = torch.tensor(1, dtype=p.dtype, device=self.device)
+            epsilon = torch.tensor(1e-10, dtype=p.dtype, device=self.device)
+            v = torch.clip(2 * p - 1, -one + epsilon, one - epsilon)
+            x = mu + sigma * np.sqrt(2) * torch.erfinv(v)
             x = torch.clamp(x, a[0], b[0])
             return x
         self.sample_trunc_norm = sample_truncated_normal
@@ -89,7 +87,7 @@ class CEMOptimizer(Optimizer):
     def reset(self):
         pass
 
-    def obtain_solution(self, init_mean, init_var, use_pytorch=False, debug=False):
+    def obtain_solution(self, init_mean, init_var):
         """
         Optimizes the cost function using the provided initial candidate distribution parameters
 
@@ -106,56 +104,27 @@ class CEMOptimizer(Optimizer):
 
         mean, var, t = init_mean, init_var, 0
 
-        if use_pytorch:
-            a, b = torch.tensor([self.lb]*self.sol_dim), torch.tensor([self.ub]*self.sol_dim)
-            size = [self.popsize, self.sol_dim]
-        else:
-            X = stats.truncnorm(-2, 2, loc=np.zeros_like(mean), scale=np.ones_like(mean))
+        a, b = self.lb,self.ub
+        size = [self.popsize, self.sol_dim]
 
-        if debug:
-            cost_list = []
-            mean_list = []
-            var_list = []
-
-        while (t < self.max_iters) and np.max(var) > self.epsilon:
+        while (t < self.max_iters) and torch.max(var) > self.epsilon:
             lb_dist, ub_dist = mean - self.lb, self.ub - mean
-            constrained_var = np.minimum(np.minimum(np.square(lb_dist / 2), np.square(ub_dist / 2)), var)
+            constrained_var = torch.minimum(torch.minimum(torch.square(lb_dist / 2), torch.square(ub_dist / 2)), var)
 
-            if use_pytorch:
-                mu = torch.tensor(mean)
-                sigma = torch.tensor(np.sqrt(var))
-                samples = self.sample_trunc_norm(size, mu, sigma, a, b).numpy()
-            else:
-                samples = X.rvs(size=[self.popsize, self.sol_dim]) * np.sqrt(constrained_var) + mean
-                samples = samples.astype(np.float32)
+            mu = mean
+            sigma = torch.sqrt(constrained_var)
+            samples = self.sample_trunc_norm(size, mu, sigma, a, b)
 
             costs = self.cost_function(samples)
-            idx = np.argsort(costs)
+            idx = torch.argsort(costs)
             elites = samples[idx][:self.num_elites]
-            #print(np.sort(costs)[:self.num_elites])
 
-            new_mean = np.mean(elites, axis=0)
-            new_var = np.var(elites, axis=0)
+            new_mean = torch.mean(elites, dim=0)
+            new_var = torch.var(elites, dim=0)
 
             mean = self.alpha * mean + (1 - self.alpha) * new_mean
             var = self.alpha * var + (1 - self.alpha) * new_var
 
-            if debug:
-                min_cost = costs[idx][:self.num_elites]
-                cost_list.append(np.mean(min_cost))
-                mean_list.append(np.mean(new_mean[0]))
-                var_list.append(np.mean(new_var))
-
             t += 1
             sol, solvar = mean, var
-
-        if debug:
-            fig, axs = plt.subplots(3, sharex=True)
-            axs[0].plot(cost_list)
-            axs[1].plot(mean_list)
-            axs[2].plot(var_list)
-            name = time.time()
-            name = str(name)
-            plt.savefig("./"+name+".png")
-            plt.close()
         return sol, solvar

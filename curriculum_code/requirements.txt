@@ -2,7 +2,7 @@ matplotlib
 bokeh
 numpy
 gym
-torch>=1.7.0
+torch>=1.8.1
 stable-baselines3
 treelib
 gym-minigrid
@@ -12,3 +12,5 @@ scipy
 tqdm
 gpytorch
 wandb
+#box2d-py
+#mujoco-py
