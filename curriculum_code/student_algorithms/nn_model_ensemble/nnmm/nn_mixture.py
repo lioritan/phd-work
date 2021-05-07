@@ -128,9 +128,7 @@ class NNMixture(nn.Module):
     def predict(self, s: np.array, a: np.array):
         most_likely_net = self.assigns[-1]
         with th.no_grad():
-            obs = s.to(self.device)#th.as_tensor(s, device=self.device)
-            action = a.to(self.device)#th.as_tensor(a, device=self.device)
-            predictions = self.networks[most_likely_net].model(th.cat((obs, action), dim=1))
+            predictions = self.networks[most_likely_net].model(th.cat((s, a), dim=1))
             return predictions
 
     def to(self, device=..., dtype=...,

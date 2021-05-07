@@ -99,7 +99,6 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
     def finish_warm_up(self):
         self.warm_up = False
         self.warm_up_buffer = None
-        # TODO: wrap mpc with tensor->numpy, that mpc is for s'-s and not just s'
         self.policy.forward = self.__wrap_policy_predict(lambda s:
                                                          self.mpc.act(None, self.policy.model, s))
 
@@ -142,11 +141,10 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
             mask: Optional[np.ndarray] = None,
             deterministic: bool = False,
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-        return self.mpc.act(None, self.policy.model, observation), state
+        return self.mpc.act(None, self.policy.model, th.tensor(observation, dtype=th.float32, device=self.device)).cpu().numpy(), state
 
     def set_env(self, env) -> None:
         super(OnPolicyAlgorithm, self).set_env(env)
         reward_model = env.reward_model()
-        # TODO: torch->numpy for mpc
-        self.state_reward_func = lambda s,a: reward_model(s,a)
+        self.state_reward_func = reward_model
         self.mpc.set_cost_func(self.state_reward_func)

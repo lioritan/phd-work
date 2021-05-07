@@ -2,6 +2,7 @@ import gym
 import torch as th
 from typing import Callable, Optional, List, Type, Dict, Any
 from torch import nn
+from torch.distributions.multivariate_normal import MultivariateNormal
 
 from stable_baselines3.common.torch_layers import create_mlp
 
@@ -27,7 +28,7 @@ class DynamicsNetwork(nn.Module):
             optimizer_kwargs = {}
             # Small values to avoid NaN in Adam optimizer
             if optimizer_class == th.optim.Adam:
-                optimizer_kwargs["eps"] = 1e-5
+                optimizer_kwargs["eps"] = 1e-8
         self.optimizer_kwargs = optimizer_kwargs
 
         self.optimizer = self.optimizer_class(self.parameters(), lr=lr_schedule(1), **self.optimizer_kwargs)
@@ -40,14 +41,14 @@ class DynamicsNetwork(nn.Module):
         # assume state is gaussian, so log likelihood is gaussian to the predicted point
         with th.no_grad():
             predicted_state = self.forward(obs, action)
-            #TODO:
-            noisy_prob = th.distributions.multivariate_normal.MultivariateNormal(predicted_state,
-                                                                                 covariance_matrix=th.eye(predicted_state.shape[0], device=self.device))
+            # TODO: think about it
+            noisy_prob = MultivariateNormal(predicted_state,
+                                            covariance_matrix=th.eye(predicted_state.shape[0], device=self.device))
             log_loss = noisy_prob.log_prob(target)
             return log_loss
 
     def to(self, device=..., dtype=...,
            non_blocking: bool = ...):
         super(DynamicsNetwork, self).to(device)
-        self.device=device
+        self.device = device
         return self
