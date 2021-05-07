@@ -32,6 +32,12 @@ class NNMMPolicy(nn.Module):
         super(NNMMPolicy, self).__init__()
         self.action_space = action_space
 
+        if net_arch is None:
+            if features_extractor_class == FlattenExtractor:
+                net_arch = [64, 64]
+            else:
+                net_arch = []
+
         if is_mixed_model:
             model_class = NNMixtureWeighted
         else:
@@ -55,4 +61,5 @@ class NNMMPolicy(nn.Module):
     def to(self, device=..., dtype=...,
            non_blocking: bool = ...):
         self.register_parameter("dummy", th.nn.Parameter(th.tensor([0], dtype=th.float32, device=device)))
+        self.model.to(device)
         return self

@@ -33,13 +33,21 @@ class DynamicsNetwork(nn.Module):
         self.optimizer = self.optimizer_class(self.parameters(), lr=lr_schedule(1), **self.optimizer_kwargs)
 
     def forward(self, obs: th.Tensor, action: th.Tensor):
-        combined_in = th.cat((obs, action), dim=1)
+        combined_in = th.cat((obs, action), dim=0)
         return self.model(combined_in)
 
     def log_likelihood(self, obs: th.Tensor, action: th.Tensor, target: th.Tensor):
         # assume state is gaussian, so log likelihood is gaussian to the predicted point
         with th.no_grad():
             predicted_state = self.forward(obs, action)
-            noisy_prob = th.distributions.multivariate_normal.MultivariateNormal(predicted_state)
+            #TODO:
+            noisy_prob = th.distributions.multivariate_normal.MultivariateNormal(predicted_state,
+                                                                                 covariance_matrix=th.eye(predicted_state.shape[0], device=self.device))
             log_loss = noisy_prob.log_prob(target)
             return log_loss
+
+    def to(self, device=..., dtype=...,
+           non_blocking: bool = ...):
+        super(DynamicsNetwork, self).to(device)
+        self.device=device
+        return self

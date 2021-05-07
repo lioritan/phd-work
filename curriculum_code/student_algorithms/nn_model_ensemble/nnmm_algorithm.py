@@ -6,7 +6,7 @@ from stable_baselines3.common.on_policy_algorithm import OnPolicyAlgorithm
 from stable_baselines3.common.policies import BasePolicy
 from stable_baselines3.common.type_aliases import GymEnv
 
-from student_algorithms.gp_model_ensemble.mpc.mpc import MPC
+from student_algorithms.nn_model_ensemble.mpc.mpc import MPC
 
 
 class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
@@ -98,13 +98,14 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
     def finish_warm_up(self):
         self.warm_up = False
         self.warm_up_buffer = None
+        # TODO: wrap mpc with tensor->numpy, that mpc is for s'-s and not just s'
         self.policy.forward = self.__wrap_policy_predict(lambda s:
-                                                         self.mpc.act(None, self.policy.model, s,
+                                                         self.mpc.act(None, self.policy.model, s.cpu().numpy(),
                                                                       ground_truth=False))
 
     def __wrap_policy_predict(self, action_predict_func):
         return lambda s: (
-            action_predict_func(s).reshape(1, -1), th.zeros(1), th.zeros(1))
+            th.as_tensor(action_predict_func(s), device=self.device).reshape(1, -1), th.zeros(1), th.zeros(1))
 
     def train(self) -> None:
         existing_data = self.rollout_buffer.get(batch_size=None)
@@ -114,13 +115,13 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
         for i in range(len(model_data)):
             if i + 1 >= len(model_data):
                 break
-            model_data[i] = (model_data[i][0], model_data[i][1], model_data[i + 1][0] - model_data[i][0])
-        last_obs = self._last_obs[0, :]
-        model_data[-1] = (model_data[-1][0], model_data[-1][1], last_obs - model_data[-1][0])
+            model_data[i] = (model_data[i][0], model_data[i][1], model_data[i + 1][0])
+        last_obs = th.as_tensor(self._last_obs[0, :]).to(self.device)
+        model_data[-1] = (model_data[-1][0], model_data[-1][1], last_obs)
 
         if not self.warm_up:
             for data_point in model_data:
-                self.policy.add_example(data_point)
+                self.policy.model.add_example(data_point)
                 self.policy.model.fit()
                 return
         else:
@@ -130,7 +131,7 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
                 self.warm_up_buffer.extend(model_data)
             else:
                 for data_point in self.warm_up_buffer:
-                    self.policy.add_example(data_point)
+                    self.policy.model.add_example(data_point)
                     self.policy.model.fit()
                 self.finish_warm_up()
 
@@ -146,6 +147,6 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
     def set_env(self, env) -> None:
         super(OnPolicyAlgorithm, self).set_env(env)
         reward_model = env.reward_model()
-        # torch->numpy
-        self.state_reward_func = reward_model
+        # TODO: torch->numpy for mpc
+        self.state_reward_func = lambda s,a: reward_model(s,a).cpu().numpy()
         self.mpc.set_cost_func(self.state_reward_func)

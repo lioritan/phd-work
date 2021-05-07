@@ -60,8 +60,7 @@ class NNMixtureWeighted(nn.Module):
         self.data.append(data)
 
     def do_net_step(self, net, x):
-        with th.no_grad():
-            predicted_data = net(x[0], x[1])
+        predicted_data = net(x[0], x[1])
         loss = F.mse_loss(predicted_data, x[2])
         net.optimizer.zero_grad()
         loss.backward()
@@ -72,10 +71,12 @@ class NNMixtureWeighted(nn.Module):
         # get the newest data point x_{n+1}
         i = len(self.data) - 1
         x = self.data[i]
+        # TODO: make all of this code torch so it's faster
 
         # calculate \rho_{n+1, 1:k} - [k, 1]
         rho_old = [self.rho_sum[k] * np.exp(self.comps[k].log_likelihood(x[0], x[1], x[2]))
                    for k in range(self.n_nets)]
+        rho_old = [rho_k.item() for rho_k in rho_old]
 
         # create a new component and use the new data point as training data
         if self.new_net is None:
@@ -88,9 +89,11 @@ class NNMixtureWeighted(nn.Module):
             rho_new = [0.0]  # can afford to wait on testing the new net
         else:
             rho_new = [self.alpha * np.exp(self.new_net.log_likelihood(x[0], x[1], x[2]))]
+            rho_new = [rho_k.item() for rho_k in rho_new]
 
         # normalize \rho
         rho = rho_old + rho_new
+        rho = [r + 1e-10 for r in rho]  # TODO: to avoid zeros
         rho = rho / np.sum(rho)
 
         # get the max probability index
@@ -104,6 +107,7 @@ class NNMixtureWeighted(nn.Module):
             self.add_net(self.new_net)
             self.new_net = None
         elif k < self.n_nets:
+            rho_old = [r + 1e-10 for r in rho_old]  # TODO: to avoid zeros
             rho_old = rho_old / np.sum(rho_old)
             # \rho_{n+1} = \sum_{i=1}^n \rho_{i}
             self.rho_sum = [a + b for a, b in zip(self.rho_sum, rho_old)]
@@ -122,3 +126,19 @@ class NNMixtureWeighted(nn.Module):
         net_probs = self.assign_probs[-1]
         with th.no_grad():
             return th.sum(net_probs * th.tensor([net(obs, action) for net in self.networks]))
+
+    def predict(self, s: np.array, a: np.array):
+        net_probs = self.assign_probs[-1]
+        with th.no_grad():
+            obs = th.as_tensor(s, device=self.device)
+            action = th.as_tensor(a, device=self.device)
+            predictions = th.sum(net_probs * th.tensor([net(obs, action) for net in self.networks]))
+            return predictions.cpu().numpy()
+
+    def to(self, device=..., dtype=...,
+           non_blocking: bool = ...):
+        self.register_parameter("dummy", th.nn.Parameter(th.tensor([0], dtype=th.float32, device=device)))
+        self.device=device
+        for net in self.networks:
+            net.to(device)
+        return self
