@@ -11,8 +11,8 @@ from tqdm import tqdm
 
 from curriculum.eval.task_difficulty_estimate import estimate_task_difficulties
 from curriculum.teachers.random_teacher import RandomTeacher
-# from environment.parametric_mujoco.parametric_ant import AntWrapper
-# from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
+from environment.parametric_mujoco.parametric_ant import AntWrapper
+from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
 from environment.parametric_mujoco.parametric_pendulum_locomotion import MBPendulumAngleContinuousWrapper
 from student_algorithms.gp_model_ensemble.dpgpmm_algorithm import DPGPMMAlgorithm
 from student_algorithms.gp_model_ensemble.dpgpmm_policy import DPGPMMPolicy
@@ -29,7 +29,6 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task):
     config.task = wrapper.name
     config.steps_per_task = steps_per_task
     config.num_tasks = tasks
-    wandb.gym.monitor()  # Any env used with gym wrapper monitor will now be recorded
 
     ref_env = wrapper.create_env(easy_task)
 
@@ -37,7 +36,9 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task):
                             verbose=0,
                             env_state_reward_func=ref_env.reward_model(),
                             n_steps=1,
-                            warm_up_time=100)  # Note: assumes all envs have a reward model
+                            mm_burnin=20,
+                            policy_kwargs={"net_arch": [8, 8]},
+                            warm_up_time=800)  # Note: assumes all envs have a reward model
 
     config.student = str(student)
     config.student_params = student.__dict__
@@ -73,6 +74,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task):
         pickle.dump(random_teacher.history.history, fptr)
 
     # eval and record video
+    wandb.gym.monitor()  # Any env used with gym wrapper monitor will now be recorded
     evaluate(steps_per_task, random_teacher.generate_task()[0],
              student, f"./results/{date_string}/difficulty/{wrapper.name}/")
 
@@ -116,6 +118,6 @@ def run_pend():
 
 
 if __name__ == "__main__":
-    # run_cheetah()
-    # run_ant()
+    run_cheetah()
+    run_ant()
     run_pend()
