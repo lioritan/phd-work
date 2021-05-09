@@ -5,6 +5,7 @@ from torch import nn
 import numpy as np
 import torch.nn.functional as F
 from student_algorithms.nn_model_ensemble.nnmm.single_nn import DynamicsNetwork
+import wandb
 
 
 class NNMixture(nn.Module):
@@ -48,8 +49,8 @@ class NNMixture(nn.Module):
 
     def init_net(self):
         net = DynamicsNetwork(self.obs_space, self.action_space, self.lr_schedule,
-                               self.net_arch, self.activation_fn, self.optimizer_class,
-                               self.optimizer_kwargs)
+                              self.net_arch, self.activation_fn, self.optimizer_class,
+                              self.optimizer_kwargs)
         net.to(self.device)
         return net
 
@@ -94,7 +95,7 @@ class NNMixture(nn.Module):
 
         # normalize \rho
         rho = rho_old + rho_new
-        rho = [r+1e-10 for r in rho] # TODO: to avoid zeros
+        rho = [r + 1e-10 for r in rho]  # TODO: to avoid zeros
         rho = rho / np.sum(rho)
 
         # get the max probability index
@@ -116,9 +117,55 @@ class NNMixture(nn.Module):
             pass
             # logger.error('Index exceeds the length of components!')
 
-        # TODO: merge / another way to remove the new net
+        if self.new_net and self.new_net.n_points > (self.merge_burnin * 2):
+            # Removal condition: net had 2 * self.merge_burnin points and never got chosen
+            self.new_net = None
+
+        if self.n_nets > 1:
+            self.merge_nets()
+
+        # TODO: reduce point set?
+        wandb.log({
+            "n_points": i + 1,
+            "n_networks": self.n_nets,
+            "biggest_net_size": max([net.n_points for net in self.networks]),
+        })
 
         return self.alpha
+
+    def merge_nets(self):
+        # Condition 1: check the components that has less data points than the self.merge_burnin condition,
+        # and were not just picked
+        most_recent_net = self.assigns[-1]
+        for other_net in range(self.n_nets):
+            if other_net == most_recent_net:
+                continue
+            if self.networks[other_net].n_points < self.merge_burnin * 2:
+                self.merge_with_closest_net(other_net)
+
+    def merge_with_closest_net(self, net):
+        net_point_inds = [i for i in range(len(self.data)) if self.assigns[i] == net]
+        net_logprob = th.cat([self.networks[net].log_likelihood(self.data[i][0], self.data[i][1], self.data[i][2]).reshape(-1)
+                              for i in net_point_inds])
+        klds = []
+        for other_net in range(self.n_nets):
+            if other_net == net:
+                klds.append(np.inf)
+                continue
+            other_net_logprob = th.cat([self.networks[other_net].log_likelihood(self.data[i][0], self.data[i][1], self.data[i][2]).reshape(-1)
+                                  for i in net_point_inds])
+            kld = F.kl_div(net_logprob, other_net_logprob, log_target=True)
+            klds.append(kld.item())
+        closest_net = np.argmin(klds)
+        if klds[closest_net] < self.merge_thresh:
+            for ind in net_point_inds:
+                self.do_net_step(self.networks[closest_net], self.data[ind])
+                self.assigns[ind] = closest_net
+            self.networks.pop(net)
+            old_net_rho_sum = self.rho_sum[net]
+            self.rho_sum[closest_net] += old_net_rho_sum
+            self.rho_sum.pop(net)
+            self.n_nets -= 1
 
     def forward(self, obs: th.Tensor, action: th.Tensor):
         most_likely_net = self.assigns[-1]
@@ -134,7 +181,7 @@ class NNMixture(nn.Module):
     def to(self, device=..., dtype=...,
            non_blocking: bool = ...):
         self.register_parameter("dummy", th.nn.Parameter(th.tensor([0], dtype=th.float32, device=device)))
-        self.device=device
+        self.device = device
         for net in self.networks:
             net.to(device)
         return self
