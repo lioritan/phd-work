@@ -100,11 +100,12 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
         self.warm_up = False
         self.warm_up_buffer = None
         self.policy.forward = self.__wrap_policy_predict(lambda s:
-                                                         self.mpc.act(None, self.policy.model, s))
+                                                         self.mpc.act(None, self.policy.model, s.type(th.float32)))
 
     def __wrap_policy_predict(self, action_predict_func):
         return lambda s: (
-            th.as_tensor(action_predict_func(s), device=self.device).reshape(1, -1), th.zeros(1), th.zeros(1))
+            th.as_tensor(action_predict_func(s), dtype=th.float32, device=self.device).reshape(1, -1),
+            th.zeros(1), th.zeros(1))
 
     def train(self) -> None:
         existing_data = self.rollout_buffer.get(batch_size=None)
@@ -115,7 +116,7 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
             if i + 1 >= len(model_data):
                 break
             model_data[i] = (model_data[i][0], model_data[i][1], model_data[i + 1][0])
-        last_obs = th.as_tensor(self._last_obs[0, :]).to(self.device)
+        last_obs = th.as_tensor(self._last_obs[0, :], dtype=th.float32).to(self.device)
         model_data[-1] = (model_data[-1][0], model_data[-1][1], last_obs)
 
         if not self.warm_up:
