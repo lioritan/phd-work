@@ -4,6 +4,7 @@ from typing import Callable, Optional, List, Type, Dict, Any
 from torch import nn
 import numpy as np
 import torch.nn.functional as F
+import wandb
 
 from student_algorithms.nn_model_ensemble.nnmm.single_nn import DynamicsNetwork
 
@@ -43,14 +44,16 @@ class NNMixtureWeighted(nn.Module):
         self.merge_thresh = merge_threshold
 
         self.data = []
-        self.assign_probs = []
+        self.assigns = []
         self.rho_sum = []
         self.new_net = None
 
     def init_net(self):
-        return DynamicsNetwork(self.obs_space, self.action_space, self.lr_schedule,
-                               self.net_arch, self.activation_fn, self.optimizer_class,
-                               self.optimizer_kwargs)
+        net = DynamicsNetwork(self.obs_space, self.action_space, self.lr_schedule,
+                              self.net_arch, self.activation_fn, self.optimizer_class,
+                              self.optimizer_kwargs)
+        net.to(self.device)
+        return net
 
     def add_net(self, new_net):
         self.networks.append(new_net)
@@ -74,7 +77,7 @@ class NNMixtureWeighted(nn.Module):
         # TODO: make all of this code torch so it's faster
 
         # calculate \rho_{n+1, 1:k} - [k, 1]
-        rho_old = [self.rho_sum[k] * np.exp(self.comps[k].log_likelihood(x[0], x[1], x[2]))
+        rho_old = [self.rho_sum[k] * th.exp(self.networks[k].log_likelihood(x[0], x[1], x[2]))
                    for k in range(self.n_nets)]
         rho_old = [rho_k.item() for rho_k in rho_old]
 
@@ -88,7 +91,7 @@ class NNMixtureWeighted(nn.Module):
         if self.n_nets > 0 and self.new_net.n_points < self.merge_burnin:
             rho_new = [0.0]  # can afford to wait on testing the new net
         else:
-            rho_new = [self.alpha * np.exp(self.new_net.log_likelihood(x[0], x[1], x[2]))]
+            rho_new = [self.alpha * th.exp(self.new_net.log_likelihood(x[0], x[1], x[2]))]
             rho_new = [rho_k.item() for rho_k in rho_new]
 
         # normalize \rho
@@ -98,8 +101,7 @@ class NNMixtureWeighted(nn.Module):
 
         # get the max probability index
         k = np.argmax(rho, axis=0)
-        self.assign_probs.append(th.tensor(rho))
-        # TODO: assign the point to all models by weight
+        self.assigns.append(k)
         if k == self.n_nets:
             # \rho_{1:k+1} = [\rho_{1:k}, \rho_{k+1}]
             self.rho_sum.extend([0])
@@ -116,29 +118,72 @@ class NNMixtureWeighted(nn.Module):
             pass
             # logger.error('Index exceeds the length of components!')
 
-        # TODO: merge / another way to remove the new net
+        if self.new_net and self.new_net.n_points > (self.merge_burnin * 2):
+            # Removal condition: net had 2 * self.merge_burnin points and never got chosen
+            self.new_net = None
+
+        if self.n_nets > 1:
+            self.merge_nets()
+
+        # TODO: reduce point set?
+        wandb.log({
+            "n_points": i + 1,
+            "n_networks": self.n_nets,
+            "biggest_net_size": max([net.n_points for net in self.networks]),
+        })
 
         return self.alpha
 
+    def merge_nets(self):
+        # Condition 1: check the components that has less data points than the self.merge_burnin condition,
+        # and were not just picked
+        most_recent_net = self.assigns[-1]
+        for other_net in range(self.n_nets):
+            if other_net == most_recent_net:
+                continue
+            if self.networks[other_net].n_points < self.merge_burnin * 2:
+                self.merge_with_closest_net(other_net)
+
+    def merge_with_closest_net(self, net):
+        net_point_inds = [i for i in range(len(self.data)) if self.assigns[i] == net]
+        net_logprob = th.cat([self.networks[net].log_likelihood(self.data[i][0], self.data[i][1], self.data[i][2]).reshape(-1)
+                              for i in net_point_inds])
+        klds = []
+        for other_net in range(self.n_nets):
+            if other_net == net:
+                klds.append(np.inf)
+                continue
+            other_net_logprob = th.cat([self.networks[other_net].log_likelihood(self.data[i][0], self.data[i][1], self.data[i][2]).reshape(-1)
+                                  for i in net_point_inds])
+            kld = F.kl_div(net_logprob, other_net_logprob, log_target=True)
+            klds.append(kld.item())
+        closest_net = np.argmin(klds)
+        if klds[closest_net] < self.merge_thresh:
+            for ind in net_point_inds:
+                self.do_net_step(self.networks[closest_net], self.data[ind])
+                self.assigns[ind] = closest_net
+
+            self.networks.pop(net)
+            old_net_rho_sum = self.rho_sum[net]
+            self.rho_sum[closest_net] += old_net_rho_sum
+            self.rho_sum.pop(net)
+            self.n_nets -= 1
+
     def forward(self, obs: th.Tensor, action: th.Tensor):
-        # keep last "likelihood distrib"
-        # do weighted average
-        net_probs = self.assign_probs[-1]
-        with th.no_grad():
-            return th.sum(net_probs * th.tensor([net(obs, action) for net in self.networks]))
+        raise NotImplementedError()
 
     def predict(self, s: np.array, a: np.array):
-        net_probs = self.assign_probs[-1]
+        net_probs = self.rho_sum / np.sum(self.rho_sum)
+        sa_in = th.cat((s, a), dim=1)
         with th.no_grad():
-            obs = th.as_tensor(s, device=self.device)
-            action = th.as_tensor(a, device=self.device)
-            predictions = th.sum(net_probs * th.tensor([net(obs, action) for net in self.networks]))
-            return predictions.cpu().numpy()
+            predictions = np.sum([net_probs[i] * self.networks[i].model(sa_in).cpu().numpy()
+                                  for i in range(self.n_nets)], axis=1)
+            return predictions
 
     def to(self, device=..., dtype=...,
            non_blocking: bool = ...):
         self.register_parameter("dummy", th.nn.Parameter(th.tensor([0], dtype=th.float32, device=device)))
-        self.device=device
+        self.device = device
         for net in self.networks:
             net.to(device)
         return self
