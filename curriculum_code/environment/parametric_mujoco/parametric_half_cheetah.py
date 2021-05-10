@@ -52,17 +52,17 @@ class MBHalfCheetahEnv(LocomotionEnv, HalfCheetahEnv):
         ctrl_cost = self.control_cost(action)
 
         # Note: Changed to be difference from expected speed
-        forward_reward = self._forward_reward_weight * np.abs(x_velocity - self.expected_speed)
+        forward_cost = self._forward_reward_weight * np.abs(x_velocity - self.expected_speed)
 
         observation = self._get_obs()
-        reward = forward_reward - ctrl_cost
+        reward = -forward_cost - ctrl_cost
         done = False
         info = {
             'x_position': x_position_after,
             'x_velocity': x_velocity,
             'expected_velocity': self.expected_speed,
 
-            'reward_run': forward_reward,
+            'reward_run': -forward_cost,
             'reward_ctrl': -ctrl_cost
         }
 
