@@ -101,6 +101,7 @@ class NNMixtureWeighted(nn.Module):
 
         # get the max probability index
         k = np.argmax(rho, axis=0)
+        # TODO: consider adding it to all nets (by weight)
         self.assigns.append(k)
         if k == self.n_nets:
             # \rho_{1:k+1} = [\rho_{1:k}, \rho_{k+1}]
