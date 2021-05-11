@@ -4,15 +4,18 @@ import os
 import pickle
 
 import gym
+from stable_baselines3 import PPO
+
 import wandb
 import numpy as np
 
 from tqdm import tqdm
 
 from curriculum.eval.task_difficulty_estimate import estimate_task_difficulties
+from curriculum.teachers.predefined_tasks_teacher import PredefinedTasksTeacher
 from curriculum.teachers.random_teacher import RandomTeacher
-from environment.parametric_mujoco.parametric_ant import AntWrapper
-from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
+# from environment.parametric_mujoco.parametric_ant import AntWrapper
+# from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
 from environment.parametric_mujoco.parametric_pendulum_locomotion import MBPendulumAngleContinuousWrapper
 from student_algorithms.gp_model_ensemble.dpgpmm_algorithm import DPGPMMAlgorithm
 from student_algorithms.gp_model_ensemble.dpgpmm_policy import DPGPMMPolicy
@@ -20,56 +23,75 @@ from student_algorithms.nn_model_ensemble.nnmm_algorithm import NNMMAlgorithm
 from student_algorithms.nn_model_ensemble.nnmm_policy import NNMMPolicy
 
 
-def measure_difficulty(steps_per_task, tasks, wrapper, easy_task):
+def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="PPO"):
     random_teacher = RandomTeacher(None, wrapper)
+    #random_teacher = PredefinedTasksTeacher({"tasks": [easy_task]}, wrapper)
 
-    os.environ["WANDB_MODE"] = "offline" # TODO: connection fix
-    wandb.init(project='curriculum_rl', entity='liorf')
+    wandb.init(project='curriculum_rl', entity='liorf', save_code=True)
     config = wandb.config
     config.task = wrapper.name
+    config.teacher = str(random_teacher)
+    config.teacher_params = random_teacher.__dict__
     config.steps_per_task = steps_per_task
     config.num_tasks = tasks
 
     ref_env = wrapper.create_env(easy_task)
 
-    student = NNMMAlgorithm(policy=NNMMPolicy, env=ref_env,
-                            verbose=0,
-                            env_state_reward_func=ref_env.reward_model(),
-                            n_steps=1,
-                            mm_burnin=20,
-                            policy_kwargs={"net_arch": [8, 8]},
-                            is_mixed_model=True,
-                            warm_up_time=800)  # Note: assumes all envs have a reward model
+    if student_alg == "NN" or student_alg == "NN_MIX":
+        student = NNMMAlgorithm(policy=NNMMPolicy, env=ref_env,
+                                verbose=0,
+                                env_state_reward_func=ref_env.reward_model(),
+                                n_steps=1,
+                                mm_burnin=20,
+                                policy_kwargs={"net_arch": [8, 8]},
+                                is_mixed_model=(student_alg == "NN_MIX"),
+                                warm_up_time=800)  # Note: assumes all envs have a reward model
+    elif student_alg == "GP":
+        student = DPGPMMAlgorithm(policy=DPGPMMPolicy, env=ref_env,
+                                  verbose=0,
+                                  env_state_reward_func=ref_env.reward_model(),
+                                  n_steps=1,
+                                  mm_burnin=20,
+                                  policy_kwargs={"net_arch": [8, 8]},
+                                  # is_mixed_model=True,
+                                  warm_up_time=800)
+    else:
+        student = PPO(policy='MlpPolicy', env=ref_env,
+                      verbose=0,
+                      policy_kwargs={"net_arch": [dict(pi=[8, 8], vf=[8, 8])]},
+                      n_steps=steps_per_task // 4)
 
     config.student = str(student)
     config.student_params = student.__dict__
 
     wandb.watch(student.policy)  # TODO: put a model/policy (th module) and it logs gradients and model params
 
-    date_string = datetime.datetime.today().strftime('%Y-%m-%d %H') + " normal"
+    date_string = datetime.datetime.today().strftime('%Y-%m-%d %H') + " ppo const"
     os.makedirs(f"./results/{date_string}/difficulty/{wrapper.name}", exist_ok=True)
 
     for i in tqdm(range(tasks)):
         random_teacher.train_k_actions(student, steps_per_task)
-        wandb.log({"step": i,
+        wandb.log({"task_num": i,
                    "student_reward": random_teacher.history.history[-1][1],
                    "teacher_task": random_teacher.history.history[-1][0], })
         if i % 5 == 0 and i > 0:
             difficulty_estimates, task_params = estimate_task_difficulties(student, wrapper, 10, 3, steps_per_task)
-            wandb.log({"step": i,
+            wandb.log({"task_num": i,
                        "reward_std": difficulty_estimates.std(),
                        "mean_reward": difficulty_estimates.mean(),
-                       "task_rewards": difficulty_estimates.mean(axis=1)})
+                       "task_rewards": difficulty_estimates.mean(axis=1),
+                       "best_subtask_reward": difficulty_estimates.mean(axis=1).max(),
+                       "best_subtask_index": difficulty_estimates.mean(axis=1).argmax()})
             params_arr = np.array(task_params)
             param_names = [name for name in wrapper.parameters.keys()]
             for param_num in range(params_arr.shape[1]):
-                wandb.log({"step": i,
+                wandb.log({"task_num": i,
                            f"task_reward_corrs_{param_names[param_num]}":
-                               np.corrcoef(difficulty_estimates.mean(axis=1), params_arr[:, param_num])})
+                               np.corrcoef(difficulty_estimates.mean(axis=1), params_arr[:, param_num])[0, 1]})
             with open(f"./results/{date_string}/difficulty/{wrapper.name}/data_{i}.pkl", "wb") as fptr:
                 pickle.dump((difficulty_estimates, task_params), fptr)
             # TODO: save does not work for nnmm/dpgpmm, missing attributes
-            #student.save(f"./results/{date_string}/difficulty/{wrapper.name}/student_{i}.agent")
+            # student.save(f"./results/{date_string}/difficulty/{wrapper.name}/student_{i}.agent")
 
     with open(f"./results/{date_string}/difficulty/{wrapper.name}/hist.pkl", "wb") as fptr:
         pickle.dump(random_teacher.history.history, fptr)
@@ -115,10 +137,10 @@ def run_pend():
     easy_params = {
         "goal_angle": 1.5,
     }
-    measure_difficulty(1000, 250, MBPendulumAngleContinuousWrapper(), easy_params)
+    measure_difficulty(1000, 50, MBPendulumAngleContinuousWrapper(), easy_params)
 
 
 if __name__ == "__main__":
-    run_cheetah()
-    run_ant()
+    # run_cheetah()
+    # run_ant()
     run_pend()

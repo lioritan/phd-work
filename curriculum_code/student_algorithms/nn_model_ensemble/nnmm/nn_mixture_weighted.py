@@ -178,8 +178,8 @@ class NNMixtureWeighted(nn.Module):
         sa_in = th.cat((s, a), dim=1)
         with th.no_grad():
             predictions = np.sum([net_probs[i] * self.networks[i].model(sa_in).cpu().numpy()
-                                  for i in range(self.n_nets)], axis=1)
-            return predictions
+                                  for i in range(self.n_nets)], axis=0)
+            return th.tensor(predictions, dtype=th.float32, device=self.device)
 
     def to(self, device=..., dtype=...,
            non_blocking: bool = ...):
