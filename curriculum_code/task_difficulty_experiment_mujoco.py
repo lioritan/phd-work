@@ -27,7 +27,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
     random_teacher = RandomTeacher(None, wrapper)
     #random_teacher = PredefinedTasksTeacher({"tasks": [easy_task]}, wrapper)
 
-    wandb.init(project='curriculum_rl', entity='liorf', save_code=True)
+    wandb.init(project='model_ensemble_pendulum', entity='liorf', save_code=True)
     config = wandb.config
     config.task = wrapper.name
     config.teacher = str(random_teacher)
@@ -43,18 +43,18 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
                                 env_state_reward_func=ref_env.reward_model(),
                                 n_steps=1,
                                 mm_burnin=20,
-                                policy_kwargs={"net_arch": [8, 8]},
+                                learning_rate=1e-2,
+                                n_epochs=10,
+                                policy_kwargs={"net_arch": [8]},
                                 is_mixed_model=(student_alg == "NN_MIX"),
-                                warm_up_time=800)  # Note: assumes all envs have a reward model
+                                warm_up_time=steps_per_task)  # Note: assumes all envs have a reward model
     elif student_alg == "GP":
         student = DPGPMMAlgorithm(policy=DPGPMMPolicy, env=ref_env,
                                   verbose=0,
                                   env_state_reward_func=ref_env.reward_model(),
                                   n_steps=1,
                                   mm_burnin=20,
-                                  policy_kwargs={"net_arch": [8, 8]},
-                                  # is_mixed_model=True,
-                                  warm_up_time=800)
+                                  warm_up_time=steps_per_task)
     else:
         student = PPO(policy='MlpPolicy', env=ref_env,
                       verbose=0,
@@ -66,7 +66,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
 
     wandb.watch(student.policy)  # TODO: put a model/policy (th module) and it logs gradients and model params
 
-    date_string = datetime.datetime.today().strftime('%Y-%m-%d %H') + " ppo const"
+    date_string = datetime.datetime.today().strftime('%Y-%m-%d %H') + "nn mix"
     os.makedirs(f"./results/{date_string}/difficulty/{wrapper.name}", exist_ok=True)
 
     for i in tqdm(range(tasks)):
@@ -76,18 +76,19 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
                    "teacher_task": random_teacher.history.history[-1][0], })
         if i % 5 == 0 and i > 0:
             difficulty_estimates, task_params = estimate_task_difficulties(student, wrapper, 10, 3, steps_per_task)
+            avg_reward_per_step = difficulty_estimates/steps_per_task
             wandb.log({"task_num": i,
-                       "reward_std": difficulty_estimates.std(),
-                       "mean_reward": difficulty_estimates.mean(),
-                       "task_rewards": difficulty_estimates.mean(axis=1),
-                       "best_subtask_reward": difficulty_estimates.mean(axis=1).max(),
-                       "best_subtask_index": difficulty_estimates.mean(axis=1).argmax()})
+                       "reward_std": avg_reward_per_step.std(),
+                       "mean_reward": avg_reward_per_step.mean(),
+                       "task_rewards": avg_reward_per_step.mean(axis=1),
+                       "best_subtask_reward": avg_reward_per_step.mean(axis=1).max(),
+                       "best_subtask_index": avg_reward_per_step.mean(axis=1).argmax()})
             params_arr = np.array(task_params)
             param_names = [name for name in wrapper.parameters.keys()]
             for param_num in range(params_arr.shape[1]):
                 wandb.log({"task_num": i,
                            f"task_reward_corrs_{param_names[param_num]}":
-                               np.corrcoef(difficulty_estimates.mean(axis=1), params_arr[:, param_num])[0, 1]})
+                               np.corrcoef(avg_reward_per_step.mean(axis=1), params_arr[:, param_num])[0, 1]})
             with open(f"./results/{date_string}/difficulty/{wrapper.name}/data_{i}.pkl", "wb") as fptr:
                 pickle.dump((difficulty_estimates, task_params), fptr)
             # TODO: save does not work for nnmm/dpgpmm, missing attributes
@@ -137,7 +138,7 @@ def run_pend():
     easy_params = {
         "goal_angle": 1.5,
     }
-    measure_difficulty(1000, 50, MBPendulumAngleContinuousWrapper(), easy_params)
+    measure_difficulty(500, 50, MBPendulumAngleContinuousWrapper(), easy_params, student_alg="PPO")
 
 
 if __name__ == "__main__":

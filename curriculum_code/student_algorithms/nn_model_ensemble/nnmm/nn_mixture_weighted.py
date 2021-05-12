@@ -19,6 +19,7 @@ class NNMixtureWeighted(nn.Module):
                  self_prob: float,  # initial bias for new model to transition to itself
                  merge_burnin: int,  # number of points until we consider merge
                  merge_threshold: float,  # min KL-div for merge
+                 n_epochs: int,
 
                  net_arch: Optional[List[int]] = None,
                  activation_fn: Type[nn.Module] = nn.ReLU,
@@ -42,11 +43,14 @@ class NNMixtureWeighted(nn.Module):
         self.self_prod = self_prob
         self.merge_burnin = merge_burnin
         self.merge_thresh = merge_threshold
+        self.n_epochs = n_epochs
 
         self.data = []
         self.assigns = []
         self.rho_sum = []
         self.new_net = None
+
+        self.reset_priors()
 
     def init_net(self):
         net = DynamicsNetwork(self.obs_space, self.action_space, self.lr_schedule,
@@ -63,11 +67,15 @@ class NNMixtureWeighted(nn.Module):
         self.data.append(data)
 
     def do_net_step(self, net, x):
-        predicted_data = net(x[0], x[1])
-        loss = F.mse_loss(predicted_data, x[2])
-        net.optimizer.zero_grad()
-        loss.backward()
-        net.optimizer.step()
+        for i in range(self.n_epochs):
+            predicted_data = net(x[0], x[1])
+            loss = F.mse_loss(predicted_data, x[2])
+            net.optimizer.zero_grad()
+            loss.backward()
+            net.optimizer.step()
+            wandb.log({
+                "loss": loss.cpu().item()
+            })
         net.n_points += 1
 
     def fit(self):
@@ -131,8 +139,12 @@ class NNMixtureWeighted(nn.Module):
             "n_points": i + 1,
             "n_networks": self.n_nets,
             "biggest_net_size": max([net.n_points for net in self.networks]),
+            "max_rho": np.max(self.rho_sum),
+            "min_rho": np.min(self.rho_sum),
+            "assigns": k,
         })
 
+        self.reset_priors()
         return self.alpha
 
     def merge_nets(self):
@@ -174,12 +186,33 @@ class NNMixtureWeighted(nn.Module):
         raise NotImplementedError()
 
     def predict(self, s: np.array, a: np.array):
-        net_probs = self.rho_sum / np.sum(self.rho_sum)
+        if self.test_last_s is None:
+            net_probs = self.rho_sum / np.sum(self.rho_sum)
+        else:
+            net_probs = self.test_priors / np.sum(self.test_priors)
         sa_in = th.cat((s, a), dim=1)
         with th.no_grad():
             predictions = np.sum([net_probs[i] * self.networks[i].model(sa_in).cpu().numpy()
                                   for i in range(self.n_nets)], axis=0)
             return th.tensor(predictions, dtype=th.float32, device=self.device)
+
+    def reset_priors(self):
+        self.test_priors = self.rho_sum
+        self.test_last_s = None
+        self.test_last_a = None
+
+    def pre_test_mpc(self, observation):
+        if self.test_last_s is not None:
+            new_priors = [self.test_priors[k] *
+                      th.exp(self.networks[k].log_likelihood(self.test_last_s, self.test_last_a, observation))
+                      for k in range(self.n_nets)]
+            new_priors = [r + 1e-10 for r in new_priors]  # TODO: to avoid zeros
+            new_priors = new_priors / np.sum(new_priors)
+            self.test_priors = [a + b for a, b in zip(self.test_priors, new_priors)]
+
+    def post_test_mpc(self, observation, chosen_action):
+        self.test_last_s = observation
+        self.test_last_a = chosen_action
 
     def to(self, device=..., dtype=...,
            non_blocking: bool = ...):

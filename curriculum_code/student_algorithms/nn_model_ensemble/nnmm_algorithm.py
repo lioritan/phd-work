@@ -5,6 +5,7 @@ from typing import Optional, Tuple, Type, Union, Callable, Dict, Any, List
 from stable_baselines3.common.on_policy_algorithm import OnPolicyAlgorithm
 from stable_baselines3.common.policies import BasePolicy
 from stable_baselines3.common.type_aliases import GymEnv
+import wandb
 
 from student_algorithms.nn_model_ensemble.mpc.mpc import MPC
 
@@ -25,6 +26,7 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
                  mm_merge_threshold: float = 10.0,
                  warm_up_time: int = 1000 * 5,
                  is_mixed_model: bool = False,
+                 n_epochs=1,
 
                  learning_rate: Union[float, Callable] = 1e-1,
                  n_steps: int = 1,  # steps until model update
@@ -67,6 +69,7 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
         self.policy_kwargs["merge_burnin"] = mm_burnin
         self.policy_kwargs["merge_threshold"] = mm_merge_threshold
         self.policy_kwargs["is_mixed_model"] = is_mixed_model
+        self.policy_kwargs["n_epochs"] = n_epochs
         self.policy_kwargs["verbose"] = verbose
         self._setup_model()
 
@@ -142,10 +145,19 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
             mask: Optional[np.ndarray] = None,
             deterministic: bool = False,
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-        return self.mpc.act(None, self.policy.model, th.tensor(observation, dtype=th.float32, device=self.device)).cpu().numpy(), state
+        obs_tensor = th.tensor(observation, dtype=th.float32, device=self.device)
+        self.policy.pre_test_mpc(obs_tensor)
+        chosen_action = self.mpc.act(None, self.policy.model, obs_tensor)
+        self.policy.post_test_mpc(obs_tensor, chosen_action)
+        if self.verbose > -1:
+            wandb.log({"action": chosen_action.cpu().numpy().mean(),
+                       "expect_reward": self.state_reward_func(observation, chosen_action.cpu().numpy())})
+        return chosen_action.cpu().numpy(), state
 
     def set_env(self, env) -> None:
         super(OnPolicyAlgorithm, self).set_env(env)
         reward_model = env.reward_model()
         self.state_reward_func = reward_model
         self.mpc.set_cost_func(self.state_reward_func)
+
+        self.policy.reset_priors()

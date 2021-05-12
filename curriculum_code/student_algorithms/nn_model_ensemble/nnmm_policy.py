@@ -19,6 +19,7 @@ class NNMMPolicy(nn.Module):
                  merge_burnin: int,
                  merge_threshold: float,
                  is_mixed_model: bool,
+                 n_epochs: int,
 
                  net_arch: Optional[List[int]] = None,
                  activation_fn: Type[nn.Module] = nn.ReLU,
@@ -52,11 +53,21 @@ class NNMMPolicy(nn.Module):
             self_prob=0.05,
             merge_burnin=merge_burnin,
             merge_threshold=merge_threshold,
+            n_epochs=n_epochs,
             net_arch=net_arch,
             activation_fn=activation_fn,
             optimizer_class=optimizer_class,
             optimizer_kwargs=optimizer_kwargs,
         )
+
+    def reset_priors(self):
+        self.model.reset_priors()
+
+    def pre_test_mpc(self, observation):
+        self.model.pre_test_mpc(observation)
+
+    def post_test_mpc(self, observation, chosen_action):
+        self.model.post_test_mpc(observation, chosen_action)
 
     def to(self, device=..., dtype=...,
            non_blocking: bool = ...):
