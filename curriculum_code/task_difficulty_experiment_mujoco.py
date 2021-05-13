@@ -1,4 +1,5 @@
 # consider splitting some of the code here
+import argparse
 import datetime
 import os
 import pickle
@@ -14,8 +15,8 @@ from tqdm import tqdm
 from curriculum.eval.task_difficulty_estimate import estimate_task_difficulties
 from curriculum.teachers.predefined_tasks_teacher import PredefinedTasksTeacher
 from curriculum.teachers.random_teacher import RandomTeacher
-# from environment.parametric_mujoco.parametric_ant import AntWrapper
-# from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
+from environment.parametric_mujoco.parametric_ant import AntWrapper
+from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
 from environment.parametric_mujoco.parametric_pendulum_locomotion import MBPendulumAngleContinuousWrapper
 from student_algorithms.gp_model_ensemble.dpgpmm_algorithm import DPGPMMAlgorithm
 from student_algorithms.gp_model_ensemble.dpgpmm_policy import DPGPMMPolicy
@@ -27,7 +28,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
     random_teacher = RandomTeacher(None, wrapper)
     #random_teacher = PredefinedTasksTeacher({"tasks": [easy_task]}, wrapper)
 
-    wandb.init(project='model_ensemble_pendulum', entity='liorf', save_code=True)
+    wandb.init(project='model_ensemble_continue', entity='liorf', save_code=True)
     config = wandb.config
     config.task = wrapper.name
     config.teacher = str(random_teacher)
@@ -66,7 +67,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
 
     wandb.watch(student.policy)  # TODO: put a model/policy (th module) and it logs gradients and model params
 
-    date_string = datetime.datetime.today().strftime('%Y-%m-%d %H') + "GP fixed rew"
+    date_string = datetime.datetime.today().strftime('%Y-%m-%d %H') + student_alg
     os.makedirs(f"./results/{date_string}/difficulty/{wrapper.name}", exist_ok=True)
 
     for i in tqdm(range(tasks)):
@@ -119,30 +120,43 @@ def evaluate(action_limit, base_env, student, base_dir):
     return total_reward, episode_length
 
 
-def run_cheetah():
+def run_cheetah(steps, tasks, student):
     easy_params = {
         "expected_speed": 0.1,
     }
-    measure_difficulty(1000, 250, HalfCheetahWrapper(), easy_params)
+    measure_difficulty(steps, tasks, HalfCheetahWrapper(), easy_params, student_alg=student)
 
 
-def run_ant():
+def run_ant(steps, tasks, student):
     easy_params = {
         "goal_x": 0.1,
         "goal_y": 0.1
     }
-    measure_difficulty(1000, 250, AntWrapper(), easy_params)
+    measure_difficulty(steps, tasks, AntWrapper(), easy_params, student_alg=student)
 
 
-def run_pend():
+def run_pend(steps, tasks, student):
     easy_params = {
         "goal_angle": 1.5,
     }
-    #measure_difficulty(500, 50, MBPendulumAngleContinuousWrapper(), easy_params, student_alg="GP")
-    measure_difficulty(500, 30, MBPendulumAngleContinuousWrapper(), easy_params, student_alg="GP")
+    measure_difficulty(steps, tasks, MBPendulumAngleContinuousWrapper(), easy_params, student_alg=student)
 
 
 if __name__ == "__main__":
-    # run_cheetah()
-    # run_ant()
-    run_pend()
+    parser = argparse.ArgumentParser(description='Simple parser')
+    parser.add_argument('--student', type=str, default='PPO',
+                        help='GP/PPO/NN/NN_MIX')
+    parser.add_argument('--env', type=str, default='pendulum',
+                        help='pendulum/cheetah/ant')
+    parser.add_argument('--tasks', type=int, default=50,
+                        help='#tasks')
+    parser.add_argument('--steps', type=int, default=1000,
+                        help='#steps')
+    args = parser.parse_args()
+
+    if args.env == "pendulum":
+        run_pend(args.steps, args.tasks, args.student)
+    elif args.env == "cheetah":
+        run_cheetah(args.steps, args.tasks, args.student)
+    elif args.env == "ant":
+        run_ant(args.steps, args.tasks, args.student)
