@@ -16,7 +16,7 @@ class PendRewardModel(StateActionReward):
         super(PendRewardModel, self).__init__(dim_action=(1,), ctrl_cost_weight=0.001, sparse=False, action_scale=1)
 
     def state_reward(self, state, next_state=None):
-        return (self.angle - angle_normalize(state[..., 0])) ** 2 + 0.1 * state[..., 1] ** 2
+        return -(self.angle - angle_normalize(state[..., 0])) ** 2 - 0.1 * state[..., 1] ** 2
 
 
 class AngledPendulumEnv(PendulumEnv):

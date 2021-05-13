@@ -66,13 +66,13 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
 
     wandb.watch(student.policy)  # TODO: put a model/policy (th module) and it logs gradients and model params
 
-    date_string = datetime.datetime.today().strftime('%Y-%m-%d %H') + "nn mix"
+    date_string = datetime.datetime.today().strftime('%Y-%m-%d %H') + "GP fixed rew"
     os.makedirs(f"./results/{date_string}/difficulty/{wrapper.name}", exist_ok=True)
 
     for i in tqdm(range(tasks)):
         random_teacher.train_k_actions(student, steps_per_task)
         wandb.log({"task_num": i,
-                   "student_reward": random_teacher.history.history[-1][1],
+                   "student_reward": random_teacher.history.history[-1][1]/steps_per_task,
                    "teacher_task": random_teacher.history.history[-1][0], })
         if i % 5 == 0 and i > 0:
             difficulty_estimates, task_params = estimate_task_difficulties(student, wrapper, 10, 3, steps_per_task)
@@ -138,7 +138,8 @@ def run_pend():
     easy_params = {
         "goal_angle": 1.5,
     }
-    measure_difficulty(500, 50, MBPendulumAngleContinuousWrapper(), easy_params, student_alg="PPO")
+    #measure_difficulty(500, 50, MBPendulumAngleContinuousWrapper(), easy_params, student_alg="GP")
+    measure_difficulty(500, 30, MBPendulumAngleContinuousWrapper(), easy_params, student_alg="GP")
 
 
 if __name__ == "__main__":

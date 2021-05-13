@@ -206,7 +206,7 @@ class NNMixtureWeighted(nn.Module):
             new_priors = [self.test_priors[k] *
                       th.exp(self.networks[k].log_likelihood(self.test_last_s, self.test_last_a, observation))
                       for k in range(self.n_nets)]
-            new_priors = [r + 1e-10 for r in new_priors]  # TODO: to avoid zeros
+            new_priors = [r.item() + 1e-10 for r in new_priors]  # TODO: to avoid zeros
             new_priors = new_priors / np.sum(new_priors)
             self.test_priors = [a + b for a, b in zip(self.test_priors, new_priors)]
 

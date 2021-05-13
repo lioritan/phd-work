@@ -14,4 +14,4 @@ gpytorch
 wandb
 #box2d-py
 #mujoco-py
-ffmpeg
+python-ffmpeg
