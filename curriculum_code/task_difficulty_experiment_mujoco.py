@@ -67,7 +67,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
 
     wandb.watch(student.policy)  # TODO: put a model/policy (th module) and it logs gradients and model params
 
-    date_string = datetime.datetime.today().strftime('%Y-%m-%d %H') + student_alg
+    date_string = datetime.datetime.today().strftime('%Y-%m-%d %H%M') + student_alg
     os.makedirs(f"./results/{date_string}/difficulty/{wrapper.name}", exist_ok=True)
 
     for i in tqdm(range(tasks)):

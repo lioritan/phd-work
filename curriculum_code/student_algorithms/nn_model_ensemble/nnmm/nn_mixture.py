@@ -65,16 +65,17 @@ class NNMixture(nn.Module):
     def add_example(self, data):
         self.data.append(data)
 
-    def do_net_step(self, net, x):
+    def do_net_step(self, net, x, log_losses=False):
         for i in range(self.n_epochs):
             predicted_data = net(x[0], x[1])
             loss = F.mse_loss(predicted_data, x[2])
             net.optimizer.zero_grad()
             loss.backward()
             net.optimizer.step()
-            wandb.log({
-                "loss": loss.cpu().item()
-            })
+            if log_losses:
+                wandb.log({
+                    "loss": loss.cpu().item()
+                })
         net.n_points += 1
 
     def fit(self):
@@ -120,7 +121,7 @@ class NNMixture(nn.Module):
             rho_old = rho_old / np.sum(rho_old)
             # \rho_{n+1} = \sum_{i=1}^n \rho_{i}
             self.rho_sum = [a + b for a, b in zip(self.rho_sum, rho_old)]
-            self.do_net_step(self.networks[k], x)
+            self.do_net_step(self.networks[k], x, log_losses=True)
         else:
             pass
             # logger.error('Index exceeds the length of components!')
