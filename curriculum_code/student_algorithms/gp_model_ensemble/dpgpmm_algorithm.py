@@ -157,4 +157,4 @@ class DPGPMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
         reward_model = env.reward_model()
         # torch->numpy
         self.state_reward_func = lambda s, a: reward_model(s, a).cpu().numpy()
-        self.mpc.set_cost_func(self.state_reward_func)
+        self.mpc.set_cost_func(lambda s,a: -self.state_reward_func(s,a))

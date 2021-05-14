@@ -2,11 +2,11 @@ matplotlib
 bokeh
 numpy
 gym
-torch>=1.8.1
+torch>=1.8.1,<2
 stable-baselines3
 treelib
 gym-minigrid
-sklearn
+scikit-learn
 mazelib
 scipy
 tqdm

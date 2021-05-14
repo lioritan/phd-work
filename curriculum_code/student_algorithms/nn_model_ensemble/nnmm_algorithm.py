@@ -158,6 +158,6 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
         super(OnPolicyAlgorithm, self).set_env(env)
         reward_model = env.reward_model()
         self.state_reward_func = reward_model
-        self.mpc.set_cost_func(self.state_reward_func)
+        self.mpc.set_cost_func(lambda s,a: -self.state_reward_func(s,a))
 
         self.policy.reset_priors()
