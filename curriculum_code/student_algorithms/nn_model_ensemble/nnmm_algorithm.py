@@ -27,6 +27,7 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
                  warm_up_time: int = 1000 * 5,
                  is_mixed_model: bool = False,
                  n_epochs=1,
+                 optimizer="Random",
 
                  learning_rate: Union[float, Callable] = 1e-1,
                  n_steps: int = 1,  # steps until model update
@@ -75,8 +76,11 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
 
         self.state_reward_func = env_state_reward_func
 
-        self.mpc = MPC({"optimizer": "CEM",
-                        "CEM": {
+        if optimizer != "CEM" and optimizer != "Random":
+            raise ValueError("Unsupported MPC optimizer")
+
+        self.mpc = MPC({"optimizer": optimizer,
+                        optimizer: {
                             "horizon": self.mpc_horizon,  # how long of the horizon to predict
                             "popsize": num_candidates,  # how many random samples for mpc
                             "particle": self.num_particles,  # number of particles to enlarge

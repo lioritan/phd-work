@@ -11,7 +11,7 @@ from .optimizer import Optimizer
 
 class RandomShootingOptimizer(Optimizer):
     def __init__(self, sol_dim, popsize, upper_bound=None, lower_bound=None, max_iters=10, num_elites=100,
-                 epsilon=0.001, alpha=0.25):
+                 epsilon=0.001, alpha=0.25, device=None):
         """Creates an instance of this class.
 
         Arguments:
@@ -24,9 +24,11 @@ class RandomShootingOptimizer(Optimizer):
         super().__init__()
         self.sol_dim = sol_dim
         self.popsize = popsize
-        self.ub, self.lb = torch.FloatTensor(upper_bound), torch.FloatTensor(lower_bound)
+        self.ub, = upper_bound
+        self.lb = lower_bound
         self.solution = None
         self.cost_function = None
+        self.device = device
 
     def setup(self, cost_function):
         """Sets up this optimizer using a given cost function.
@@ -52,7 +54,6 @@ class RandomShootingOptimizer(Optimizer):
             init_var (np.ndarray): The variance of the initial candidate distribution.
         """
 
-        solutions = self.sampler.sample(self.size).cpu().numpy()[:, :, 0]
-        # solutions = np.random.uniform(self.lb, self.ub, [self.popsize, self.sol_dim])
+        solutions = self.sampler.sample(self.size).reshape(self.popsize, -1)
         costs = self.cost_function(solutions)
-        return solutions[np.argmin(costs)], None
+        return solutions[torch.argmin(costs)], None
