@@ -13,10 +13,13 @@ from environment.parametric_mujoco.locomotion_base import StateActionReward
 class PendRewardModel(StateActionReward):
     def __init__(self, angle):
         self.angle = angle
+        self.cos_angle = np.cos(angle)
+        self.sin_angle = np.sin(angle)
         super(PendRewardModel, self).__init__(dim_action=(1,), ctrl_cost_weight=0.001, sparse=False, action_scale=1)
 
     def state_reward(self, state, next_state=None):
-        return -(self.angle - angle_normalize(state[..., 0])) ** 2 - 0.1 * state[..., 1] ** 2
+        angle_cost = -0.5 * (self.cos_angle - state[..., 0]) ** 2 - 0.5 * (self.sin_angle - state[..., 1]) ** 2
+        return angle_cost - 0.1 * state[..., 2] ** 2
 
 
 class AngledPendulumEnv(PendulumEnv):
