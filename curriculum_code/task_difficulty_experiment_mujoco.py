@@ -28,7 +28,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
     random_teacher = RandomTeacher(None, wrapper)
     #random_teacher = PredefinedTasksTeacher({"tasks": [easy_task]}, wrapper)
 
-    wandb.init(project='model_ensemble_continue', entity='liorf', save_code=True)
+    wandb.init(project=f'mb_me_{wrapper.name}', entity='liorf', save_code=True)
     config = wandb.config
     config.task = wrapper.name
     config.teacher = str(random_teacher)
