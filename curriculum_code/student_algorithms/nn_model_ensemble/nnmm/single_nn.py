@@ -15,10 +15,8 @@ class ResidualNet(nn.Module):
             modules.append(nn.utils.spectral_norm(nn.Linear(arch[idx], arch[idx + 1])))
             modules.append(activation())
         self.last_layer_dim = arch[-1] if len(arch) > 0 else in_channels
-        if self.last_layer_dim > in_channels:
-            modules.append(nn.utils.spectral_norm(nn.Linear(arch[-1], in_channels)))
-            modules.append(activation())
-            self.last_layer_dim = in_channels
+        if self.last_layer_dim != in_channels:
+            self.residual_fixer = nn.utils.spectral_norm(nn.Linear(in_channels, self.last_layer_dim))
         self.in_channels = in_channels
         self.last_layer = nn.Linear(self.last_layer_dim, out_channels)
         self.blocks = nn.Sequential(*modules)
@@ -26,15 +24,10 @@ class ResidualNet(nn.Module):
     def forward(self, x):
         if self.in_channels == self.last_layer_dim:
             residual = x
-        elif self.in_channels > self.last_layer_dim:  # downsample
-            residual = x[..., :self.last_layer_dim]
-        else:
-            raise ValueError("Impossible")
-        x = self.blocks(x)
-        x += residual
-
-        # out = x.view(x.size(0), -1)
-        return self.last_layer(x)
+        else:  # fix dimensions
+            residual = self.residual_fixer(x)
+        out = self.blocks(x) + residual
+        return self.last_layer(out)
 
 
 class DynamicsNetwork(nn.Module):
