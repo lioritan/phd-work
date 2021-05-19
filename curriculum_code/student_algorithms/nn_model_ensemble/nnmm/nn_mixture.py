@@ -19,6 +19,7 @@ class NNMixture(nn.Module):
                  merge_burnin: int,  # number of points until we consider merge
                  merge_threshold: float,  # min KL-div for merge
                  n_epochs: int,
+                 is_res_net: bool,
 
                  net_arch: Optional[List[int]] = None,
                  activation_fn: Type[nn.Module] = nn.ReLU,
@@ -28,6 +29,7 @@ class NNMixture(nn.Module):
         self.obs_space = observation_space
         self.action_space = action_space
         self.lr_schedule = lr_schedule
+        self.is_res_net = is_res_net
         self.net_arch = net_arch
         self.activation_fn = activation_fn
 
@@ -52,7 +54,7 @@ class NNMixture(nn.Module):
         self.reset_priors()
 
     def init_net(self):
-        net = DynamicsNetwork(self.obs_space, self.action_space, self.lr_schedule,
+        net = DynamicsNetwork(self.obs_space, self.action_space, self.lr_schedule, self.is_res_net,
                               self.net_arch, self.activation_fn, self.optimizer_class,
                               self.optimizer_kwargs)
         net.to(self.device)

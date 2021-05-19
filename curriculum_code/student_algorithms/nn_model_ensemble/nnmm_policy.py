@@ -20,6 +20,7 @@ class NNMMPolicy(nn.Module):
                  merge_threshold: float,
                  is_mixed_model: bool,
                  n_epochs: int,
+                 is_res_net: bool,
 
                  net_arch: Optional[List[int]] = None,
                  activation_fn: Type[nn.Module] = nn.ReLU,
@@ -48,6 +49,7 @@ class NNMMPolicy(nn.Module):
             observation_space=observation_space,
             action_space=action_space,
             lr_schedule=lr_schedule,
+            is_res_net=is_res_net,
             alpha=alpha,
             window_prob=1.0,
             self_prob=0.05,

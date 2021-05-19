@@ -26,8 +26,9 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
                  mm_merge_threshold: float = 10.0,
                  warm_up_time: int = 1000 * 5,
                  is_mixed_model: bool = False,
-                 n_epochs=1,
-                 optimizer="Random",
+                 n_epochs: int = 1,
+                 optimizer: str = "Random",
+                 is_res_net: bool = False,
 
                  learning_rate: Union[float, Callable] = 1e-1,
                  n_steps: int = 1,  # steps until model update
@@ -71,6 +72,7 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
         self.policy_kwargs["merge_threshold"] = mm_merge_threshold
         self.policy_kwargs["is_mixed_model"] = is_mixed_model
         self.policy_kwargs["n_epochs"] = n_epochs
+        self.policy_kwargs["is_res_net"] = is_res_net
         self.policy_kwargs["verbose"] = verbose
         self._setup_model()
 
@@ -162,6 +164,6 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
         super(OnPolicyAlgorithm, self).set_env(env)
         reward_model = env.reward_model()
         self.state_reward_func = reward_model
-        self.mpc.set_cost_func(lambda s,a: -self.state_reward_func(s,a))
+        self.mpc.set_cost_func(lambda s, a: -self.state_reward_func(s, a))
 
         self.policy.reset_priors()

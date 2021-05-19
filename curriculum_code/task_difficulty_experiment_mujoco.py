@@ -46,7 +46,9 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
                                 mm_burnin=20,
                                 learning_rate=1e-2,
                                 n_epochs=10,
-                                policy_kwargs={"net_arch": [8]},
+                                is_res_net=False,
+                                mpc_horizon=15,
+                                policy_kwargs={"net_arch": [8, 8]},
                                 is_mixed_model=(student_alg == "NN_MIX"),
                                 warm_up_time=steps_per_task)  # Note: assumes all envs have a reward model
     elif student_alg == "GP":
@@ -100,7 +102,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
 
     # eval and record video
     wandb.gym.monitor()  # Any env used with gym wrapper monitor will now be recorded
-    evaluate(steps_per_task, random_teacher.generate_task()[0],
+    evaluate(steps_per_task, wrapper.create_env(easy_task),
              student, f"./results/{date_string}/difficulty/{wrapper.name}/")
 
 
@@ -122,15 +124,15 @@ def evaluate(action_limit, base_env, student, base_dir):
 
 def run_cheetah(steps, tasks, student):
     easy_params = {
-        "expected_speed": 0.1,
+        "expected_speed": 1.1,
     }
     measure_difficulty(steps, tasks, HalfCheetahWrapper(), easy_params, student_alg=student)
 
 
 def run_ant(steps, tasks, student):
     easy_params = {
-        "goal_x": 0.1,
-        "goal_y": 0.1
+        "goal_x": 1.1,
+        "goal_y": 1.1
     }
     measure_difficulty(steps, tasks, AntWrapper(), easy_params, student_alg=student)
 
