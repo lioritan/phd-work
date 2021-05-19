@@ -42,7 +42,7 @@ class RandomShootingOptimizer(Optimizer):
         # print("lb, ub", self.lb, self.ub)
         self.cost_function = cost_function
         self.sampler = torch.distributions.uniform.Uniform(self.lb, self.ub)
-        self.size = [self.popsize, self.sol_dim]
+        self.size = [self.popsize, self.sol_dim//self.lb.size()[0]]
 
     def reset(self):
         pass
