@@ -24,7 +24,8 @@ class RandomShootingOptimizer(Optimizer):
         super().__init__()
         self.sol_dim = sol_dim
         self.popsize = popsize
-        self.ub, = upper_bound
+
+        self.ub = upper_bound
         self.lb = lower_bound
         self.solution = None
         self.cost_function = None
