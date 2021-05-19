@@ -15,7 +15,8 @@ from environment.parametric_mujoco.locomotion_base import StateActionReward, Loc
 class AntRewardModel(StateActionReward):
     def __init__(self, dim_action, goal_x, goal_y, ctrl_cost_weight=0.1, action_scale=1.0, forward_reward_weight=1.0,
                  healthy_reward=0.0):
-        self.goal_pos = torch.tensor([goal_x, goal_y])
+        self.goal_arr = [goal_x, goal_y]
+        self.goal_pos = None
         self.forward_reward_weight = forward_reward_weight
         self.healthy_reward = healthy_reward
         super(AntRewardModel, self).__init__(dim_action, ctrl_cost_weight, False, action_scale)
@@ -24,6 +25,8 @@ class AntRewardModel(StateActionReward):
         # state[0,1,2] are xyz of torso, state[3:7] are torso stuff, state[7:15] are leg pos,
         # state[15,16,17] are xyz velocities of torso, state[18:21] are angular torso velocity,
         # state[21:30] are leg velocities
+        if self.goal_pos is None:
+            self.goal_pos = torch.tensor(self.goal_arr, device=state.device, dtype=state.dtype)
         forward_reward = self.forward_reward_weight*state[..., 15]
         goal_reward = -torch.sum(torch.abs(state[..., 0:2] - self.goal_pos)) + 4.0
         return goal_reward + forward_reward + self.healthy_reward
