@@ -157,7 +157,7 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
         self.policy.post_test_mpc(obs_tensor, chosen_action)
         if self.verbose > -1:
             wandb.log({"action": chosen_action.cpu().numpy().mean(),
-                       "expect_reward": self.state_reward_func(observation, chosen_action.cpu().numpy())})
+                       "expect_reward": self.state_reward_func(obs_tensor, chosen_action.cpu().numpy())})
         return chosen_action.cpu().numpy(), state
 
     def set_env(self, env) -> None:
