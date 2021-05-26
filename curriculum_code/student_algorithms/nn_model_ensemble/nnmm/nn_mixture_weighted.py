@@ -65,6 +65,7 @@ class NNMixtureWeighted(nn.Module):
 
     def add_net(self, new_net):
         if self.n_nets_limit > 0 and self.n_nets_limit >= self.n_nets:
+            self.rho_sum.pop(-1)
             return
         else:
             self.networks.append(new_net)
@@ -120,7 +121,7 @@ class NNMixtureWeighted(nn.Module):
         self.assigns.append(k)
         if k == self.n_nets:
             # \rho_{1:k+1} = [\rho_{1:k}, \rho_{k+1}]
-            self.rho_sum.extend([0])
+            self.rho_sum.extend(rho_new)
             # \rho_{n+1} = \sum_{i=1}^n \rho_{i}
             self.add_net(self.new_net)
             self.new_net = None
