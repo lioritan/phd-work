@@ -63,7 +63,7 @@ class NNMixture(nn.Module):
         return net
 
     def add_net(self, new_net):
-        if self.n_nets_limit > 0 and self.n_nets_limit > self.n_nets:
+        if 0 < self.n_nets_limit <= self.n_nets:
             self.rho_sum.pop(-1)
             return
         else:
