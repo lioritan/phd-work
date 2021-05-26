@@ -21,6 +21,7 @@ class NNMMPolicy(nn.Module):
                  is_mixed_model: bool,
                  n_epochs: int,
                  is_res_net: bool,
+                 n_nets_limit: int = -1,
 
                  net_arch: Optional[List[int]] = None,
                  activation_fn: Type[nn.Module] = nn.ReLU,
@@ -50,6 +51,7 @@ class NNMMPolicy(nn.Module):
             action_space=action_space,
             lr_schedule=lr_schedule,
             is_res_net=is_res_net,
+            n_nets_limit=n_nets_limit,
             alpha=alpha,
             window_prob=1.0,
             self_prob=0.05,
