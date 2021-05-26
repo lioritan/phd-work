@@ -101,7 +101,7 @@ class NNMixtureWeighted(nn.Module):
             self.do_net_step(self.new_net, x)
 
         # calculate \rho_{n+1, k+1} - [1, 1]
-        if self.n_nets > 0 and self.new_net is not None and self.new_net.n_points < self.merge_burnin:
+        if self.new_net is None or (self.n_nets > 0 and self.new_net.n_points < self.merge_burnin):
             rho_new = [0.0]  # can afford to wait on testing the new net
         else:
             rho_new = [self.alpha * th.exp(self.new_net.log_likelihood(x[0], x[1], x[2]))]
