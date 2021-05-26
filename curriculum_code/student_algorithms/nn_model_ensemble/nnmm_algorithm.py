@@ -29,6 +29,7 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
                  n_epochs: int = 1,
                  optimizer: str = "Random",
                  is_res_net: bool = False,
+                 n_nets_limit: int = -1,
 
                  learning_rate: Union[float, Callable] = 1e-1,
                  n_steps: int = 1,  # steps until model update
@@ -73,6 +74,7 @@ class NNMMAlgorithm(OnPolicyAlgorithm):  # because replay buffer
         self.policy_kwargs["is_mixed_model"] = is_mixed_model
         self.policy_kwargs["n_epochs"] = n_epochs
         self.policy_kwargs["is_res_net"] = is_res_net
+        self.policy_kwargs["n_nets_limit"] = n_nets_limit
         self.policy_kwargs["verbose"] = verbose
         self._setup_model()
 

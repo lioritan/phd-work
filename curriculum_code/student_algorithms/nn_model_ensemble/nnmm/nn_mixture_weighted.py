@@ -21,6 +21,7 @@ class NNMixtureWeighted(nn.Module):
                  merge_threshold: float,  # min KL-div for merge
                  n_epochs: int,
                  is_res_net: bool,
+                 n_nets_limit: int = -1,
 
                  net_arch: Optional[List[int]] = None,
                  activation_fn: Type[nn.Module] = nn.ReLU,
@@ -39,6 +40,7 @@ class NNMixtureWeighted(nn.Module):
 
         self.networks = []
         self.n_nets = 0
+        self.n_nets_limit = n_nets_limit
 
         self.alpha = alpha
         self.window_prod = window_prob
@@ -62,8 +64,11 @@ class NNMixtureWeighted(nn.Module):
         return net
 
     def add_net(self, new_net):
-        self.networks.append(new_net)
-        self.n_nets += 1
+        if self.n_nets_limit > 0 and self.n_nets_limit >= self.n_nets:
+            return
+        else:
+            self.networks.append(new_net)
+            self.n_nets += 1
 
     def add_example(self, data):
         self.data.append(data)
