@@ -64,12 +64,8 @@ class NNMixtureWeighted(nn.Module):
         return net
 
     def add_net(self, new_net):
-        if 0 < self.n_nets_limit <= self.n_nets:
-            self.rho_sum.pop(-1)
-            return
-        else:
-            self.networks.append(new_net)
-            self.n_nets += 1
+        self.networks.append(new_net)
+        self.n_nets += 1
 
     def add_example(self, data):
         self.data.append(data)
@@ -98,7 +94,7 @@ class NNMixtureWeighted(nn.Module):
         rho_old = [rho_k.item() for rho_k in rho_old]
 
         # create a new component and use the new data point as training data
-        if self.new_net is None:
+        if self.new_net is None and (self.n_nets_limit < 0 or self.n_nets < self.n_nets_limit):
             self.new_net = self.init_net()
 
         self.do_net_step(self.new_net, x)
