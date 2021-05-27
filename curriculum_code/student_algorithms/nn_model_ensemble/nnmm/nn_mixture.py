@@ -95,6 +95,7 @@ class NNMixture(nn.Module):
 
         # create a new component and use the new data point as training data
         if self.new_net is None and (self.n_nets_limit < 0 or self.n_nets < self.n_nets_limit):
+            print(self.n_nets_limit)
             self.new_net = self.init_net()
 
         if self.new_net is not None:
@@ -192,9 +193,11 @@ class NNMixture(nn.Module):
 
     def predict(self, s: np.array, a: np.array):
         if self.test_last_s is None:
+            print(self.assigns[-1], self.n_nets)
             most_likely_net = self.assigns[-1]
         else:
             most_likely_net = np.argmax(self.test_priors, axis=0)
+            print(most_likely_net, self.n_nets)
         with th.no_grad():
             predictions = self.networks[most_likely_net].model(th.cat((s, a), dim=1))
             return predictions
