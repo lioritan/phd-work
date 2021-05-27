@@ -29,7 +29,7 @@ class AntRewardModel(StateActionReward):
         print(state.shape)
         if self.goal_pos is None:
             self.goal_pos = torch.tensor(self.goal_arr, device=state.device, dtype=state.dtype)
-        forward_reward = self.forward_reward_weight*state[..., 0] * np.sign(self.goal_pos[0])
+        forward_reward = self.forward_reward_weight*state[..., 0] * torch.sign(self.goal_pos[0])
         goal_reward = -torch.sum(torch.abs(state[..., 2:4] - self.goal_pos)) + 4.0
         return goal_reward + forward_reward + self.healthy_reward
 
