@@ -102,6 +102,9 @@ class MBAntEnv(LocomotionEnv, AntEnv):
 
         return observation, reward, done, info
 
+    def _get_obs(self):
+        return LocomotionEnv._get_obs(self)
+
 
 class AntWrapper(EnvironmentWrapper):
     def __init__(self):
