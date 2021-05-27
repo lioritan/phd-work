@@ -157,7 +157,6 @@ class LocomotionEnv(object):
     def _get_obs(self):
         position = self.sim.data.qpos.flat.copy()
         velocity = self.sim.data.qvel.flat.copy()
-        print(position, velocity, self.sim.data)
         if isinstance(self, HumanoidEnv):
             x_position = mass_center(self.model, self.sim)
         else:
