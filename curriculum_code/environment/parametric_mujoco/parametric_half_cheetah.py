@@ -18,9 +18,8 @@ class HalfCheetahRewardModel(StateActionReward):
         super(HalfCheetahRewardModel, self).__init__(dim_action, ctrl_cost_weight, False, action_scale)
 
     def state_reward(self, state, next_state=None):
-        # state[0] is velocity, state[1:9] are the rest of the position (no x pos), state[9:18] are velocities
-        speed = state[..., 0]  #
-        print(speed[0], state[0, 9])
+        # state[0] is velocity, state[1:9] are the rest of the position (no x pos), state[9:18] are velocities?
+        speed = state[..., 0]  # for some reason, state[0] is very different from state[9]
         return -self.forward_reward_weight * torch.abs(speed - self.expected_speed) + self.healthy_reward
 
 
