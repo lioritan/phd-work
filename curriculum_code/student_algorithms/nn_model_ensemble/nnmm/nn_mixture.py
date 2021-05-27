@@ -114,6 +114,7 @@ class NNMixture(nn.Module):
 
         # get the max probability index
         k = np.argmax(rho, axis=0)
+        print("assign", k, self.n_nets)
         self.assigns.append(k)
         if k == self.n_nets:
             # \rho_{1:k+1} = [\rho_{1:k}, \rho_{k+1}]
@@ -178,6 +179,7 @@ class NNMixture(nn.Module):
         if klds[closest_net] < self.merge_thresh:
             for ind in net_point_inds:
                 self.do_net_step(self.networks[closest_net], self.data[ind])
+                print("merged", ind, closest_net)
                 self.assigns[ind] = closest_net
             self.networks.pop(net)
             old_net_rho_sum = self.rho_sum[net]
