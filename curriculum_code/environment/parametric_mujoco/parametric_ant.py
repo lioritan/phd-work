@@ -26,7 +26,6 @@ class AntRewardModel(StateActionReward):
         # state[0,1,2] are xyz of torso, state[3:7] are torso stuff, state[7:15] are leg pos,
         # state[15,16,17] are xyz velocities of torso, state[18:21] are angular torso velocity,
         # state[21:30] are leg velocities
-        print(state.shape)
         if self.goal_pos is None:
             self.goal_pos = torch.tensor(self.goal_arr, device=state.device, dtype=state.dtype)
         forward_reward = self.forward_reward_weight*state[..., 0] * torch.sign(self.goal_pos[0])
