@@ -84,6 +84,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
             wandb.log({"task_num": i,
                        "reward_std": avg_reward_per_step.std(),
                        "mean_reward": avg_reward_per_step.mean(),
+                       "total_reward": difficulty_estimates.mean(),
                        "task_rewards": avg_reward_per_step.mean(axis=1),
                        "best_subtask_reward": avg_reward_per_step.mean(axis=1).max(),
                        "best_subtask_index": avg_reward_per_step.mean(axis=1).argmax()})

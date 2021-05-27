@@ -18,8 +18,11 @@ class HalfCheetahRewardModel(StateActionReward):
         super(HalfCheetahRewardModel, self).__init__(dim_action, ctrl_cost_weight, False, action_scale)
 
     def state_reward(self, state, next_state=None):
-        # state[0] is velocity
-        return -self.forward_reward_weight * torch.abs(state[..., 0] - self.expected_speed) + self.healthy_reward
+        # state[0:2] is position, state[3:6] is velocity
+        speed = torch.max(state[..., 3:6], dim=1)
+        print(state.shape)
+        print(speed.cpu().numpy())
+        return -self.forward_reward_weight * torch.abs(speed - self.expected_speed) + self.healthy_reward
 
 
 class MBHalfCheetahEnv(LocomotionEnv, HalfCheetahEnv):

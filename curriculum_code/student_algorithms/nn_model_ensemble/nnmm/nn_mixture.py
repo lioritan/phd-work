@@ -179,7 +179,7 @@ class NNMixture(nn.Module):
         if klds[closest_net] < self.merge_thresh:
             for ind in net_point_inds:
                 self.do_net_step(self.networks[closest_net], self.data[ind])
-                print("merged", ind, closest_net)
+                print("merged", net, closest_net)
                 self.assigns[ind] = closest_net
             self.networks.pop(net)
             old_net_rho_sum = self.rho_sum[net]
