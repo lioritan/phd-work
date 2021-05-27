@@ -143,12 +143,14 @@ class LocomotionEnv(object):
             self,
             dim_pos,
             reward_model,
+            hide_pos=True,
     ):
         self.dim_pos = dim_pos
         self.prev_pos = np.zeros(dim_pos)
         self._reward_model = reward_model
         self.reward_range = ()
         self._termination_model = LargeStateTermination()
+        self.hide_pos = hide_pos
 
     def step(self, action):
         """See gym.Env.step()."""
@@ -162,8 +164,8 @@ class LocomotionEnv(object):
         else:
             x_position = position[: self.dim_pos]
         forward_vel = (x_position - self.prev_pos) / self.dt
-        print(self.dt, x_position - self.prev_pos, velocity)
-        return np.concatenate((forward_vel, position[self.dim_pos:], velocity)).ravel()
+        pos_idx = self.dim_pos if self.hide_pos else 0
+        return np.concatenate((forward_vel, position[pos_idx:], velocity)).ravel()
 
     def reset_model(self):
         """Reset model."""

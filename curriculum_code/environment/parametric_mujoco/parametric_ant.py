@@ -22,14 +22,15 @@ class AntRewardModel(StateActionReward):
         super(AntRewardModel, self).__init__(dim_action, ctrl_cost_weight, False, action_scale)
 
     def state_reward(self, state, next_state=None):
+        # state[0,1] are x, y speeds
         # state[0,1,2] are xyz of torso, state[3:7] are torso stuff, state[7:15] are leg pos,
         # state[15,16,17] are xyz velocities of torso, state[18:21] are angular torso velocity,
         # state[21:30] are leg velocities
         print(state.shape)
         if self.goal_pos is None:
             self.goal_pos = torch.tensor(self.goal_arr, device=state.device, dtype=state.dtype)
-        forward_reward = self.forward_reward_weight*state[..., 15]
-        goal_reward = -torch.sum(torch.abs(state[..., 0:2] - self.goal_pos)) + 4.0
+        forward_reward = self.forward_reward_weight*state[..., 0] * np.sign(self.goal_pos[0])
+        goal_reward = -torch.sum(torch.abs(state[..., 2:4] - self.goal_pos)) + 4.0
         return goal_reward + forward_reward + self.healthy_reward
 
 
@@ -50,6 +51,7 @@ class MBAntEnv(LocomotionEnv, AntEnv):
                 forward_reward_weight=1.0,
                 healthy_reward=1.0
             ),
+            hide_pos=False,
         )
         AntEnv.__init__(
             self,
@@ -57,6 +59,8 @@ class MBAntEnv(LocomotionEnv, AntEnv):
             contact_cost_weight=0.0,
             healthy_reward=1.0,
             terminate_when_unhealthy=True,
+            exclude_current_positions_from_observation=False,
+            # see https://github.com/cbfinn/maml_rl/blob/master/rllab/envs/mujoco/ant_env_rand_direc.py
         )
         self._termination_model = LargeStateTermination(
             z_dim=2, healthy_z_range=self._healthy_z_range
@@ -73,7 +77,7 @@ class MBAntEnv(LocomotionEnv, AntEnv):
         ctrl_cost = self.control_cost(action)
         contact_cost = self.contact_cost
 
-        forward_reward = x_velocity
+        forward_reward = x_velocity * np.sign(self.goal_pos[0])
         healthy_reward = self.healthy_reward
 
         # Note: add goal reward
