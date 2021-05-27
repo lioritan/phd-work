@@ -162,6 +162,7 @@ class LocomotionEnv(object):
         else:
             x_position = position[: self.dim_pos]
         forward_vel = (x_position - self.prev_pos) / self.dt
+        print(self.dt, x_position - self.prev_pos, velocity[:self.dim_pos])
         return np.concatenate((forward_vel, position[self.dim_pos:], velocity)).ravel()
 
     def reset_model(self):
