@@ -26,7 +26,7 @@ class HalfCheetahRewardModel(StateActionReward):
 class MBHalfCheetahEnv(LocomotionEnv, HalfCheetahEnv):
     """Half-Cheetah Environment."""
 
-    def __init__(self, ctrl_cost_weight=0.1, expected_speed=0.0):
+    def __init__(self, ctrl_cost_weight=0.01, expected_speed=0.0):
         self.base_mujoco_name = "HalfCheetah-v3"
         self.expected_speed = expected_speed
         LocomotionEnv.__init__(
@@ -35,7 +35,7 @@ class MBHalfCheetahEnv(LocomotionEnv, HalfCheetahEnv):
             reward_model=HalfCheetahRewardModel((6,), expected_speed, ctrl_cost_weight)
         )
         HalfCheetahEnv.__init__(
-            self, ctrl_cost_weight=ctrl_cost_weight, forward_reward_weight=1.0
+            self, ctrl_cost_weight=ctrl_cost_weight, forward_reward_weight=10.0
         )
         self.dim_state = (18,)
         self.dim_action = (6,)
