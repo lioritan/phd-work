@@ -194,12 +194,12 @@ class NNMixture(nn.Module):
 
     def predict(self, s: np.array, a: np.array):
         if self.test_last_s is None:
-            print("first", self.assigns[-1], self.n_nets)
             most_likely_net = self.assigns[-1]
         else:
             most_likely_net = np.argmax(self.test_priors, axis=0)
-            print("bootstraped", most_likely_net, self.n_nets, len(self.test_priors))
         with th.no_grad():
+            if len(self.networks) <= most_likely_net:
+                print("!!!", self.assigns[-1], most_likely_net,self.n_nets, len(self.networks), self.test_priors)
             predictions = self.networks[most_likely_net].model(th.cat((s, a), dim=1))
             return predictions
 
