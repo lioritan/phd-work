@@ -10,13 +10,16 @@ from stable_baselines3.common.torch_layers import create_mlp
 class ResidualNet(nn.Module):
     def __init__(self, in_channels, out_channels, arch, activation):
         super().__init__()
-        modules = [nn.utils.spectral_norm(nn.Linear(in_channels, arch[0])), activation()]
+        #modules = [nn.utils.spectral_norm(nn.Linear(in_channels, arch[0])), activation()]
+        modules = [nn.Linear(in_channels, arch[0]), activation()]
         for idx in range(len(arch) - 1):
-            modules.append(nn.utils.spectral_norm(nn.Linear(arch[idx], arch[idx + 1])))
+            #modules.append(nn.utils.spectral_norm(nn.Linear(arch[idx], arch[idx + 1])))
+            modules.append(nn.Linear(arch[idx], arch[idx + 1]))
             modules.append(activation())
         self.last_layer_dim = arch[-1] if len(arch) > 0 else in_channels
         if self.last_layer_dim != in_channels:
-            self.residual_fixer = nn.utils.spectral_norm(nn.Linear(in_channels, self.last_layer_dim))
+            #self.residual_fixer = nn.utils.spectral_norm(nn.Linear(in_channels, self.last_layer_dim))
+            self.residual_fixer = nn.Linear(in_channels, self.last_layer_dim)
         self.in_channels = in_channels
         self.last_layer = nn.Linear(self.last_layer_dim, out_channels)
         self.blocks = nn.Sequential(*modules)
