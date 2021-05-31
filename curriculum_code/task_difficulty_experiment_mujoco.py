@@ -48,7 +48,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
                                 n_epochs=10,
                                 is_res_net=False,
                                 mpc_horizon=15,
-                                optimizer="Random",
+                                optimizer="CEM",
                                 policy_kwargs={"net_arch": [8, 8]},
                                 is_mixed_model=(student_alg == "NN_MIX"),
                                 warm_up_time=steps_per_task)  # Note: assumes all envs have a reward model
