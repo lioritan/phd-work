@@ -206,7 +206,7 @@ The utility used in the paper was picking maximal surprise (self-information) - 
 In \cite{Wang2019}, \textit{POET}, a genetic algorithm for varied task generation is proposed. A set of environments and a set of agents are maintained, and at each step, environment parameters are randomly changed (with a ranking based on euclidean distance of parameters from already existing environments), each agent is trained on each environment (using a single step of ES - evolution strategies), and if an environment is challenging (mean reward at least $x$ and at most $y$), it is kept.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Method summary - 25.5.21} \label{sec:summary}
+\section{Method summary - 1.6.21} \label{sec:summary}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 See table \ref{methods-table}
@@ -215,42 +215,42 @@ See table \ref{methods-table}
 %\centering
 \caption{Comparison of approaches}
 \label{methods-table}
-\begin{tabular}{|l | l | l | l  | l|} 
+\begin{tabular}{|l | l | l | l  | l|l|} 
 	\hline
-	Paper & Difficulty measure & variety measure  & Controllable elements     \\ \hline	
-	\cite{Matiisen2020} & improvement rate & none & task selection  \\ \hline
-	\cite{Feng2020} & domain-specific & none & task parameters  \\ \hline
-	\textit{SPRL} \cite{Klink2020} & $V(s_0)$ & none & task parameters \\ \hline
-	\cite{Jiang2020} & improvement potential (error) & uncertainty bonus & task selection  \\ \hline
-	\textit{ALP-GMM}, \cite{Portelas2019} &  improvement rate & none & task parameters \\ \hline
-	\cite{Portelas2020} & improvement rate & none & task parameters, student  \\ \hline
-	\cite{Narvekar2019} & fast policy convergence & none & task parameters \\ \hline
-	\cite{Narvekar2020} & fast policy convergence & none & task selection, goal state \\ \hline
-	\cite{Gutierrez2020} & validation tasks & Policy KL-divergence & task selection \\ \hline
-	\cite{Justesen2018} & $\pm$ difficulty, on success/fail & none & task parameter \\ \hline
-	\cite{Jain2017} & transfer improvement & none & task selection \\ \hline
-	\cite{Reny2019} & $V(s_0)-diff(g,g*)$ & Constrained goals & start state, goal state \\ \hline
-	\textit{PAIRED} \cite{Dennis2020} & adversarial reward & none & task parameters \\ \hline
-	\cite{Racaniere2019} & prob of task success & teacher entropy & goal state \\ \hline
-	\cite{Al-Shedivat2017} & self-play & none & opponent agent \\ \hline
-	\cite{Zhang2020} & ensemble confidence & none & goal state \\ \hline
-	\cite{Wohlke2020} & $\sim V'(s_0)$ & none & start state \\ \hline
-	\cite{Fang2020} & improvement rate \& test similarity & none (GAN helps) & task parameters \\ \hline
-	\textit{GoalGAN} \cite{Florensa2018} & return in range & none (GAN helps) & goal state \\ \hline
-	\cite{Mehta2019} & none & learned trajectory difference & task parameters \\ \hline
-	\cite{Raparthy2020} & adversarial reward & learned trajectory difference & task parameters \\ \hline
-	\cite{Sukhbaatar2017} & adversarial reward & None & task parameters \\ \hline
-	\cite{OpenAI2021} & adversarial reward & new goals & task parameters \\ \hline
-	\cite{Mehta2020} & none & learned adaptation difference & task parameters \\ \hline
-	\cite{Gupta2018} & none & learned state difference & task parameters \\ \hline
-	\cite{Jabri2019} & none & trajectory clustering & task parameters \\ \hline
-	\cite{Srinivasan2019} & demonstrated trajectories & none & start state \\ \hline
-	\cite{Akkaya2019} & return, fixed change size & none & task parameters \\ \hline
-	\cite{Kaddour2020} & none & surprise (low likelihood) & task parameters \\ \hline
-	\textit{POET} \cite{Wang2019} & return in range & distance in parameter space & task parameters \\ \hline
-	\cite{Milano2021} & average reward & none & task parameters \\ \hline
-	\cite{Li} & solved before & none & sub-goal \\ \hline
-	\cite{Won2019} & expected $V(s|p)$ & none (sampling) & task parameters \\ \hline
+	Paper & good paper & Difficulty measure & variety measure  & Controllable elements     \\ \hline	
+	\cite{Matiisen2020}& seminal & improvement rate & none & task selection  \\ \hline
+	\cite{Feng2020}& & domain-specific & none & task parameters  \\ \hline
+	\textit{SPRL} \cite{Klink2020}& multi-env & $V(s_0)$ & none & task parameters \\ \hline
+	\cite{Jiang2020} & multi-env & improvement potential (error) & uncertainty bonus & task selection  \\ \hline
+	\textit{ALP-GMM} \cite{Portelas2019} & &  improvement rate & none & task parameters \\ \hline
+	\cite{Portelas2020} & & improvement rate & none & task parameters, student  \\ \hline
+	\cite{Narvekar2019} & & fast policy convergence & none & task parameters \\ \hline
+	\cite{Narvekar2020} & curriculum works & fast policy convergence & none & task selection, goal state \\ \hline
+	\cite{Gutierrez2020} & good theory & validation tasks & Policy KL-divergence & task selection \\ \hline
+	\cite{Justesen2018} & & $\pm$ difficulty, on success/fail & none & task parameter \\ \hline
+	\cite{Jain2017} & & transfer improvement & none & task selection \\ \hline
+	\cite{Reny2019} & & $V(s_0)-diff(g,g*)$ & Constrained goals & start state, goal state \\ \hline
+	\textit{PAIRED} \cite{Dennis2020} & Unsupervised SoTA & adversarial reward & none & task parameters \\ \hline
+	\cite{Racaniere2019} & multi-env, deepmind & prob of task success & teacher entropy & goal state \\ \hline
+	\cite{Al-Shedivat2017} & & self-play & none & opponent agent \\ \hline
+	\cite{Zhang2020} & multi-env & ensemble confidence & none & goal state \\ \hline
+	\cite{Wohlke2020} & & $\sim V'(s_0)$ & none & start state \\ \hline
+	\cite{Fang2020} & multi-env, ok theory & improvement rate \& test diff & none (GAN helps) & task parameters \\ \hline
+	\textit{GoalGAN} \cite{Florensa2018} & seminal & return in range & none (GAN helps) & goal state \\ \hline
+	\cite{Mehta2019} &  & none & learned trajectory difference & task parameters \\ \hline
+	\cite{Raparthy2020} & & adversarial reward & learned trajectory difference & task parameters \\ \hline
+	\cite{Sukhbaatar2017} & multi-env, ok theory & adversarial reward & None & task parameters \\ \hline
+	\cite{OpenAI2021} & openAI, multi-env & adversarial reward & new goals & task parameters \\ \hline
+	\cite{Mehta2020} & multi-env, metaRL & none & learned adaptation difference & task parameters \\ \hline
+	\cite{Gupta2018} & & none & learned state difference & task parameters \\ \hline
+	\cite{Jabri2019} & & none & trajectory clustering & task parameters \\ \hline
+	\cite{Srinivasan2019} & & demonstrated trajectories & none & start state \\ \hline
+	\cite{Akkaya2019} & & return, fixed change size & none & task parameters \\ \hline
+	\cite{Kaddour2020} & multi-env, ok theory & none & surprise (low likelihood) & task parameters \\ \hline
+	\textit{POET} \cite{Wang2019} & & return in range & distance in parameter space & task parameters \\ \hline
+	\cite{Milano2021} & & average reward & none & task parameters \\ \hline
+	\cite{Li} & & solved before & none & sub-goal \\ \hline
+	\cite{Won2019} & & expected $V(s|p)$ & none (sampling) & task parameters \\ \hline
 	
 \end{tabular}
 \end{table*}
@@ -368,7 +368,13 @@ papers
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Experiments - 19.4.21} \label{sec:experiment}
+\section{Formalizing curricula for a simple task - 1.6.21} \label{sec:pendulum-dreams}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+TODO
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Experiments - 1.6.21} \label{sec:experiment}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{table*}
@@ -449,6 +455,43 @@ papers
 		
 	\end{tabular}
 \end{table*}
+
+Setup 2 : ensemble experiments:
+Possible environments:
+\begin{enumerate}
+	\item Parametric pendulum - pendulum environment with randomized start state $\theta \in [-\frac{\pi}{8}, \frac{\pi}{8}]$, $v\in[-1,1]$. State space is $cos\theta,sin\theta,v$. Parameter is the goal angle.
+	\item Parametric HalfCheetah - Standard HalfCheetah. Parameter is the target speed going to the right. 
+	\item Parametric Ant - Standard Ant. Parameters are the goal location $x,y$ coordinates.
+\end{enumerate}
+Rewards are of the form $\alpha d(s,g) + \beta ||a||_2$.
+
+The possible students are either PPO or NN-ensemble.
+
+For PPO, the only parameter was network size for a fully connected MLP network.
+
+The NN-ensemble uses the log-likelihood to decide the network that is most likely to generate the trajectory, updates that network with the new sample, and uses it to pick the next action using MPC.
+New networks are created by training them for several time steps, then comparing the likelihood (with a high initial likelihood) and adding a network only if it is the most likely.
+A new network is removed unless it remains the most likely for several time steps.
+
+For NN-ensemble, there are several orthogonal parameters:
+\begin{itemize}
+	\item MPC horizon - how many steps in the future the MPC should predict
+	\item MPC optimizer - sampling method for action sequences for MPC, can be random or cross-entropy method (CEM)
+	\item model pretrain period - how many environment interactions are sampled using a random policy before the model-based ensemble is used
+	\item model burn-in - how many environment interactions a new model sees before evaluation begins, as well as the number of interactions a new model must be picked as most likely before it is considered a good addition to the ensemble
+	\item model $\alpha$ - The initial likelihood of a new model. High values encourage many new networks.
+	\item network size - number of weights, number of layers.
+	\item architecture - whether to use residual input-output connections and spectral norm.
+	\item prediction method - whether to use the  most likely model for prediction or to use all models with weights proportional to their predicted likelihood.
+\end{itemize}
+
+Another possible parameter is the teacher curriculum, that can be one of:
+\begin{enumerate}
+	\item Random tasks
+	\item Constant task - repetitions of the same task
+	\item Custom schedule - a hand-picked selection of tasks, repeated several times (i.e. pick the same parameters $x$ times, then move to another task $x$ times) 
+\end{enumerate}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Ensemble agent ideas - 26.4.21} \label{sec:ensemble}
