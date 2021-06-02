@@ -26,6 +26,7 @@ class AngledPendulumEnv(PendulumEnv):
     def __init__(self, angle=0.0):
         super(AngledPendulumEnv, self).__init__()
         self.angle = angle_normalize(angle)
+        self.m = 0.1
 
     def step(self, u):
         th, thdot = self.state  # th := theta
