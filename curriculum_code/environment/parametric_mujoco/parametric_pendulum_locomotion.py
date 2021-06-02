@@ -19,7 +19,7 @@ class PendRewardModel(StateActionReward):
 
     def state_reward(self, state, next_state=None):
         angle_cost = -0.5 * (self.cos_angle - state[..., 0]) ** 2 - 0.5 * (self.sin_angle - state[..., 1]) ** 2
-        return angle_cost - 0.1 * state[..., 2] ** 2
+        return 100*angle_cost - 0.1 * state[..., 2] ** 2
 
 
 class AngledPendulumEnv(PendulumEnv):
@@ -38,7 +38,7 @@ class AngledPendulumEnv(PendulumEnv):
         u = np.clip(u, -self.max_torque, self.max_torque)[0]
         self.last_u = u  # for rendering
         angle_cost = (self.angle - angle_normalize(th)) ** 2
-        costs = angle_cost + .1 * thdot ** 2 + .001 * (u ** 2)
+        costs = 100*angle_cost + .1 * thdot ** 2 + .001 * (u ** 2)
 
         newthdot = thdot + (-3 * g / (2 * l) * np.sin(th + np.pi) + 3. / (m * l ** 2) * u) * dt
         newth = th + newthdot * dt
