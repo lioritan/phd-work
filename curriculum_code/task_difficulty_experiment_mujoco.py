@@ -26,6 +26,10 @@ from student_algorithms.nn_model_ensemble.nnmm_policy import NNMMPolicy
 
 def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="PPO"):
     random_teacher = RandomTeacher(None, wrapper)
+
+    random_teacher = PredefinedTasksTeacher({"tasks": [
+        {"goal_angle": np.pi}
+    ]*100}, wrapper)
     #random_teacher = PredefinedTasksTeacher({"tasks": [easy_task]}, wrapper)
 
     wandb.init(project=f'mb_me_{wrapper.name}', entity='liorf', save_code=True)
