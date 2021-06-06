@@ -43,6 +43,7 @@
 \raggedbottom %nicer enumerate
 \theoremstyle{definition}
 \newtheorem{defn}{Definition}[section]
+\newtheorem{hypothesis}{Hypothesis}[section]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{Curriculum learning in RL}
 \begin{document}
@@ -368,10 +369,44 @@ papers
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Formalizing curricula for a simple task - 1.6.21} \label{sec:pendulum-dreams}
+\section{Formalizing curricula for a simple task - 6.6.21} \label{sec:pendulum-dreams}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-TODO
+In order to consider what curricula are valid, let us first define a simple task for reference.
+The inverted pendulum task consists of a pendulum of predefined mass and length.
+The goal of the parametric version of this task is to reach a chosen angle offset relative to the upright position, meaning a goal angle offset of 0 is the standard inverted pendulum formulation.
+As a reminder, the state consists of the sine of the angle, the cosine of the angle, and the current velocity.
+
+In order to discuss this parametric pendulum task, we must make two assumptions:
+\begin{enumerate}
+	\item The pendulum can be controlled to reach a steady state at any given angle - this assumption depends on the mass, length and gravity of the pendulum system. Violation of this assumption means that some tasks cannot be solved (and the optimal policy for them is either staying in the closest stable position or rotating at high velocity, depending on the cost function)
+	\item The cost function penalizes angle cost significantly more than action cost. Violation of this assumption may cause the controller to prioritize inaction over a correct policy.
+\end{enumerate}
+Under these assumptions, we can continue to make several hypotheses on the behavior of a student and teacher.
+
+\begin{hypothesis}
+	Tasks correlate with the angle offset - angles close to $\pi$ are easier, and angles close to $0$ or $2\pi$ are harder.
+\end{hypothesis}
+The intuition for this assumption is that since a longer trajectory is required to reach the goal state, these tasks are more difficult on average. This seems to hold in practice, as we can see most model-based agents have difficulty learning this task (mean reward increases with distance to $0$ offset). 
+Model-free agents trained on random tasks with a known goal also show this behavior very clearly, and agents trained on this ``harder'' task perform better on average than those trained on an ``easier" task, suggesting that this is indeed the case. 
+
+\begin{figure}[h]
+	\includegraphics[width=0.7\textwidth]{pend-rand}
+	\caption{Zero-shot reward for PPO with known goal and a random curriculum. We note that $\pi$ is the easiest task, and $0$/$2\pi$ is the hardest, not including a few outliers.}
+\end{figure}
+
+\begin{hypothesis}
+	A schedule is relevant to task performance.
+\end{hypothesis}
+This seems to hold in practice - a constant schedule of the easiest task performs poorly, a constant schedule of a medium difficulty ($\frac{\pi}{2}$) converges faster (for PPO) but to a lower quality solution, and a constant hard schedule performs best (for PPO). A random schedule performed worse than both a hard schedule and a medium one.
+Mixed schedules perform somewhere in the middle to no surprise.
+We note that the worse performance of a medium schedule may be due to the pendulum environment: the ``hard'' task is symmetrical to both directions, whereas the medium schedule is not. 
+
+\begin{figure}[h]
+	\includegraphics[width=0.7\textwidth]{pend-sched}
+	\caption{Zero-shot reward for PPO with several curricula.}
+\end{figure}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experiments - 1.6.21} \label{sec:experiment}
