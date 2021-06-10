@@ -1,4 +1,4 @@
-program: experiment1_baseline.py
+program: experiment_set/experiment1_baseline.py
 method: grid
 name: exp1_baseline_pendulum
 project: exp1_baseline_pendulum
