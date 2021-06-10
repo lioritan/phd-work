@@ -1,0 +1,17 @@
+program: experiment1_baseline.py
+method: grid
+parameters:
+  student:
+    values: ["PPO", "NN"]
+
+  tasks:
+    value: 100
+
+  steps:
+    value: 500
+
+  schedule:
+    values: [ "random", "pi", "pi-half","0" ]
+
+  seed:
+    values: [42, 1337, 8675309]
