@@ -1,5 +1,7 @@
 program: experiment2_noise.py
 method: grid
+name: exp2_noise_pendulum
+project: exp2_noise_pendulum
 parameters:
   student:
     values: ["PPO", "NN"]
