@@ -96,8 +96,8 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
             params_arr = np.array(task_params)
             normalized_angles = np.abs(((params_arr+np.pi) % (2*np.pi)) - np.pi)
             wandb.log({"task_num": i,
-                        "task_reward_corrs_angle":
-                            np.corrcoef(difficulty_estimates.mean(axis=1), normalized_angles)[0, 1]})
+                       "task_reward_corrs_angle":
+                           np.corrcoef(difficulty_estimates.mean(axis=1), normalized_angles[:, 0])[0, 1]})
             with open(f"./results/{date_string}/difficulty/{wrapper.name}/data_{i}.pkl", "wb") as fptr:
                 pickle.dump((difficulty_estimates, task_params), fptr)
             # TODO: save does not work for nnmm/dpgpmm, missing attributes
