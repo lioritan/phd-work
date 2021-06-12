@@ -1,7 +1,7 @@
 program: experiment3_schedule.py
 method: grid
-name: experiment3_schedule
-project: experiment3_schedule
+name: exp3_schedule_pendulum
+project: exp3_schedule_pendulum
 parameters:
   student:
     values: ["PPO", "NN"]

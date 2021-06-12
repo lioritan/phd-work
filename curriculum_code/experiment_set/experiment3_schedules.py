@@ -50,7 +50,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
             {"goal_angle": (-1)**(i+1) *np.pi / i } for i in range(1, len(tasks))
         ]}, wrapper)
 
-    wandb.init(project=f'exp2_noise_pendulum', entity='liorf', save_code=True)
+    wandb.init(project=f'exp3_schedule_pendulum', entity='liorf', save_code=True)
     config = wandb.config
     config.task = wrapper.name
     config.teacher = str(teacher_alg)
