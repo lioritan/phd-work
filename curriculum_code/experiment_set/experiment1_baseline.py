@@ -107,9 +107,12 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
         pickle.dump(teacher.history.history, fptr)
 
     # eval and record video
-    wandb.gym.monitor()  # Any env used with gym wrapper monitor will now be recorded
-    evaluate(steps_per_task, wrapper.create_env(easy_task),
-             student, f"./results/{date_string}/difficulty/{wrapper.name}/")
+    try:
+        wandb.gym.monitor()  # Any env used with gym wrapper monitor will now be recorded
+        evaluate(steps_per_task, wrapper.create_env(easy_task),
+                 student, f"./results/{date_string}/difficulty/{wrapper.name}/")
+    except Exception as e:
+        pass
 
 
 def evaluate(action_limit, base_env, student, base_dir):
