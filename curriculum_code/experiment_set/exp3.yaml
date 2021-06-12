@@ -1,0 +1,19 @@
+program: experiment2_noise.py
+method: grid
+name: exp2_noise_pendulum
+project: exp2_noise_pendulum
+parameters:
+  student:
+    values: ["PPO", "NN"]
+
+  tasks:
+    value: 100
+
+  steps:
+    value: 500
+
+  schedule:
+    values: [ "random", "linear", "linear-alt","exp","exp-alt","exp-fast","exp-fast-alt" ]
+
+  seed:
+    values: [42, 1337, 8675309]
