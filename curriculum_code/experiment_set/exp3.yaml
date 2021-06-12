@@ -1,7 +1,7 @@
-program: experiment2_noise.py
+program: experiment3_schedule.py
 method: grid
-name: exp2_noise_pendulum
-project: exp2_noise_pendulum
+name: experiment3_schedule
+project: experiment3_schedule
 parameters:
   student:
     values: ["PPO", "NN"]
