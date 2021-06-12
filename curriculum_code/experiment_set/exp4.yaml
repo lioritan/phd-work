@@ -1,0 +1,19 @@
+program: experiment4_alp.py
+method: grid
+name: exp4_alp_pendulum
+project: exp4_alp_pendulum
+parameters:
+  student:
+    values: ["PPO", "NN"]
+
+  tasks:
+    value: 100
+
+  steps:
+    value: 500
+
+  schedule:
+    values: [ "random", "alp","riac" ]
+
+  seed:
+    values: [42, 1337, 8675309]
