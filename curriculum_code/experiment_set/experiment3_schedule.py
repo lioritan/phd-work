@@ -27,27 +27,27 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
         teacher = RandomTeacher(None, wrapper)
     elif teacher_alg == "linear":
         teacher = PredefinedTasksTeacher({"tasks": [
-            {"goal_angle": np.pi * (1 - i / len(tasks))} for i in range(1, len(tasks))
+            {"goal_angle": np.pi * (1 - i / tasks)} for i in range(1, tasks)
         ]}, wrapper)
     elif teacher_alg == "exp":
         teacher = PredefinedTasksTeacher({"tasks": [
-            {"goal_angle": np.pi * (1 - 1 / i)} for i in range(len(tasks), 0, -1)
+            {"goal_angle": np.pi * (1 - 1 / i)} for i in range(tasks, 0, -1)
         ]}, wrapper)
     elif teacher_alg == "exp-fast":
         teacher = PredefinedTasksTeacher({"tasks": [
-            {"goal_angle": np.pi / i } for i in range(1, len(tasks))
+            {"goal_angle": np.pi / i } for i in range(1, tasks)
         ]}, wrapper)
     elif teacher_alg == "linear-alt":
         teacher = PredefinedTasksTeacher({"tasks": [
-            {"goal_angle": (-1)**(i+1) *np.pi * (1 - i / len(tasks))} for i in range(1, len(tasks))
+            {"goal_angle": (-1)**(i+1) *np.pi * (1 - i / tasks)} for i in range(1, tasks)
         ]}, wrapper)
     elif teacher_alg == "exp-alt":
         teacher = PredefinedTasksTeacher({"tasks": [
-            {"goal_angle": (-1)**i *np.pi * (1 - 1 / i)} for i in range(len(tasks), 0, -1)
+            {"goal_angle": (-1)**i *np.pi * (1 - 1 / i)} for i in range(tasks, 0, -1)
         ]}, wrapper)
     elif teacher_alg == "exp-fast-alt":
         teacher = PredefinedTasksTeacher({"tasks": [
-            {"goal_angle": (-1)**(i+1) *np.pi / i } for i in range(1, len(tasks))
+            {"goal_angle": (-1)**(i+1) *np.pi / i } for i in range(1, tasks)
         ]}, wrapper)
 
     wandb.init(project=f'exp3_schedule_pendulum', entity='liorf', save_code=True)
