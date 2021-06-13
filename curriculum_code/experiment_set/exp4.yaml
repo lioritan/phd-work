@@ -7,7 +7,7 @@ parameters:
     values: ["PPO", "NN"]
 
   tasks:
-    value: 100
+    value: 200
 
   steps:
     value: 500

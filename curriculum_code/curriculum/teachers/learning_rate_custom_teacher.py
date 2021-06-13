@@ -1,3 +1,4 @@
+import wandb
 from stable_baselines3.common.type_aliases import GymEnv
 import random
 import numpy as np
@@ -30,6 +31,12 @@ class LearningRateCustomTeacher(Teacher):
 
     def update_teacher_policy(self):
         latest_task, latest_result = self.history[-1]
+
+        last_one = self.last_task_values[self.task_mapping.index(latest_task)] if latest_task in self.task_mapping else 0
+        wandb.log({"task_num": len(self.history.history),
+                   "actual_ALP": abs(latest_result - last_one),
+                   "actual_LP": latest_result - last_one})
+
         if latest_task not in self.task_mapping:
             self.task_mapping.append(latest_task)
             new_ind = len(self.task_mapping) - 1
@@ -40,3 +47,5 @@ class LearningRateCustomTeacher(Teacher):
             learning_rate = latest_result - self.last_task_values[ind]
             self.task_rate[ind] = self.alpha * learning_rate + (1 - self.alpha) * self.task_rate[ind]
             self.last_task_values[ind] = latest_result
+
+

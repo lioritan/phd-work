@@ -1,6 +1,7 @@
 import copy
 from typing import Tuple, Dict, Any
 import numpy as np
+import wandb
 from stable_baselines3.common.type_aliases import GymEnv
 from gym.spaces import Box
 from collections import deque
@@ -158,6 +159,9 @@ class RiacTeacher(Teacher):
             node = self.tree.get_node(nid)
             reg = node.data
             reg.alp = self.compute_alp(reg.r_t_pairs)
+
+        wandb.log({"task_num": len(self.history.history),
+                   "actual_ALP": self.tree.get_node(self.nodes_to_recompute[-1]).data.alp})
 
         # Collect regions data (regions' ALP and regions' (task, reward) pairs)
         all_nodes = self.tree.all_nodes() if not self.sampling_in_leaves_only else self.tree.leaves()

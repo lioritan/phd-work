@@ -39,7 +39,7 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
             {"goal_angle": np.pi}, {"goal_angle": 3*np.pi/4}, {"goal_angle": np.pi/2}, {"goal_angle": np.pi/4},
             {"goal_angle": 0}, {"goal_angle": -3 * np.pi / 4}, {"goal_angle": -np.pi / 2}, {"goal_angle": -np.pi / 4},
         ],
-        "alpha":0.5, "epsilon": 0.2}, wrapper)
+        "alpha":0.4, "epsilon": 0.1}, wrapper)
 
     wandb.init(project=f'exp4_alp_pendulum', entity='liorf', save_code=True)
     config = wandb.config
