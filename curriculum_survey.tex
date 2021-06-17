@@ -257,6 +257,52 @@ See table \ref{methods-table}
 \end{table*}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Curriculum learning in ML - 17.6.21} \label{sec:CLML}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+To begin, let us discuss ``self-paced learning'' (SPL), a common form of easy-to-hard curriculum.
+SPL refers to curricula where each example is weighted based on the model error in a specific manner.
+In SPL, an EM algorithm is used to jointly optimize example weights $v_i$ and model parameters $w$.
+
+$w$ is optimized by minimizing weighted loss for any loss function $l$.
+$v$ is optimized by minimizing $v^*(l,\lambda)=argmin_{v} vl + f(v, \lambda)$, where $\lambda$ is a monotonically increasing ``age'' parameter, and $f$ is the self-paced regularizer function, that must satisfy:
+\begin{enumerate}
+	\item $f(v, \lambda)$ is convex with respect to $v, l$
+	\item $v^*(l,\lambda)$ monotonically decreases as l increases with limits at 0 and infinity (easy samples have more weight)
+	\item $v^*(l,\lambda)$ monotonically increases as $\lambda$ increases with limits at 0 and infinity (as training progresses, more examples should be included)
+\end{enumerate}
+
+% Optimization math
+In \cite{Meng2017}, a connection between SPL and majorization minimization (MM) methods is established, and using existing theory for MM methods, \emph{they derive a proof of convergence. They also use this theory and connections between the self-paced regularizer and non-convex regularized penalties to show that SPL methods work well in problems with outliers or noisy examples}, since the SPL regularizer limits the effect of examples with high loss on the early training. This happens since the conditions mean that high-loss examples have constant loss, and thus gradient methods have zero gradient on these examples and they do not impact training.
+
+In a later paper, \cite{Liu2018}, a connection between SPL and concave conjugates is shown ($v$ is the concave conjugate for $f$).
+This fact is used to reduce the condition set on the regularizer to:
+\begin{enumerate}
+	\item $f(v, \lambda)$ is strictly convex with respect to $v$
+	\item $f(v, \lambda)$ is lower semi-continuous with respect to $v$
+	\item $f$ covers all of $[0,1]$
+\end{enumerate}
+These simplified conditions help designing regularizers, as any regularizer satisfying these for constant $\lambda$ can be used as $f(v, \lambda)=\lambda f(v)$. This simpler condition can be used for curriculum design such as partial order, grouping of examples with similar losses and more.
+
+%PAC-BAYES
+In a series of papers, \citet{Pentina2015} show that the similarity between tasks may be an important factor to overall performance. In both a lifelong learning setting (like curriculum learning, but the input tasks are chosen randomly, and the goal is few-shot learning on new tasks) and multi-task learning (like lifelong learning, but with a single learner), the empirical risk can be bounded by a combination of the empirical training error and a factor of task dependence - either the size of the dependency set or the mean difference between tasks (this assumes task weights correspond to task similarity, unlikely to happen for complex models or complex task dependencies)
+
+%PAC-BAYES
+Two very recent papers extend these results to meta-learning, \cite{Ding2021} and \cite{Cioba2021}.
+In the first one, they relax the assumption that the number of examples in the target tasks is similar to the number of examples in training tasks, leading to a bound that corresponds to the (small) number of examples in the target task, but introduces an error term related to the gap between training and target tasks. Using a subsampling method a tighter bound on the risk can be achieved (this means fewer examples are used for training, all examples are used for risk estimation).
+
+In the second paper, they discuss whether it is better to have many tasks with few labels or few tasks with many labels. They show that for MAML wwith mixed linear regression, there is an optimal trade-off between number of tasks and labels per task for uniform tasks. They also show empirical experiments suggesting that a hard task requires more data, and that it is preferable to assign slightly more data to easy tasks.
+
+% optimization math with some PAC-bayes
+Another area of research that recently made use of curricula is semi-supervised learning, where \cite{Gong2019} show that a easy-to-hard curriculum can help with label propagation. 
+It is assumed that every example contains $v$ modalities (feature groups) that correspond to $v$ subgraphs of related data points.
+A difficulty metric based on distances is constructed, and they prove that an algorithm with a committee of teachers based on each modality to decide how to propagate labels converges in linear time.
+They also prove that choosing by the weighted voting has bounded error risk (vs random choice) proportional to the difficulty threshold - if only easy examples are allowed, the error risk is low, but performance is worse since fewer examples are considered. This means that weighted voting is good.
+
+%
+In \cite{Weinshall2018}, 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
