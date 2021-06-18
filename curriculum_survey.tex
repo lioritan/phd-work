@@ -55,7 +55,8 @@
 		%Added parameter and code base sections, updated goals
 		%Added model-based RL section
 		%Added experiments section
-		Added ensemble agent ideas
+		%Added ensemble agent ideas
+		Added ML-CL section
 	\end{abstract}
 
 \tableofcontents
@@ -257,7 +258,7 @@ See table \ref{methods-table}
 \end{table*}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Curriculum learning in ML - 17.6.21} \label{sec:CLML}
+\section{Curriculum learning in ML - 18.6.21} \label{sec:CLML}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 To begin, let us discuss ``self-paced learning'' (SPL), a common form of easy-to-hard curriculum.
@@ -299,8 +300,10 @@ It is assumed that every example contains $v$ modalities (feature groups) that c
 A difficulty metric based on distances is constructed, and they prove that an algorithm with a committee of teachers based on each modality to decide how to propagate labels converges in linear time.
 They also prove that choosing by the weighted voting has bounded error risk (vs random choice) proportional to the difficulty threshold - if only easy examples are allowed, the error risk is low, but performance is worse since fewer examples are considered. This means that weighted voting is good.
 
-%
-In \cite{Weinshall2018}, 
+% geometry
+In \cite{Weinshall2018, Weinshall2020}, the authors define two notations: the global difficulty of an example is the loss for that example given an optimal hypothesis, and the local difficulty of an example is the loss given the current hypothesis.
+For a linear hypothesis class under a convex loss, they prove that a curriculum ranked by low global difficulty leads to faster convergence. They also prove that, given identical global difficulty, \emph{high} local difficulty is preferable. They show this empirically by using a pre-trained network as an estimator of global difficulty.
+This result is empirically reinforced by a later paper (\cite{Hacohen2019}), showing that the easy-to-hard curriculum improves transfer accuracy, and a hard-to-easy curriculum harms transfer accuracy.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
