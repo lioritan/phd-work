@@ -274,7 +274,7 @@ $v$ is optimized by minimizing $v^*(l,\lambda)=argmin_{v} vl + f(v, \lambda)$, w
 \end{enumerate}
 
 % Optimization math
-In \cite{Meng2017}, a connection between SPL and majorization minimization (MM) methods is established, and using existing theory for MM methods, \emph{they derive a proof of convergence. They also use this theory and connections between the self-paced regularizer and non-convex regularized penalties to show that SPL methods work well in problems with outliers or noisy examples}, since the SPL regularizer limits the effect of examples with high loss on the early training. This happens since the conditions mean that high-loss examples have constant loss, and thus gradient methods have zero gradient on these examples and they do not impact training.
+In \cite{Meng2017}, a connection between SPL and majorization minimization (MM) methods is established, and using existing theory for MM methods, \emph{they derive a proof of convergence}. They also use this theory and connections between the self-paced regularizer and non-convex regularized penalties to show that SPL methods work well in problems with outliers or noisy examples, since the SPL regularizer limits the effect of examples with high loss on the early training. This happens since the conditions mean that high-loss examples have constant loss, and thus gradient methods have zero gradient on these examples and they do not impact training.
 
 In a later paper, \cite{Liu2018}, a connection between SPL and concave conjugates is shown ($v$ is the concave conjugate for $f$).
 This fact is used to reduce the condition set on the regularizer to:
