@@ -350,6 +350,8 @@ These results were incrementally improved by REPTILE (\cite{Nichol2018}), by usi
 
 Recent approaches (\cite{Saglietti2021, Khodak2019}) that use the data or other expert knowledge to estimate task hardness for meta-learning yield slightly better results for zero-shot and one-shot transfer, with comparable few-shot transfer. 
 Both methods do not show a significant improvement over existing methods.
+Mentor-Net (\cite{Jiang2017}) is another paper that suggests learning the difficulty of tasks and using it for a curriculum. This method does improve on existing approaches, but this may be due to having a larger network.
+Interestingly, Mentor-Net shows a significant improvement over a non-curriculum based approach with similar network sizes, for a setting with noisy labels. This suggests that results from traditional CL literature also hold for the meta-learning case.
 
 Some very recent papers (\cite{Bateni2020, Tian2020}) show that a good representation is more meaningful for effective meta learning, yielding results that are far better than MAML and REPTILE, mostly by using a deeper network and some minor tweaks such as a different loss aggregation or network distillation. 
 These methods suggest that the current bottleneck for better meta learning is the representation, and that curricula that impose an effective order on complex representations may be highly useful.
