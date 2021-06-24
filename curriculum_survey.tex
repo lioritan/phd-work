@@ -292,7 +292,7 @@ In a series of papers, \citet{Pentina2015} show that the similarity between task
 Two very recent papers extend these results to meta-learning, \cite{Ding2021} and \cite{Cioba2021}.
 In the first one, they relax the assumption that the number of examples in the target tasks is similar to the number of examples in training tasks, leading to a bound that corresponds to the (small) number of examples in the target task, but introduces an error term related to the gap between training and target tasks. Using a subsampling method a tighter bound on the risk can be achieved (this means fewer examples are used for training, all examples are used for risk estimation).
 
-In the second paper, they discuss whether it is better to have many tasks with few labels or few tasks with many labels. They show that for MAML wwith mixed linear regression, there is an optimal trade-off between number of tasks and labels per task for uniform tasks. They also show empirical experiments suggesting that a hard task requires more data, and that it is preferable to assign slightly more data to easy tasks.
+In the second paper, they discuss whether it is better to have many tasks with few labels or few tasks with many labels. They show that for MAML with mixed linear regression, there is an optimal trade-off between number of tasks and labels per task for uniform tasks. They also show empirical experiments suggesting that a hard task requires more data, and that it is preferable to assign slightly more data to easy tasks.
 
 % optimization math with some PAC-bayes
 Another area of research that recently made use of curricula is semi-supervised learning, where \cite{Gong2019} show that a easy-to-hard curriculum can help with label propagation. 
@@ -304,6 +304,55 @@ They also prove that choosing by the weighted voting has bounded error risk (vs 
 In \cite{Weinshall2018, Weinshall2020}, the authors define two notations: the global difficulty of an example is the loss for that example given an optimal hypothesis, and the local difficulty of an example is the loss given the current hypothesis.
 For a linear hypothesis class under a convex loss, they prove that a curriculum ranked by low global difficulty leads to faster convergence. They also prove that, given identical global difficulty, \emph{high} local difficulty is preferable. They show this empirically by using a pre-trained network as an estimator of global difficulty.
 This result is empirically reinforced by a later paper (\cite{Hacohen2019}), showing that the easy-to-hard curriculum improves transfer accuracy, and a hard-to-easy curriculum harms transfer accuracy.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section{The Meta-Curriculum problem - 24.6.21} \label{sec:mcl}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\begin{defn} \label{defn:mcl}
+%	A \textbf{meta-curriculum problem} is characterized by:
+%	\begin{itemize}
+%		\item A task probability distribution $\mathcal{T}$, $(\mathcal{D}_i, m_i)\sim \mathcal{T}$. We will mark $S_{i}=\{(x_j, y_j)\sim \mathcal{D}_i\}_{j=1}^{m_i}$
+%		\item A Hypothesis class $H$
+%		\item A loss measure $\mathcal{L}: S\times H \rightarrow \mathbb{R}$
+%		\item A training set $S=\{S_1,...,S_n\}$
+%	\end{itemize}
+%
+%	Given these, we would like to find a hyper-prior $\mathcal{P}_S$ and learn a hyper-posterior $\mathcal{Q}$ to minimize the multi-task error $\mathcal{L}(\mathcal{Q}, \mathcal{T}) \triangleq \mathbb{E}_{P\sim \mathcal{Q}} \mathbb{E}_{(\mathcal{D}, m)\sim \mathcal{T}} \mathbb{E}_{S\sim \mathcal{D}} [\mathcal{L}(Q(S, P), \mathcal{D})]$ \footnote{$Q$ is a base learner mapping data and prior over $H$ to posterior over $H$}. 
+%	To approximate this, we use the empirical multi-task error $\mathcal{\hat{L}}(\mathcal{Q}, S_1,...,S_n) \triangleq \mathbb{E}_{P\sim \mathcal{Q}} [\frac{1}{n} \sum_{i=1}^{n} \mathcal{\hat{L}}(Q(S_i, P), S_i)]$
+%\end{defn}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Notable empirical results in CL - 24.6.21} \label{sec:empirical-cl}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In \cite{Anonymous2021}, the effect of several difficulty-based curricula is checked.
+Task difficulty is checked by one of three methods:
+\begin{enumerate}
+	\item A reference loss (pre-trained model)
+	\item A novel measure called learned iteration, the first iteration where the model output was correct
+	\item The c-score, an approximation of generalization accuracy for an example, measured by the expected accuracy for a model trained on n random examples (that are not the measured example)
+\end{enumerate}
+Additionally, several pacing functions for the size of training sets were examined.
+For large datasets with long training times, curricula had no effect, and pacing was marginally useful to improve convergence rate. For short training times or datasets with noisy labels, curricula showed a significant improvement in performance, especially easy-to-hard curricula.
+
+In \cite{Hacohen2019}, A similar experiment is performed with a reference loss function. Results here show a significant improvement for short training times
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Notable empirical results in Meta-ML - 24.6.21} \label{sec:empirical-meta}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+For meta learning, a good reference point is MAML (\cite{Finn2017})), showing a major improvement over previous methods for few-shot transfer.
+These results were incrementally improved by REPTILE (\cite{Nichol2018}), by using a Polyak update for the model parameters instead of directly applying the gradient.
+
+Recent approaches (\cite{Saglietti2021, Khodak2019}) that use the data or other expert knowledge to estimate task hardness for meta-learning yield slightly better results for zero-shot and one-shot transfer, with comparable few-shot transfer. 
+Both methods do not show a significant improvement over existing methods.
+
+Some very recent papers (\cite{Bateni2020, Tian2020}) show that a good representation is more meaningful for effective meta learning, yielding results that are far better than MAML and REPTILE, mostly by using a deeper network and some minor tweaks such as a different loss aggregation or network distillation. 
+These methods suggest that the current bottleneck for better meta learning is the representation, and that curricula that impose an effective order on complex representations may be highly useful.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
