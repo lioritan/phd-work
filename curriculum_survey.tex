@@ -28,6 +28,7 @@
 \usepackage{color}
 \usepackage{natbib}
 \usepackage[normalem]{ulem}
+\usepackage{romannum}
 %\usepackage[style=authoryear]{biblatex}
 
 \usepackage{hyperref}
@@ -355,6 +356,51 @@ Interestingly, Mentor-Net shows a significant improvement over a non-curriculum 
 
 Some very recent papers (\cite{Bateni2020, Tian2020}) show that a good representation is more meaningful for effective meta learning, yielding results that are far better than MAML and REPTILE, mostly by using a deeper network and some minor tweaks such as a different loss aggregation or network distillation. 
 These methods suggest that the current bottleneck for better meta learning is the representation, and that curricula that impose an effective order on complex representations may be highly useful.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Math for PAC-Bayesian meta learning - 5.7.21} \label{sec:bayes}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Let $\mathcal{T}$ be an unknown task distribution, let $\mathcal{P}$ be a \emph{hyper-prior} over distributions of hypotheses (data-free). Let $\tau_i=(\mathcal{D}_i, S_i)~\mathcal{T}$ be a set of tasks ($i=1,...,n$).
+
+We assume for now that $\tau_i$ are drawn i.i.d. from $\mathcal{T}$.
+
+We wish to bound the learned \emph{hyper-posterior} $\mathcal{Q}$, and its error - 
+$$\mathcal{L}(\mathcal{Q}, \mathcal{T})=\mathbb{E}_{P\sim \mathcal{Q}}[\mathbb{E}_{(\mathcal{D}, m)\sim \mathcal{T}}[\mathbb{E}_{S\sim \mathcal{D}^m}[\mathcal{L}(Q(S,P), D)]]]$$
+
+Using the result from Rothfuss (TODO: cite),by applying the change of measure inequality, for any $\lambda>0$,
+$$\mathcal{L}(\mathcal{Q}, \mathcal{T})\leq \mathcal{L}(\mathcal{Q}, \mathcal{D}_1,...,\mathcal{D}_n) + \frac{1}{\lambda} KL(\mathcal{Q}||\mathcal{P})+\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
+
+Where $\Upsilon^{\text{\Romannum{2}}}(\lambda)=\frac{1}{\lambda}ln \mathbb{E}_{P\sim \mathcal{P}} [e^{\frac{\lambda}{n}\Sigma_{i=1}^{n}\mathbb{E}_{(D,S)\sim \mathcal{T}}[\mathcal{L}(Q(P,S),D)- \mathcal{L}(Q(P, S_i), \mathcal{D}_i)]}]$
+
+We note that for any $P\sim \mathcal{Q}$, $P$ is a data-dependent prior (and $P\sim \mathcal{P}$ is a data-free prior).
+From Rivasplata et al (TODO: cite), we know that for each task $i$, given a data-dependent prior $P$,
+$$\Pr_{S_i~D_i}\Bigl ( \mathcal{L}(\mathcal{Q}, D_i)\leq \mathcal{L}(\mathcal{Q}, S_i) + KL(Q(P,S_i)||P) + ln(\frac{\xi_i(P)}{\delta_i}) \Bigr )\geq 1-\delta_i$$
+
+We will mark $Q_i:=Q(P,S_i)$ for comfort.
+By using a union bound (with a known identity connecting union and intersection), and by choosing $\delta_i=\frac{\delta}{n}$ for some $\delta>0$, we get:
+
+With probability at least $1-\delta$ over the choice of training data $S1,..,S_n$,
+$$\mathbb{E}_{P\sim \mathcal{Q}} \bigl [ \frac{1}{n}\Sigma_i \mathcal{L}(\mathcal{Q}, D_i) \Bigr ] \leq \mathbb{E}_{P\sim \mathcal{Q}} \bigl [ \frac{1}{n}\Sigma_i \hat{\mathcal{L}}(\mathcal{Q}, S_i) + \frac{1}{n}\Sigma_i KL(Q_i||P) + \frac{1}{n}\Sigma_i ln(\frac{\xi_i(P)}{\delta/n}) \Bigr ]$$
+
+
+By definition of $ \mathcal{L}(\mathcal{Q}, \mathcal{D}_1,...,\mathcal{D}_n)$,  $ \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n)$ we get:
+
+$$\mathcal{L}(\mathcal{Q}, \mathcal{D}_1,...,\mathcal{D}_n) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + \frac{1}{n}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + \mathbb{E}_{P\sim \mathcal{Q}} \bigl [ \frac{1}{n}\Sigma_i ln(\frac{\xi_i(P)}{\delta/n}) \Bigr ]$$
+
+Putting it all together, for any $\lambda>0$ with probability at least $1-\delta$,
+
+$$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + \frac{1}{\lambda} KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + \mathbb{E}_{P\sim \mathcal{Q}} \bigl [ \frac{1}{n}\Sigma_i ln(\frac{\xi_i(P)}{\delta/n}) \Bigr ] +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
+
+Whereas the bound in Rothfuss is (for any $\lambda,\beta>0$):
+
+$$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + (\frac{1}{\lambda}+\frac{1}{n\beta}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + \Upsilon^{\text{\Romannum{1}}}(\beta) +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
+
+To compare, $\Upsilon^{\text{\Romannum{1}}}(\beta)=\frac{1}{\beta}ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\bigl [ e^{\frac{\beta}{n}\Sigma_i(\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \bigr ]$, 
+and $\xi_i(P)=\int_{S_i}\int_{H}e^{\mathcal{L}(\mathcal{Q}, D_i)- \hat{\mathcal{L}}(\mathcal{Q}, S_i)}P(dh)D_i(ds)$
+
+We note that $\Upsilon^{\text{\Romannum{1}}}(\beta),\Upsilon^{\text{\Romannum{2}}}(\lambda)$ do not depend on the learned \emph{hyper-posterior} $\mathcal{Q}$, and are functions of the \emph{data-free hyper-prior} $\mathcal{P}$
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
