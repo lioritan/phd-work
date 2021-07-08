@@ -358,8 +358,10 @@ Some very recent papers (\cite{Bateni2020, Tian2020}) show that a good represent
 These methods suggest that the current bottleneck for better meta learning is the representation, and that curricula that impose an effective order on complex representations may be highly useful.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Math for PAC-Bayesian meta learning - 5.7.21} \label{sec:bayes}
+\section{Math for PAC-Bayesian meta learning - 8.7.21} \label{sec:bayes}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Definitions and previous results}
 
 Let $\mathcal{T}$ be an unknown task distribution, let $\mathcal{P}$ be a \emph{hyper-prior} over distributions of hypotheses (data-free). Let $\tau_i=(\mathcal{D}_i, S_i)~\mathcal{T}$ be a set of tasks ($i=1,...,n$).
 
@@ -372,6 +374,8 @@ Using the result from Rothfuss (TODO: cite),by applying the change of measure in
 $$\mathcal{L}(\mathcal{Q}, \mathcal{T})\leq \mathcal{L}(\mathcal{Q}, \mathcal{D}_1,...,\mathcal{D}_n) + \frac{1}{\lambda} KL(\mathcal{Q}||\mathcal{P})+\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
 
 Where $\Upsilon^{\text{\Romannum{2}}}(\lambda)=\frac{1}{\lambda}ln \mathbb{E}_{P\sim \mathcal{P}} [e^{\frac{\lambda}{n}\Sigma_{i=1}^{n}\mathbb{E}_{(D,S)\sim \mathcal{T}}[\mathcal{L}(Q(P,S),D)- \mathcal{L}(Q(P, S_i), \mathcal{D}_i)]}]$
+
+\subsection{Math for appendix}
 
 We note that for any $P\sim \mathcal{Q}$, $P$ is a data-dependent prior (and $P\sim \mathcal{P}$ is a data-free prior).
 From Rivasplata et al (TODO: cite), we know that for each task $i$, given a data-dependent prior $P$,
@@ -388,19 +392,45 @@ By definition of $ \mathcal{L}(\mathcal{Q}, \mathcal{D}_1,...,\mathcal{D}_n)$,  
 
 $$\mathcal{L}(\mathcal{Q}, \mathcal{D}_1,...,\mathcal{D}_n) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + \frac{1}{n}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + \mathbb{E}_{P\sim \mathcal{Q}} \bigl [ \frac{1}{n}\Sigma_i ln(\frac{\xi_i(P)}{\delta/n}) \Bigr ]$$
 
+Developing this further,
+
+$$ \mathbb{E}_{P\sim \mathcal{Q}} \bigl [ \frac{1}{n}\Sigma_i ln(\frac{\xi_i(P)}{\delta/n}) \Bigr ] = \mathbb{E}_{P\sim \mathcal{Q}} \bigl [ \frac{1}{n}ln(\frac{\Pi_i\xi_i(P)}{(\delta/n)^n}) \Bigr ] = \mathbb{E}_{P\sim \mathcal{Q}} \bigl [ ln(\frac{(\Pi_i\xi_i(P))^{\frac{1}{n}}}{(\delta/n)}) \Bigr ]$$
+
+We note that by the definition of $xi_i$,
+
+$$\mathbb{E}_{P\sim \mathcal{Q}} \bigl [ ln(\frac{(\Pi_i\xi_i(P))^{\frac{1}{n}}}{(\delta/n)}) \Bigr ] = 
+\mathbb{E}_{P\sim \mathcal{Q}} \mathbb{E}_{h\sim P} \bigl [ ln(\frac{(\Pi_i e^{\mathcal{L}(h, \mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)})^{\frac{1}{n}}}{(\delta/n)}) \Bigr ] = 
+\mathbb{E}_{P\sim \mathcal{Q}} \mathbb{E}_{h\sim P} \bigl [ ln(\frac{ e^{\frac{1}{n}\Sigma_i\mathcal{L}(h, \mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)}}{(\delta/n)}) \Bigr ]$$
+
+Using Jensen's inequality,
+
+$$\mathbb{E}_{P\sim \mathcal{Q}} \mathbb{E}_{h\sim P} \bigl [ ln(\frac{ e^{\frac{1}{n}\Sigma_i\mathcal{L}(h, \mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)}}{(\delta/n)}) \Bigr ] \leq ln \mathbb{E}_{P\sim \mathcal{Q}} \mathbb{E}_{h\sim P} \bigl [ \frac{ e^{\frac{1}{n}\Sigma_i\mathcal{L}(h, \mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)}}{(\delta/n)} \Bigr ] = ln(\frac{n}{\delta})+ ln \mathbb{E}_{P\sim \mathcal{Q}} \mathbb{E}_{h\sim P} \bigl [ e^{\frac{1}{n}\Sigma_i\mathcal{L}(h, \mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \Bigr ]$$
+
+\subsection{Summary}
+
 Putting it all together, for any $\lambda>0$ with probability at least $1-\delta$,
 
-$$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + \frac{1}{\lambda} KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + \mathbb{E}_{P\sim \mathcal{Q}} \bigl [ \frac{1}{n}\Sigma_i ln(\frac{\xi_i(P)}{\delta/n}) \Bigr ] +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
+$$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + \frac{1}{\lambda} KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + ln(\frac{n}{\delta})+ ln \mathbb{E}_{P\sim \mathcal{Q}} \mathbb{E}_{h\sim P} \bigl [ e^{\frac{1}{n}\Sigma_i\mathcal{L}(h, \mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \Bigr ] +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
 
 Whereas the bound in Rothfuss is (for any $\lambda,\beta>0$):
 
-$$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + (\frac{1}{\lambda}+\frac{1}{n\beta}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + \Upsilon^{\text{\Romannum{1}}}(\beta) +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
+$$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + (\frac{1}{\lambda}+\frac{1}{n\beta}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + \frac{1}{\beta}ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\bigl [ e^{\frac{\beta}{n}\Sigma_i\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \bigr ] +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
 
-To compare, $\Upsilon^{\text{\Romannum{1}}}(\beta)=\frac{1}{\beta}ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\bigl [ e^{\frac{\beta}{n}\Sigma_i(\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \bigr ]$, 
-and $\xi_i(P)=\int_{S_i}\int_{H}e^{\mathcal{L}(\mathcal{Q}, D_i)- \hat{\mathcal{L}}(\mathcal{Q}, S_i)}P(dh)D_i(ds)$
+We also note that the term $ln(\frac{n}{\delta})$ is the result of a union bound, and it is possible to replace it with $\Sigma_i ln(\frac{1}{\delta_i})$. This union bound may be overly pessimistic as it assumes that the \emph{hyper-posterior} is independently bounded for each task. If tasks are not independent it may be possible to use that to derive a tighter bound. We also note that the per-task moment term is now with respect to $\mathcal{Q}$ and not $\mathcal{P}$. 
 
-We note that $\Upsilon^{\text{\Romannum{1}}}(\beta),\Upsilon^{\text{\Romannum{2}}}(\lambda)$ do not depend on the learned \emph{hyper-posterior} $\mathcal{Q}$, and are functions of the \emph{data-free hyper-prior} $\mathcal{P}$
+\subsection{Analysis}
 
+If we assume that the per-task moment is not worse in expectation under $\mathcal{Q}$ compared to $\mathcal{P}$, we get: 
+
+$$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + \frac{1}{\lambda} KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + ln(\frac{n}{\delta})+ ln K +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
+
+compared to 
+
+$$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + (\frac{1}{\lambda}+\frac{1}{n\beta}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + 1+\frac{1}{\beta}ln(K) +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
+
+(Since $\frac{1}{\beta}ln(e^{\beta}K)=1+\frac{1}{\beta}ln(K)$)
+
+Comparing the two bounds is difficult, since the latter depends on $\beta$, commonly a function of $m$ (the size of each task), and a trade-off between the KL-divergence on the meta level and on the task level. We also note that $\Upsilon^{\text{\Romannum{2}}}(\lambda)$ may be a function of $n$, but unlike $ln(\frac{n}{\delta})$ it does not (usually) increase as $n$ increases. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
