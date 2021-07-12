@@ -379,7 +379,7 @@ Where $\Upsilon^{\text{\Romannum{2}}}(\lambda)=\frac{1}{\lambda}ln \mathbb{E}_{P
 
 We note that for any $P\sim \mathcal{Q}$, $P$ is a data-dependent prior (and $P\sim \mathcal{P}$ is a data-free prior).
 From Rivasplata et al (TODO: cite), we know that for each task $i$, given a data-dependent prior $P$,
-$$\Pr_{S_i~D_i}\Bigl ( \mathcal{L}(\mathcal{Q}, D_i)\leq \mathcal{L}(\mathcal{Q}, S_i) + KL(Q(P,S_i)||P) + ln(\frac{\xi_i(P)}{\delta_i}) \Bigr )\geq 1-\delta_i$$
+$$\Pr_{S_i\sim D_i}\Bigl ( \mathcal{L}(\mathcal{Q}, D_i)\leq \mathcal{L}(\mathcal{Q}, S_i) + KL(Q(P,S_i)||P) + ln(\frac{\xi_i(P)}{\delta_i}) \Bigr )\geq 1-\delta_i$$
 
 We will mark $Q_i:=Q(P,S_i)$ for comfort.
 By using a union bound (with a known identity connecting union and intersection), and by choosing $\delta_i=\frac{\delta}{n}$ for some $\delta>0$, we get:
@@ -431,6 +431,24 @@ $$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,
 (Since $\frac{1}{\beta}ln(e^{\beta}K)=1+\frac{1}{\beta}ln(K)$)
 
 Comparing the two bounds is difficult, since the latter depends on $\beta$, commonly a function of $m$ (the size of each task), and a trade-off between the KL-divergence on the meta level and on the task level. We also note that $\Upsilon^{\text{\Romannum{2}}}(\lambda)$ may be a function of $n$, but unlike $ln(\frac{n}{\delta})$ it does not (usually) increase as $n$ increases. 
+
+\subsection{Gibbs analysis}
+
+Let us assume that $P\sim \mathcal{Q}$ behaves as follows:
+$$P_{S_i}(h)\propto e^{-\gamma \hat{L}(h,S_i)}P_0(h)$$
+Where $P_0\sim \mathcal{P}$. One method to achieve this is to learn a prior per task, and given a task to use the appropriate prior (this assumes the task is known). This is a naive algorithm that essentially ignores the meta-learning setting, but still gives us an interesting bound:
+
+From Rivasplata (cite), for each specific task, with probability at least $1-\delta_i$,
+$$L(P,D_i)-L(P,S_i)\leq \frac{1}{\sqrt{m_i}}\bigl ( KL(Q_i||P) + 2(1+\frac{2\gamma}{\sqrt{m_i}})+ln(\frac{1+\sqrt{e}}{\delta_i}) \bigr )$$
+
+Using a union bound, with probability at least $1-\delta$,
+$$L(P,\{D_i\})-L(P,\{S_i\})\leq \frac{1}{\sqrt{m}}\bigl ( \Sigma_i KL(Q_i||P) + 2(1+\frac{2\gamma}{\sqrt{m}})+ln(\frac{m(1+\sqrt{e})}{\delta}) \bigr )$$
+
+Combining with Rothfuss, with $\lambda=n$ we get:
+
+$$L(P,\mathcal{T})-L(P,\{S_i\})\leq \frac{1}{n}KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{\sqrt{m}}\Sigma_i KL(Q_i||P) + 2(\frac{1}{\sqrt{m}}+\frac{2\gamma}{m})+\frac{1}{\sqrt{m}}ln(\frac{m(1+\sqrt{e})}{\delta}) + \Upsilon^{\text{\Romannum{2}}}(n)$$
+	
+We note that under mild assumptions on the learner $Q$, we get that as $m\rightarrow\infty$, all terms dependant on $m$ go to zero, and as $n\rightarrow\infty$, all terms dependant on $n$ go to zero.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
