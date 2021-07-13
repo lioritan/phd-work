@@ -412,6 +412,10 @@ Putting it all together, for any $\lambda>0$ with probability at least $1-\delta
 
 $$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + \frac{1}{\lambda} KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + ln(\frac{n}{\delta})+ ln \mathbb{E}_{P\sim \mathcal{Q}} \mathbb{E}_{h\sim P} \bigl [ e^{\frac{1}{n}\Sigma_i\mathcal{L}(h, \mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \Bigr ] +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
 
+Using the same method on the change of measure, we can also get:
+
+$$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + \frac{1}{\lambda} KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + ln(\frac{n}{\delta})+ \frac{1}{\beta}ln \mathbb{E}_{P\sim \mathcal{Q}} \mathbb{E}_{h\sim P} \bigl [ e^{\frac{\beta}{n}\Sigma_i\mathcal{L}(h, \mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \Bigr ] +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
+
 Whereas the bound in Rothfuss is (for any $\lambda,\beta>0$):
 
 $$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + (\frac{1}{\lambda}+\frac{1}{n\beta}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + \frac{1}{\beta}ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\bigl [ e^{\frac{\beta}{n}\Sigma_i\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \bigr ] +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
@@ -422,7 +426,7 @@ We also note that the term $ln(\frac{n}{\delta})$ is the result of a union bound
 
 If we assume that the per-task moment is not worse in expectation under $\mathcal{Q}$ compared to $\mathcal{P}$, we get: 
 
-$$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + \frac{1}{\lambda} KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + ln(\frac{n}{\delta})+ ln K +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
+$$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + \frac{1}{\lambda} KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\Sigma_i \mathbb{E}_{P\sim \mathcal{Q}} \bigl [KL(Q_i||P) \Bigr ] + ln(\frac{n}{\delta})+ 1+\frac{1}{\beta}ln K +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
 
 compared to 
 
@@ -430,7 +434,7 @@ $$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,
 
 (Since $\frac{1}{\beta}ln(e^{\beta}K)=1+\frac{1}{\beta}ln(K)$)
 
-Comparing the two bounds is difficult, since the latter depends on $\beta$, commonly a function of $m$ (the size of each task), and a trade-off between the KL-divergence on the meta level and on the task level. We also note that $\Upsilon^{\text{\Romannum{2}}}(\lambda)$ may be a function of $n$, but unlike $ln(\frac{n}{\delta})$ it does not (usually) increase as $n$ increases. 
+Comparing the two bounds is difficult, since the latter depends on $\beta$, commonly a function of $m$ (the size of each task), but our new bound seems inferior.
 
 \subsection{Gibbs analysis}
 
