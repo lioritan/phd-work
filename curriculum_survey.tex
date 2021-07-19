@@ -454,6 +454,31 @@ $$L(P,\mathcal{T})-L(P,\{S_i\})\leq \frac{1}{n}KL(\mathcal{Q}||\mathcal{P}) + \f
 	
 We note that under mild assumptions on the learner $Q$, we get that as $m\rightarrow\infty$, all terms dependant on $m$ go to zero, and as $n\rightarrow\infty$, all terms dependant on $n$ go to zero.
 
+\subsection{Task dependencies}
+
+Suppose we know something more about tasks. Can we devise a better bound?
+As an initial case, let's start with an easy case.
+
+Let us assume that the goal task is known and was seen during training, that is, we know that we wish to bound $\mathcal{L}(\mathcal{Q}, D_i)=E_{P\sim \mathcal{Q}}E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)$, where we already have another dataset $S_i\sim D_i^{m_i}$. We will mark $\{D_j\}:=\{D_1,...,D_{i-1},D_{i+1},...,D_n\}, \{S_j\}:=\{S_1,...,S_{i-1},S_{i+1},...,S_n\}$ for ease of notations.
+
+\subsubsection*{Approach 1}
+Let us try to bound
+$$E_{P\sim \mathcal{Q}}\bigl [E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)-\hat{\mathcal{L}}(Q(P, S_i), S_i)\bigr ]$$
+
+Using the change of measure inequality, we get
+
+$$E_{P\sim \mathcal{Q}}E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)\leq E_{P\sim \mathcal{Q}}\hat{\mathcal{L}}(Q(P, S_i), S_i) + KL(\mathcal{Q}||\mathcal{P})+lnE_{P\sim \mathcal{P}}\bigl [e^{E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)-\hat{\mathcal{L}}(Q(P, S_i), S_i)}\bigr ]$$
+
+To minimize this, we would like to balance minimizing $E_{P\sim \mathcal{Q}}\hat{\mathcal{L}}(Q(P, S_i), S_i)$ and $KL(\mathcal{Q}||\mathcal{P})$. TODO: what can we say about this? it may be optimal to give hypothesis weights based on distance to $D_i$, but how can this be proven, and does this use data from $\{S_j\}$?
+Ignoring the data from other tasks and picking $\mathcal{Q}$ that is a gibbs distribution on $\mathcal{P},S_i$ gives us $KL(\mathcal{Q}||\mathcal{P})\propto E_{P\sim \mathcal{P}}ln Z_\beta(S_i,P)$, where $Z_\beta(S_i,P)=\int_H P(h)e^{\beta \hat{\mathcal{L}}(h, S_i)}dh$.
+
+\subsubsection*{Approach 2}
+Let us try to bound
+$$E_{P\sim \mathcal{Q}}\bigl [E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)-\frac{1}{n}\Sigma_k\hat{\mathcal{L}}(Q(P, S_k), S_i)\bigr ]$$
+
+We basically get the same thing with mean loss of learners trained on any dataset and tested on $S_i$. 
+The moment term should be smaller (i.e. the bound is tighter) since we can expect $\hat{\mathcal{L}}(Q(P, S_j), S_i)\geq \hat{\mathcal{L}}(Q(P, S_i), S_i) $ for any prior (this may not be the case, but it makes sense). TODO: it should be optimal to give meta-hypothesis weights based on $KL(Q_j||Q_i)$, but how can this be proven? Is this bound better?
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
