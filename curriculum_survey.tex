@@ -23,6 +23,7 @@
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 
+
 \usepackage{multirow}
 \usepackage{ctable}
 \usepackage{color}
@@ -454,7 +455,7 @@ $$L(P,\mathcal{T})-L(P,\{S_i\})\leq \frac{1}{n}KL(\mathcal{Q}||\mathcal{P}) + \f
 	
 We note that under mild assumptions on the learner $Q$, we get that as $m\rightarrow\infty$, all terms dependant on $m$ go to zero, and as $n\rightarrow\infty$, all terms dependant on $n$ go to zero.
 
-\subsection{Task dependencies - 19.7.21}
+\subsection{Task dependencies - 22.7.21}
 
 Suppose we know something more about tasks. Can we devise a better bound?
 As an initial case, let's start with an easy case.
@@ -469,15 +470,63 @@ Using the change of measure inequality, we get
 
 $$E_{P\sim \mathcal{Q}}E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)\leq E_{P\sim \mathcal{Q}}\hat{\mathcal{L}}(Q(P, S_i), S_i) + KL(\mathcal{Q}||\mathcal{P})+lnE_{P\sim \mathcal{P}}\bigl [e^{E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)-\hat{\mathcal{L}}(Q(P, S_i), S_i)}\bigr ]$$
 
-To minimize this, we would like to balance minimizing $E_{P\sim \mathcal{Q}}\hat{\mathcal{L}}(Q(P, S_i), S_i)$ and $KL(\mathcal{Q}||\mathcal{P})$. TODO: what can we say about this? it may be optimal to give hypothesis weights based on distance to $D_i$, but how can this be proven, and does this use data from $\{S_j\}$?
-Ignoring the data from other tasks and picking $\mathcal{Q}$ that is a gibbs distribution on $\mathcal{P},S_i$ gives us $KL(\mathcal{Q}||\mathcal{P})\propto E_{P\sim \mathcal{P}}ln Z_\beta(S_i,P)$, where $Z_\beta(S_i,P)=\int_H P(h)e^{\beta \hat{\mathcal{L}}(h, S_i)}dh$.
+To minimize this, we would like to balance minimizing $E_{P\sim \mathcal{Q}}\hat{\mathcal{L}}(Q(P, S_i), S_i)$ and $KL(\mathcal{Q}||\mathcal{P})$. This is achieved by using only $S_i$.
 
 \subsubsection*{Approach 2}
 Let us try to bound
 $$E_{P\sim \mathcal{Q}}\bigl [E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)-\frac{1}{n}\Sigma_k\hat{\mathcal{L}}(Q(P, S_k), S_i)\bigr ]$$
 
-We basically get the same thing with mean loss of learners trained on any dataset and tested on $S_i$. 
-The moment term should be smaller (i.e. the bound is tighter) since we can expect $\hat{\mathcal{L}}(Q(P, S_j), S_i)\geq \hat{\mathcal{L}}(Q(P, S_i), S_i) $ for any prior (this may not be the case, but it makes sense). TODO: it should be optimal to give meta-hypothesis weights based on $KL(Q_j||Q_i)$, but how can this be proven? Is this bound better?
+To minimize here, we would pick $\mathcal{Q}$ that is proportional to the loss of each trained hypothesis on $S_i$, resulting in high weight to tasks that are very different from $S_i$. While this is not useful, it is quite interesting, as it gives us a method to learn to perform well on tasks that are very dissimilar to $i$ by testing on task $i$. We also note that we can expect to have a smaller moment term here.
+
+Intuitively it may be better to use 
+$$E_{P\sim \mathcal{Q}}\bigl [E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)- \frac{1}{n}\Sigma_k\frac{\hat{\mathcal{L}}(Q(P, S_k), S_i)}{KL(Q(P, S_k)||Q(P, S_i))+\epsilon} \bigr ]$$
+
+This balances the loss of a task with regards to task $i$ with how different it is from task $i$. A task with low distance will have more weight, but lower loss. A task with high distance will have a higher loss.
+
+\subsubsection*{Approach 3 - 22.7.21}
+
+We will try to use various identities to get a more useful bound for approach 1. To do so, we assuem that $Q$ chosen as a gibbs learner with parameter $\gamma$, so: $$KL(Q_i||Q_k)=\int_h ln\frac{Q_i(h)}{Q_k(h)}dQ_i=\int_h ln\frac{P(h)\frac{e^{-\gamma L(h,S_i)}}{Z_{\gamma}(P,S_i)}}{P(h)\frac{e^{-\gamma L(h,S_k)}}{Z_{\gamma}(P,S_k)}}dQ_i=\int_h ln\frac{e^{-\gamma L(h,S_i)} Z_{\gamma}(P,S_k)}{e^{-\gamma L(h,S_k)} Z_{\gamma}(P,S_i)}dQ_i$$
+
+From this, we get: 
+$$KL(Q_i||Q_k)=\int_h \bigl [ ln\frac{e^{-\gamma L(h,S_i)}}{e^{-\gamma L(h,S_k)} }+ln \frac{Z_{\gamma}(P,S_k)}{Z_{\gamma}(P,S_i)} \bigr ] dQ_i=\int_h \bigl [ \gamma L(h,S_k)-\gamma L(h,S_i) +C(S_i,S_k,P) \bigr ] dQ_i$$
+
+From this last expression, we get that:
+$$KL(Q_i||Q_k)=\gamma E_{h\sim Q_i}[L(h,S_k)-L(h,S_i)]+C(S_i,S_k,P)=\gamma (\hat{\mathcal{L}}(Q_i,S_k)-\hat{\mathcal{L}}(Q_i,S_i))+C(S_i,S_k,P)$$
+
+Where $C(S_i,S_k,P)=ln\frac{Z_{\beta}(P,S_k)}{ Z_{\beta}(P,S_i)}\leq ln E_{h\sim P} \bigl [e^{\gamma (L(h,S_i)-L(h,S_k))} \bigr ]$ due to the definition of covariance.
+
+By moving $\hat{\mathcal{L}}(Q_i,S_i)$ we get for each $k$:
+
+$$ \hat{\mathcal{L}}(Q_i,S_i)\leq \hat{\mathcal{L}}(Q_i,S_k) - \frac{1}{\gamma} KL(Q_i||Q_k) + \frac{1}{\gamma}ln E_{h\sim P} \bigl [e^{\gamma (L(h,S_i)-L(h,S_k))} \bigr ]$$
+
+By averaging over all tasks we get:
+
+$$ \hat{\mathcal{L}}(Q_i,S_i)\leq \frac{1}{n}\Sigma_k\hat{\mathcal{L}}(Q_i,S_k) - \frac{1}{n\gamma} \Sigma_k KL(Q_i||Q_k) + \frac{1}{n\gamma}\Sigma_k ln E_{h\sim P} \bigl [e^{\gamma (L(h,S_i)-L(h,S_k))} \bigr ]$$
+
+Plugging this into the equation for approach 1 we get:
+
+$$ \mathcal{L}(\mathcal{Q}, D_i)\leq E_{P\sim \mathcal{Q}} \bigl [\frac{1}{n}\Sigma_k\hat{\mathcal{L}}(Q_i,S_k) - \frac{1}{n\gamma} \Sigma_k KL(Q_i||Q_k) + \frac{1}{n\gamma}\Sigma_k ln E_{h\sim P} \bigl [e^{\gamma (L(h,S_i)-L(h,S_k))} \bigr ] \bigr ]+ KL(\mathcal{Q}||\mathcal{P})+\Upsilon^{\text{\Romannum{2}}}(\mathcal{P}, S_i)$$
+
+Simplifying this a bit we can write this as:
+
+
+$$ \mathcal{L}(\mathcal{Q}, D_i)\leq E_{P\sim \mathcal{Q}}\bigl [\frac{1}{n}\Sigma_k \bigl ( \hat{\mathcal{L}}(Q_i,S_k) + \frac{1}{\gamma} ln E_{h\sim P}\bigl [e^{\gamma (L(h,S_i)-L(h,S_k))} \bigr ] -   \frac{1}{\gamma}  KL(Q_i||Q_k) \bigr ) \bigr ] + KL(\mathcal{Q}||\mathcal{P})+\Upsilon^{\text{\Romannum{2}}}(\mathcal{P}, S_i)$$
+
+Let's mark:
+$$g(P)=\frac{1}{n}\Sigma_k \bigl ( \hat{\mathcal{L}}(Q_i,S_k) + \frac{1}{\gamma} ln E_{h\sim P}\bigl [e^{\gamma (L(h,S_i)-L(h,S_k))} \bigr ] -   \frac{1}{\gamma}  KL(Q_i||Q_k) \bigr )$$
+
+$$ \mathcal{L}(\mathcal{Q}, D_i)\leq E_{P\sim \mathcal{Q}}\bigl [g(P) \bigr ] + KL(\mathcal{Q}||\mathcal{P})+\Upsilon^{\text{\Romannum{2}}}(\mathcal{P}, S_i)$$
+
+From Catoni (2007), we can minimize this by choosing:
+
+$$Q^{*}(P)=\frac{\mathcal{P}(P) e^{-\beta g(P)}}{E_{P\sim \mathcal{P}} \bigl [ e^{-\beta g(P) } \bigr ]}$$
+
+We note that we can also optimize $g(P)$ with respect to all other tasks, since the sum component for task $i$ is zero.
+
+Maximizing $g$ (to minimize $Q^{*}$) means that the learned prior should encourage $Q_i$ to have poor fit for other tasks, for $Q_i$ to be as similar to other $Q_k$ as possible, and for $P$ to be a poor predictor of $S_i$ and a good predictor of $S_k$. 
+
+These are somewhat contradictory goals - We would like to create a prior that is a good fit for all other tasks, but that fits poorly on them when $Q_i$ is applied to it. We would like $Q_i$ to be similar (predictive of) to $Q_k$ but would also like $P$ to be a poor predictor for task i despite being a good predictor of task k.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
