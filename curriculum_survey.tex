@@ -549,6 +549,13 @@ We do note that if the loss is always at least zero, we can go further and get:
 
 $$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) \leq \frac{1}{n\gamma}ln E_{h\sim P} \left [e^{-\gamma\sum_k 0}\right ] + lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]=lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]$$
 
+Taking this term, we can optimize for a new $\bar{g}$ that is less tight but possibly easier to optimize: \footnote{
+	An even more extreme term would be 
+	$\bar{g}(P)=\frac{1}{n}\sum_k \hat{\mathcal{L}}(Q_i,S_k)+lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]$}
+$$\bar{g}(P)=\frac{1}{n}\sum_k \left (\hat{\mathcal{L}}(Q_i,S_k)-\frac{1}{\gamma}KL(Q_i||Q_k)\right )+lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]$$ 
+
+This gives us a somewhat logical optimization goal: lower loss for the goal task, as well as all similar tasks. If a task is very dissimilar (in terms of KL) it can be ignored to an extent.
+
 \subsubsection*{Conclusions from approach 3 - 1.8.21}
 
 Let us compare this bound to Rothfuss:
@@ -603,7 +610,7 @@ Compared to
 $\mathcal{L}(\mathcal{Q}, D_i)\leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}}  \left [ \hat{\mathcal{L}}(Q_i,S_k) \right ]  + \frac{1}{n^2\sqrt{m}}\sum_k E_{P\sim \mathcal{Q}} \left [C(S_i,S_k,P)\right ] + \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM} \right ]$
 
 where $\frac{1}{n^2\sqrt{m}}\sum_k E_{P\sim \mathcal{Q}} \left [C(S_i,S_k,P)\right ] \leq  lnE_{P\sim \mathcal{Q}}E_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]$ for non-negative loss functions. 
-This may be a tighter bound if there are many tasks that are similar (in terms of loss of trained classifiers) to task i.
+This may be a tighter bound if there are many tasks that are similar (in terms of loss of trained classifiers) to task i. We note here that we completely removed the KL-divergence term here since it is deducted from the bound, despite the fact that it improves the bound.
 
 If $m\rightarrow\infty$, we get
 
