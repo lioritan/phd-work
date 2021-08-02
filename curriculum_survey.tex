@@ -58,7 +58,10 @@
 		%Added model-based RL section
 		%Added experiments section
 		%Added ensemble agent ideas
-		Added ML-CL section
+		%Added ML-CL section
+		Wrote formulation of meta PAC-bayes with known task
+		
+		Working on meta PAC-bayes where new task unknown but similar to an existing task
 	\end{abstract}
 
 \tableofcontents
@@ -455,7 +458,7 @@ $$L(P,\mathcal{T})-L(P,\{S_i\})\leq \frac{1}{n}KL(\mathcal{Q}||\mathcal{P}) + \f
 	
 We note that under mild assumptions on the learner $Q$, we get that as $m\rightarrow\infty$, all terms dependent on $m$ go to zero, and as $n\rightarrow\infty$, all terms dependant on $n$ go to zero.
 
-\subsection{Task dependencies - 25.7.21}
+\subsection{Task dependencies - 2.8.21}
 
 Suppose we know something more about tasks. Can we devise a better bound?
 As an initial case, let's start with an easy case.
@@ -483,7 +486,7 @@ $$E_{P\sim \mathcal{Q}}\bigl [E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)- \fra
 
 This balances the loss of a task with regards to task $i$ with how different it is from task $i$. A task with low distance will have more weight, but lower loss. A task with high distance will have a higher loss.
 
-\subsubsection*{Approach 3 - 1.8.21}
+\subsubsection*{Approach 3 - 2.8.21}
 
 We will try to use various identities to get a more useful bound for approach 1. To do so, we assume that $Q$ chosen as a gibbs learner with parameter $\gamma$, so: $$KL(Q_i||Q_k)=\int_h ln\frac{Q_i(h)}{Q_k(h)}dQ_i=\int_h ln\frac{P(h)\frac{e^{-\gamma L(h,S_i)}}{Z_{\gamma}(P,S_i)}}{P(h)\frac{e^{-\gamma L(h,S_k)}}{Z_{\gamma}(P,S_k)}}dQ_i=\int_h ln\frac{e^{-\gamma L(h,S_i)} Z_{\gamma}(P,S_k)}{e^{-\gamma L(h,S_k)} Z_{\gamma}(P,S_i)}dQ_i$$
 
@@ -522,7 +525,7 @@ Maximizing $g$ (to minimize $\mathcal{Q}^{*}$) means that the learned prior shou
 
 These are somewhat contradictory goals - We would like to create a prior that is a good fit for all other tasks, but that fits poorly on them when $Q_i$ is applied to it. We would like $Q_i$ to be similar (predictive of) to $Q_k$ but would also like $P$ to be a poor predictor for task i despite being a good predictor of task k.
 
-\subsubsection*{Footnote : developing $C(S_i,S_k,P)$ - 1.8.21}
+\subsubsection*{Footnote : developing $C(S_i,S_k,P)$ - 2.8.21}
 
 Developing $C(S_i,S_k,P)$ yields:
 
@@ -534,7 +537,7 @@ $$=
 =
 \frac{1}{n\gamma}ln\Pi_k E_{h\sim P}\left [e^{-\gamma\hat{\mathcal{L}}(h,S_k)}\right ] - \frac{1}{\gamma}lnZ_{\gamma}(P,S_i) $$
 
-Since we know that for any random variables $E(XY)=E(X)E(Y)+cov(X,Y)\rightarrow E(X)E(Y)\leq E(XY)$, so:
+\textcolor{red}{Since we know that for any random variables $E(XY)=E(X)E(Y)+cov(X,Y)\rightarrow E(X)E(Y)\leq E(XY)$:}
 
 $$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) \leq \frac{1}{n\gamma}ln E_{h\sim P} \Pi_k \left [e^{-\gamma\hat{\mathcal{L}}(h,S_k)}\right ] - \frac{1}{\gamma}lnZ_{\gamma}(P,S_i)
 = \frac{1}{n\gamma}ln E_{h\sim P} \left [e^{-\gamma\sum_k \hat{\mathcal{L}}(h,S_k)}\right ] - \frac{1}{\gamma}lnZ_{\gamma}(P,S_i)$$
@@ -545,7 +548,7 @@ Putting it together, we get:
 $$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) \leq \frac{1}{n\gamma}ln E_{h\sim P} \left [e^{-\gamma\sum_k \hat{L}(h,S_k)}\right ] - \frac{1}{\gamma}lnE_{h\sim P}\left [ e^{-\gamma\hat{\mathcal{L}}(h,S_i)}\right ]$$
 
 This is not a great expression as it has a term that does not depend on $n,m$ in a useful manner.
-We do note that if the loss is always at least zero, we can go further and get:
+\textcolor{blue}{ We do note that if the loss is always at least zero, we can go further and get:}
 
 $$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) \leq \frac{1}{n\gamma}ln E_{h\sim P} \left [e^{-\gamma\sum_k 0}\right ] + lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]=lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]$$
 
