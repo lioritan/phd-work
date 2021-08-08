@@ -496,7 +496,7 @@ $$E_{P\sim \mathcal{Q}}\bigl [E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)- \fra
 
 This balances the loss of a task with regards to task $i$ with how different it is from task $i$. A task with low distance will have more weight, but lower loss. A task with high distance will have a higher loss.
 
-\subsubsection*{Approach 3 - 4.8.21}
+\subsubsection*{Approach 3 - 4.8.21} \label{section-meta-known}
 
 We will try to use various identities to get a more useful bound for approach 1. To do so, we assume that $Q$ chosen as a gibbs learner with parameter $\gamma$, so: $$KL(Q_i||Q_k)=\int_h ln\frac{Q_i(h)}{Q_k(h)}dQ_i=\int_h ln\frac{P(h)\frac{e^{-\gamma L(h,S_i)}}{Z_{\gamma}(P,S_i)}}{P(h)\frac{e^{-\gamma L(h,S_k)}}{Z_{\gamma}(P,S_k)}}dQ_i=\int_h ln\frac{e^{-\gamma L(h,S_i)} Z_{\gamma}(P,S_k)}{e^{-\gamma L(h,S_k)} Z_{\gamma}(P,S_i)}dQ_i$$
 
@@ -594,7 +594,7 @@ After we mark $M=\beta(\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i))$
 \begin{split}
 \mathcal{L}(\mathcal{Q}, D_i)\leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_i,S_k) -\frac{1}{n\beta}KL(Q_i||Q_k) \right ]} + \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}} KL(Q_i||P)} \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM} \right ]
 \\ 
-+ \frac{1}{n^2\beta}\sum_k E_{P\sim \mathcal{Q}} \left [C(S_i,S_k,P)\right ]
++\textcolor{olive} {\frac{1}{n^2\beta}\sum_k E_{P\sim \mathcal{Q}} \left [C(S_i,S_k,P)\right ]}
 \end{split}
 \end{equation*}
 
@@ -638,8 +638,43 @@ $\mathcal{L}(\mathcal{Q}, D_i)\leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}}  \lef
 We note that if the loss is bounded, we can deduce that $\frac{1}{n\sqrt{m}}KL(\mathcal{Q}||\mathcal{P})\rightarrow 0$, as the optimal $\mathcal{Q}^*$ reduces to a gibbs learner for $S_i$, and the $\sqrt{m}$ term is more dominant.
 
 
+\subsection{Task dependencies with multiple tasks - 8.8.21}
 
+In section \ref{section-meta-known}, we derived a PAC-bayes bound for generalization given that the test task is known during meta-training. In this section we will extend this result to the case where it is known that the test task is of the same distribution as one of the training tasks, but we do not know the correct task during training.
 
+A simple solution to try is to train a hyper-posterior for each task as in section \ref{section-meta-known}, and pick the one to use during meta-testing by minimizing the predicted loss for target task $t$ by finding $\min_{k}E_{P\sim\mathcal{Q}_k}\left [\hat{\mathcal{L}}(Q(P,S_t), S_t)\right ]$.
+
+If we find the correct hyper-posterior $i$ such that $D_i=D_t$, we get the previous bound
+
+\begin{equation*}
+\begin{split}
+\mathcal{L}(\mathcal{Q}_i, D_t)\leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}_i} \left [ \hat{\mathcal{L}}(Q_t,S_k) -\frac{1}{n\beta}KL(Q_t||Q_k) \right ]} + \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_i} KL(Q_i||P)} \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM} \right ]
+\\ 
++\textcolor{olive} {\frac{1}{n^2\beta}\sum_k E_{P\sim \mathcal{Q}_i} \left [C(S_t,S_k,P)\right ]}
+\end{split}
+\end{equation*}
+
+If we do not find the correct hyper-posterior, then there is a task $j\neq i$ such that $D_j\neq D_t$ but $E_{P\sim\mathcal{Q}_j}\left [\hat{\mathcal{L}}(Q(P,S_t), S_t)\right ]\leq E_{P\sim\mathcal{Q}_i}\left [\hat{\mathcal{L}}(Q(P,S_t), S_t)\right ]$. We get:
+
+\begin{equation*}
+\begin{split}
+\mathcal{L}(\mathcal{Q}_j, D_t)\leq \hat{\mathcal{L}}(\mathcal{Q}_j, S_t) + \frac{1}{n\beta} KL(\mathcal{Q}_j||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_j} KL(Q_j||P) \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM} \right ]
+\end{split}
+\end{equation*}
+
+And since $\hat{\mathcal{L}}(\mathcal{Q}_j, S_t)\leq \hat{\mathcal{L}}(\mathcal{Q}_i, S_t)$, we can replace and get 
+
+\begin{equation*}
+\begin{split}
+\mathcal{L}(\mathcal{Q}_j, D_t)\leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}_i} \left [ \hat{\mathcal{L}}(Q_t,S_k) -\frac{1}{n\beta}KL(Q_t||Q_k) \right ]} + \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}_j||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_j} KL(Q_j||P)} \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM} \right ]
+\\ 
++\textcolor{olive} {\frac{1}{n^2\beta}\sum_k E_{P\sim \mathcal{Q}_i} \left [C(S_t,S_k,P)\right ]}
+\end{split}
+\end{equation*}
+
+We note that this is identical to the correct hyper-posterior except for the KL-divergence terms marked in red. If $n,m\rightarrow \infty$ we get an equivalent bound.
+
+For finite $m,n$, we have no real way to compare these since KL-divergence is not a distance metric, and there's no real way of comparing $\hat{\mathcal{L}}(\mathcal{Q}_j, S_j)$ and $\hat{\mathcal{L}}(\mathcal{Q}_i, S_i)$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
