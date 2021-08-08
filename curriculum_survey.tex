@@ -29,6 +29,8 @@
 \usepackage{color}
 \usepackage{natbib}
 \usepackage[normalem]{ulem}
+
+
 \usepackage{romannum}
 %\usepackage[style=authoryear]{biblatex}
 
@@ -42,6 +44,9 @@
 }
 \urlstyle{same}
 
+
+
+
 \raggedbottom %nicer enumerate
 \theoremstyle{definition}
 \newtheorem{defn}{Definition}[section]
@@ -49,6 +54,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{Curriculum learning in RL}
 \begin{document}
+	
+	\pagenumbering{arabic}
 	\maketitle
 	\begin{abstract}
 		%Added most methods not focused on varied tasks
@@ -540,24 +547,12 @@ $$=
 =
 \frac{1}{n\gamma}ln\Pi_k E_{h\sim P}\left [e^{-\gamma\hat{\mathcal{L}}(h,S_k)}\right ] - \frac{1}{\gamma}lnZ_{\gamma}(P,S_i) $$
 
-\textcolor{red}{Since we know that for any random variables $E(XY)=E(X)E(Y)+cov(X,Y)\rightarrow E(X)E(Y)\leq E(XY)$:}
-
-$$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) \leq \frac{1}{n\gamma}ln E_{h\sim P} \Pi_k \left [e^{-\gamma\hat{\mathcal{L}}(h,S_k)}\right ] - \frac{1}{\gamma}lnZ_{\gamma}(P,S_i)
-= \frac{1}{n\gamma}ln E_{h\sim P} \left [e^{-\gamma\sum_k \hat{\mathcal{L}}(h,S_k)}\right ] - \frac{1}{\gamma}lnZ_{\gamma}(P,S_i)$$
-
-
-Putting it together, we get:
-
-$$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) \leq \frac{1}{n\gamma}ln E_{h\sim P} \left [e^{-\gamma\sum_k \hat{L}(h,S_k)}\right ] - \frac{1}{\gamma}lnE_{h\sim P}\left [ e^{-\gamma\hat{\mathcal{L}}(h,S_i)}\right ]$$
-
 This is not a great expression as it has a term that does not depend on $n,m$ in a useful manner.
-\textcolor{blue}{ We do note that if the loss is always at least zero, we can go further and get:}
+We do note that if the loss is always at least zero, we can go further and get:
 
-$$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) \leq \frac{1}{n\gamma}ln E_{h\sim P} \left [e^{-\gamma\sum_k 0}\right ] + lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]=lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]$$
+$$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) \leq \frac{1}{n\gamma}ln \Pi_k E_{h\sim P} \left [e^{0}\right ] + ln E_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]=lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]$$
 
-Taking this term, we can optimize for a new $\bar{g}$ that is less tight but possibly easier to optimize: \footnote{
-	An even more extreme term would be 
-	$\bar{g}(P)=\frac{1}{n}\sum_k \hat{\mathcal{L}}(Q_i,S_k)+lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]+ KL(Q_i||P)$}
+Taking this term, we can optimize for a new $\bar{g}$ that is less tight but possibly easier to optimize: 
 $$\bar{g}(P)=\frac{1}{n}\sum_k \left (\hat{\mathcal{L}}(Q_i,S_k)-\frac{1}{\gamma}KL(Q_i||Q_k)\right )+ KL(Q_i||P)+lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]$$ 
 
 This gives us a somewhat logical optimization goal: lower loss for the goal task, as well as all similar tasks. If a task is very dissimilar (in terms of KL) it can be ignored to an extent.
@@ -570,7 +565,7 @@ $$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}, D_i)\leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_i,S_k) -\frac{1}{\gamma}KL(Q_i||Q_k) \right ] +  E_{P\sim \mathcal{Q}}KL(\mathcal{Q}||\mathcal{P}) + KL(Q_i||P) \\  + ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \right ]
+\mathcal{L}(\mathcal{Q}, D_i)\leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_i,S_k) -\frac{1}{\gamma}KL(Q_i||Q_k) \right ] +  KL(\mathcal{Q}||\mathcal{P}) + E_{P\sim \mathcal{Q}}KL(Q_i||P) \\  + ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \right ]
  + \Upsilon^{\text{\Romannum{1}}}(\gamma)
 \end{split}
 \end{equation*}
@@ -580,7 +575,7 @@ Where $\Upsilon^{\text{\Romannum{1}}}(\gamma)=\frac{1}{n\gamma}\sum_k E_{P\sim \
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}, D_i)\leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_i,S_k) -\frac{1}{n\beta}KL(Q_i||Q_k) \right ] + \frac{1}{n\beta} E_{P\sim \mathcal{Q}}KL(\mathcal{Q}||\mathcal{P}) +\frac{1}{n\beta} KL(Q_i||P) \\  + \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{n\beta(\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i))} \right ]
+\mathcal{L}(\mathcal{Q}, D_i)\leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_i,S_k) -\frac{1}{n\beta}KL(Q_i||Q_k) \right ] + \frac{1}{n\beta} KL(\mathcal{Q}||\mathcal{P}) +\frac{1}{n\beta} E_{P\sim \mathcal{Q}}KL(Q_i||P) \\  + \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{n\beta(\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i))} \right ]
 + \Upsilon^{\text{\Romannum{1}}}(n\beta)
 \end{split}
 \end{equation*}
@@ -589,7 +584,7 @@ After we mark $M=\beta(\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i))$
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_k,S_k) \right ] + (\frac{1}{\lambda}+\frac{1}{n\beta}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\sum_k \mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_k||P) \right ]\\ 
+\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_k,S_k) \right ]} + \textcolor{red}{(\frac{1}{\lambda}+ \frac{1}{n\beta}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\sum_k \mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_k||P) \right ]}\\ 
 + \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M+K} \right ]
  \\+\frac{1}{\lambda}ln \mathbb{E}_{P\sim \mathcal{P}} [e^{\frac{\lambda}{n}\sum_{k}\mathbb{E}_{\mathcal{T}}[\mathcal{L}(Q(P,S),D)- \mathcal{L}(Q_k, \mathcal{D}_k)]}]
 \end{split}
@@ -597,7 +592,7 @@ After we mark $M=\beta(\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i))$
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}, D_i)\leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_i,S_k) -\frac{1}{n\beta}KL(Q_i||Q_k) \right ] + \frac{1}{n\beta} E_{P\sim \mathcal{Q}}KL(\mathcal{Q}||\mathcal{P}) +\frac{1}{n\beta} KL(Q_i||P) \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM} \right ]
+\mathcal{L}(\mathcal{Q}, D_i)\leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_i,S_k) -\frac{1}{n\beta}KL(Q_i||Q_k) \right ]} + \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}} KL(Q_i||P)} \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM} \right ]
 \\ 
 + \frac{1}{n^2\beta}\sum_k E_{P\sim \mathcal{Q}} \left [C(S_i,S_k,P)\right ]
 \end{split}
