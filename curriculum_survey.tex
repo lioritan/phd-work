@@ -66,11 +66,13 @@
 		%Added experiments section
 		%Added ensemble agent ideas
 		%Added ML-CL section
-		Wrote formulation of meta PAC-bayes with known task
+		%Wrote formulation of meta PAC-bayes with known task
 		
 		Updated formulation with per-task KL term
 		
-		Working on meta PAC-bayes where new task unknown but similar to an existing task
+		Wrote simple formulation for multi-task meta PAC-bayes, new task from existing distribution
+		
+		Working on analysis of these methods
 	\end{abstract}
 
 \tableofcontents
@@ -638,7 +640,7 @@ $\mathcal{L}(\mathcal{Q}, D_i)\leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}}  \lef
 We note that if the loss is bounded, we can deduce that $\frac{1}{n\sqrt{m}}KL(\mathcal{Q}||\mathcal{P})\rightarrow 0$, as the optimal $\mathcal{Q}^*$ reduces to a gibbs learner for $S_i$, and the $\sqrt{m}$ term is more dominant.
 
 
-\subsection{Task dependencies with multiple tasks - 8.8.21}
+\subsection{Task dependencies with multiple tasks - 9.8.21}
 
 In section \ref{section-meta-known}, we derived a PAC-bayes bound for generalization given that the test task is known during meta-training. In this section we will extend this result to the case where it is known that the test task is of the same distribution as one of the training tasks, but we do not know the correct task during training.
 
@@ -674,7 +676,55 @@ And since $\hat{\mathcal{L}}(\mathcal{Q}_j, S_t)\leq \hat{\mathcal{L}}(\mathcal{
 
 We note that this is identical to the correct hyper-posterior except for the KL-divergence terms marked in red. If $n,m\rightarrow \infty$ we get an equivalent bound.
 
-For finite $m,n$, we have no real way to compare these since KL-divergence is not a distance metric, and there's no real way of comparing $\hat{\mathcal{L}}(\mathcal{Q}_j, S_j)$ and $\hat{\mathcal{L}}(\mathcal{Q}_i, S_i)$.
+To give a clearer expression to this KL term, we should consider the following:
+
+\begin{equation*}
+\begin{split}
+\mathcal{Q}^{*}_{i}(P)=\frac{\mathcal{P}(P) e^{-\lambda g_i(P)}}{E_{P\sim \mathcal{P}} \left [ e^{-\lambda g_i(P) } \right ]} \\
+g_i(P)=\hat{\mathcal{L}}(Q_i,S_i)+ KL(Q_i||P)
+\end{split}
+\end{equation*}
+
+To get consistent bounds, we note that a choice of  $\lambda=\sqrt{n}$ is a good idea. Using these definitions we can write:
+
+\begin{equation*}
+\begin{split}
+ KL(\mathcal{Q}_j||\mathcal{P})- KL(\mathcal{Q}_i||\mathcal{P})=\int ln \left ( \frac{e^{-\lambda g_j(P)}}{E_{P\sim \mathcal{P}} \left [ e^{-\lambda g_j(P) } \right ]} \right)d\mathcal{Q}_j - \int ln \left ( \frac{e^{-\lambda g_i(P)}}{E_{P\sim \mathcal{P}} \left [ e^{-\lambda g_i(P) } \right ]} \right)d\mathcal{Q}_i\\
+ =\int ln \left ( e^{-\lambda g_j(P)} \right)d\mathcal{Q}_j - lnE_{P\sim \mathcal{P}} \left [ e^{-\lambda g_j(P) } \right ] - \int ln \left ( e^{-\lambda g_i(P)} \right)d\mathcal{Q}_i + lnE_{P\sim \mathcal{P}} \left [ e^{-\lambda g_i(P) } \right ]\\
+ =ln\frac{E_{P\sim \mathcal{P}} \left [ e^{-\lambda g_i(P) } \right ]}{E_{P\sim \mathcal{P}} \left [ e^{-\lambda g_j(P) }\right ]}+\int -\lambda g_j(P) d\mathcal{Q}_j - \int -\lambda g_i(P) d\mathcal{Q}_i
+\end{split}
+\end{equation*}
+
+From definition, we also know:
+
+$$KL(\mathcal{Q}_j||\mathcal{Q}_i)= ln\frac{E_{P\sim \mathcal{P}} \left [ e^{-\lambda g_i(P) } \right ]}{E_{P\sim \mathcal{P}} \left [ e^{-\lambda g_j(P) }\right ]} +\int -\lambda g_j(P) d\mathcal{Q}_j - \int -\lambda g_i(P) d\mathcal{Q}_j $$
+
+And so,
+
+$$ KL(\mathcal{Q}_j||\mathcal{P}) = KL(\mathcal{Q}_i||\mathcal{P}) + KL(\mathcal{Q}_j||\mathcal{Q}_i) +  \int -\lambda g_i(P) d\mathcal{Q}_j - \int -\lambda g_i(P) d\mathcal{Q}_i$$
+
+Using the definitions, we get
+
+%%+E_{P\sim \mathcal{Q}_j} KL(Q_j||P)
+
+$$ KL(\mathcal{Q}_j||\mathcal{P}) = KL(\mathcal{Q}_i||\mathcal{P}) + KL(\mathcal{Q}_j||\mathcal{Q}_i) -\lambda  \int  (\hat{\mathcal{L}}(Q_j,S_j)+ KL(Q_j||P)) d\mathcal{Q}_j + \lambda \int (\hat{\mathcal{L}}(Q_i,S_i)+ KL(Q_i||P)) d\mathcal{Q}_i$$
+
+Shortcutting $E_{P\sim \mathcal{Q}_j}$ to $E_{\mathcal{Q}_j}$ we get:
+
+$$ KL(\mathcal{Q}_j||\mathcal{P}) = KL(\mathcal{Q}_i||\mathcal{P}) + KL(\mathcal{Q}_j||\mathcal{Q}_i) -\lambda E_{\mathcal{Q}_j} KL(Q_j||P) -\lambda E_{\mathcal{Q}_j} \hat{\mathcal{L}}(Q_j,S_j)   + \lambda E_{\mathcal{Q}_i} KL(Q_i||P) +\lambda E_{\mathcal{Q}_i} \hat{\mathcal{L}}(Q_i,S_i)$$
+
+So: 
+
+\begin{equation*}
+\begin{split}
+KL(\mathcal{Q}_j||\mathcal{P}) + E_{\mathcal{Q}_j} KL(Q_j||P)= KL(\mathcal{Q}_i||\mathcal{P})  +  E_{\mathcal{Q}_i} KL(Q_i||P) + \textcolor{blue}{KL(\mathcal{Q}_j||\mathcal{Q}_i)} \\
+ \textcolor{blue}{+(\lambda-1) E_{\mathcal{Q}_i} KL(Q_i||P) - (\lambda-1) E_{\mathcal{Q}_j} KL(Q_j||P)} \\
+\textcolor{blue}{+\lambda E_{\mathcal{Q}_i} \hat{\mathcal{L}}(Q_i,S_i)
+    -\lambda E_{\mathcal{Q}_j} \hat{\mathcal{L}}(Q_j,S_j)    }
+\end{split}
+\end{equation*}
+
+The additional penalty from choosing the wrong task is marked in blue, and is multiplied by $\frac{1}{n\sqrt{m}}$ in the bound. We note that if the loss is bounded, this additional penalty converges to $\frac{1}{n\sqrt{m}}KL(\mathcal{Q}_j||\mathcal{Q}_i)$  as $m\rightarrow\infty$ (it is also possible to prove that this term converges to zero under these conditions).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
