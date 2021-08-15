@@ -738,7 +738,7 @@ KL(\mathcal{Q}||\mathcal{Q}_i)+ E_{\mathcal{Q}_i} KL(Q_i||P) - E_{\mathcal{Q}} K
 \end{cases}
 \end{equation*}
 
-The Rothfuss bound is as follows \textcolor{red}{(where is the test task in the bound?)}:
+The Rothfuss bound is as follows:
 
 \begin{equation*}
 \begin{split}
@@ -748,6 +748,8 @@ The Rothfuss bound is as follows \textcolor{red}{(where is the test task in the 
 \textcolor{red}{(\frac{1}{\sqrt{n}}+ \frac{1}{n\sqrt{m}}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\sqrt{m}}\sum_k \mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_k||P) \right ]}\\ +\frac{1}{\sqrt{n}}ln \mathbb{E}_{P\sim \mathcal{P}} [e^{\frac{1}{\sqrt{n}}\sum_{k}\mathbb{E}_{\mathcal{T}}[\mathcal{L}(Q(P,S),D)- \mathcal{L}(Q_k, \mathcal{D}_k)]}]
 \end{split}
 \end{equation*}
+
+We note that due to the construction of the bound in Rothfuss et al, it takes into consideration only meta-training and does not perform meta-adaptation. We can do the same by using the test data only to select the meta-learner. Doing so would replace all instances of $t$ in the bound with $i$, letting us more easily compare the two bounds. Looking at the new bound this way we note that the extra term $\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}, \mathcal{Q}_i, \sqrt{n})$ is the only change from the previous case.
 
 Analyzing the extra term for the multi-task case
 $\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}, \mathcal{Q}_i, \sqrt{n})$
