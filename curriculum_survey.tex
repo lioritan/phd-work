@@ -643,15 +643,17 @@ If we find the correct hyper-posterior $i$ such that $D_i=D_t$, we get the previ
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}_i, D_t)\leq \textcolor{blue}{ E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt{m}}(t)\right ]} + \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_i} KL(Q_t||P)} \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_t} \right ]
+\mathcal{L}(\mathcal{Q}_i, D_t)\leq \textcolor{blue}{ E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt{m}}(t)\right ]} + \textcolor{red}{\frac{1}{n\sqrt{m}} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\sqrt{m}}E_{P\sim \mathcal{Q}_i} KL(Q_t||P)} \\+ \frac{1}{n\sqrt{m}} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_t} \right ]
 \end{split}
 \end{equation*}
+
+Where $M_t=\sqrt{m}(\mathcal{L}(h, D_t)-\hat{\mathcal{L}}(h,S_t))$
 
 If we do not find the correct hyper-posterior, then there is a task $j\neq i$ such that $D_j\neq D_t$ but $E_{P\sim\mathcal{Q}_j}\left [\hat{\mathcal{L}}(Q_t, S_t)\right ]\leq E_{P\sim\mathcal{Q}_i}\left [\hat{\mathcal{L}}(Q_t, S_t)\right ]$. We get:
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}_j, D_t)\leq E_{P\sim \mathcal{Q}_j} \left [ f_{n\sqrt{m}}(t)\right ] + \frac{1}{n\beta} KL(\mathcal{Q}_j||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_j} KL(Q_t||P) \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_t} \right ]
+\mathcal{L}(\mathcal{Q}_j, D_t)\leq E_{P\sim \mathcal{Q}_j} \left [ f_{n\sqrt{m}}(t)\right ] + \frac{1}{n\sqrt{m}} KL(\mathcal{Q}_j||\mathcal{P}) +\frac{1}{n\sqrt{m}}E_{P\sim \mathcal{Q}_j} KL(Q_t||P) \\+ \frac{1}{n\sqrt{m}} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_t} \right ]
 \end{split}
 \end{equation*}
 
@@ -659,7 +661,7 @@ And due to the definition of $f$ and the reason we chose $j$, we can replace and
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}_j, D_t)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt{m}}(t)\right ]} + \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}_j||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_j} KL(Q_t||P)} \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_t} \right ]
+\mathcal{L}(\mathcal{Q}_j, D_t)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt{m}}(t)\right ]} + \textcolor{red}{\frac{1}{n\sqrt{m}} KL(\mathcal{Q}_j||\mathcal{P}) +\frac{1}{n\sqrt{m}}E_{P\sim \mathcal{Q}_j} KL(Q_t||P)} \\+ \frac{1}{n\sqrt{m}} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_t} \right ]
 \end{split}
 \end{equation*}
 
@@ -672,7 +674,7 @@ To give a clearer expression to this KL term, we make use of the fact that the m
 \begin{equation*}
 \begin{split}
 \mathcal{Q}^{*}_{i}(P)=\frac{\mathcal{P}(P) e^{-\lambda g_i(P)}}{E_{P\sim \mathcal{P}} \left [ e^{-\lambda g_i(P) } \right ]} \\
-g_i(P)=\hat{\mathcal{L}}(Q_i,S_i)+ \frac{1}{n\beta}KL(Q_i||P)
+g_i(P)=\hat{\mathcal{L}}(Q_i,S_i)+ \frac{1}{n\sqrt{m}}KL(Q_i||P)
 \end{split}
 \end{equation*}
 
@@ -723,8 +725,8 @@ Now, let us try and compare our bound with the generalization bound from Rothfus
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}_j, D_t)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt{m}}(t)\right ]} + \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_t} \right ]\\
-+\textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_i} KL(Q_t||P) + \frac{1}{n\beta}\Psi(\mathcal{Q},\mathcal{Q}_i,\lambda) }
+\mathcal{L}(\mathcal{Q}_j, D_t)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt{m}}(t)\right ]} + \frac{1}{n\sqrt{m}} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_t} \right ]\\
++\textcolor{red}{\frac{1}{n\sqrt{m}} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\sqrt{m}}E_{P\sim \mathcal{Q}_i} KL(Q_t||P) + \frac{1}{n\sqrt{m}}\Psi(\mathcal{Q},\mathcal{Q}_i,\lambda) }
 \end{split}
 \end{equation*}
 
@@ -736,15 +738,14 @@ KL(\mathcal{Q}||\mathcal{Q}_i)+ E_{\mathcal{Q}_i} KL(Q_i||P) - E_{\mathcal{Q}} K
 \end{cases}
 \end{equation*}
 
-We note that the per-task kl term is folded into $g(P)$.
-The Rothfuss bound is:
+The Rothfuss bound is as follows \textcolor{red}{(where is the test task in the bound?)}:
 
 \begin{equation*}
 \begin{split}
 \mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_k,S_k) \right ]} 
-+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M_t+K_t} \right ]
++ \frac{1}{n\sqrt{m}} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{\sqrt{m}\sum_k (\mathcal{L}(h, D_k)-\hat{\mathcal{L}}(h, S_k))} \right ]
 \\+
-\textcolor{red}{(\frac{1}{\lambda}+ \frac{1}{n\beta}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\sum_k \mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_k||P) \right ]}\\ +\frac{1}{\lambda}ln \mathbb{E}_{P\sim \mathcal{P}} [e^{\frac{\lambda}{n}\sum_{k}\mathbb{E}_{\mathcal{T}}[\mathcal{L}(Q(P,S),D)- \mathcal{L}(Q_k, \mathcal{D}_k)]}]
+\textcolor{red}{(\frac{1}{\sqrt{n}}+ \frac{1}{n\sqrt{m}}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\sqrt{m}}\sum_k \mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_k||P) \right ]}\\ +\frac{1}{\sqrt{n}}ln \mathbb{E}_{P\sim \mathcal{P}} [e^{\frac{1}{\sqrt{n}}\sum_{k}\mathbb{E}_{\mathcal{T}}[\mathcal{L}(Q(P,S),D)- \mathcal{L}(Q_k, \mathcal{D}_k)]}]
 \end{split}
 \end{equation*}
 
