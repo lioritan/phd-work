@@ -480,25 +480,25 @@ Let us assume that the goal task is known and was seen during training, that is,
 Let us try to bound
 $$E_{P\sim \mathcal{Q}}\bigl [E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)-\hat{\mathcal{L}}(Q(P, S_i), S_i)\bigr ]$$
 
-Using the change of measure inequality, we get
+Using the change of measure inequality, we get (for any $\gamma$)
 
-$$E_{P\sim \mathcal{Q}}E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)\leq E_{P\sim \mathcal{Q}}\hat{\mathcal{L}}(Q_i, S_i) + KL(\mathcal{Q}||\mathcal{P})+ E_{P\sim \mathcal{Q}}KL(Q_i||P)+lnE_{P\sim \mathcal{P}}\bigl [e^{E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)-\hat{\mathcal{L}}(Q_i, S_i)}\bigr ]$$
+$$E_{P\sim \mathcal{Q}}E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)\leq E_{P\sim \mathcal{Q}}\hat{\mathcal{L}}(Q_i, S_i) + \frac{1}{\gamma}KL(\mathcal{Q}||\mathcal{P})+ \frac{1}{\gamma}E_{P\sim \mathcal{Q}}KL(Q_i||P)+lnE_{P\sim \mathcal{P}}E_{h\sim P}\bigl [e^{\gamma E_{S\sim D_i^{m_i}}\mathcal{L}(h, D_i)-\hat{\mathcal{L}}(h, S_i)}\bigr ]$$
 
 To minimize this, we would like to balance minimizing $E_{P\sim \mathcal{Q}}\hat{\mathcal{L}}(Q_i, S_i)$ and $KL(\mathcal{Q}||\mathcal{P})$. This is achieved by using only $S_i$.
 
 
-\subsubsection*{Approach 2}
-Let us try to bound
-$$E_{P\sim \mathcal{Q}}\bigl [E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)-\frac{1}{n}\sum_k\hat{\mathcal{L}}(Q(P, S_k), S_i)\bigr ]$$
+%\subsubsection*{Approach 2}
+%Let us try to bound
+%$$E_{P\sim \mathcal{Q}}\bigl [E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)-\frac{1}{n}\sum_k\hat{\mathcal{L}}(Q(P, S_k), S_i)\bigr ]$$
 
-To minimize here, we would pick $\mathcal{Q}$ that is proportional to the loss of each trained hypothesis on $S_i$, resulting in high weight to tasks that are very different from $S_i$. While this is not useful, it is quite interesting, as it gives us a method to learn to perform well on tasks that are very dissimilar to $i$ by testing on task $i$. We also note that we can expect to have a smaller moment term here.
+%To minimize here, we would pick $\mathcal{Q}$ that is proportional to the loss of each trained hypothesis on $S_i$, resulting in high weight to tasks that are very different from $S_i$. While this is not useful, it is quite interesting, as it gives us a method to learn to perform well on tasks that are very dissimilar to $i$ by testing on task $i$. We also note that we can expect to have a smaller moment term here.
 
-Intuitively it may be better to use 
-$$E_{P\sim \mathcal{Q}}\bigl [E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)- \frac{1}{n}\sum_k\frac{\hat{\mathcal{L}}(Q(P, S_k), S_i)}{KL(Q(P, S_k)||Q(P, S_i))+\epsilon} \bigr ]$$
+%Intuitively it may be better to use 
+%$$E_{P\sim \mathcal{Q}}\bigl [E_{S\sim D_i^{m_i}}\mathcal{L}(Q(P, S), D_i)- \frac{1}{n}\sum_k\frac{\hat{\mathcal{L}}(Q(P, S_k), S_i)}{KL(Q(P, S_k)||Q(P, S_i))+\epsilon} \bigr ]$$
 
-This balances the loss of a task with regards to task $i$ with how different it is from task $i$. A task with low distance will have more weight, but lower loss. A task with high distance will have a higher loss.
+%This balances the loss of a task with regards to task $i$ with how different it is from task $i$. A task with low distance will have more weight, but lower loss. A task with high distance will have a higher loss.
 
-\subsubsection*{Approach 3 - 9.8.21} \label{section-meta-known}
+\subsubsection*{Approach 2 - 12.8.21} \label{section-meta-known}
 
 We will try to use various identities to get a more useful bound for approach 1. To do so, we assume that $Q$ chosen as a gibbs learner with parameter $\gamma$, so: $$KL(Q_i||Q_k)=\int_h ln\frac{Q_i(h)}{Q_k(h)}dQ_i=\int_h ln\frac{P(h)\frac{e^{-\gamma L(h,S_i)}}{Z_{\gamma}(P,S_i)}}{P(h)\frac{e^{-\gamma L(h,S_k)}}{Z_{\gamma}(P,S_k)}}dQ_i=\int_h ln\frac{e^{-\gamma L(h,S_i)} Z_{\gamma}(P,S_k)}{e^{-\gamma L(h,S_k)} Z_{\gamma}(P,S_i)}dQ_i$$
 
@@ -516,14 +516,14 @@ $$ \hat{\mathcal{L}}(Q_i,S_i)= \hat{\mathcal{L}}(Q_i,S_k) - \frac{1}{\gamma} KL(
 
 By averaging over all tasks we get:
 
-$$ \hat{\mathcal{L}}(Q_i,S_i)\leq \frac{1}{n}\sum_k\hat{\mathcal{L}}(Q_i,S_k) - \frac{1}{n\gamma} \sum_k KL(Q_i||Q_k) + \frac{1}{n\gamma}\sum_k C(S_i,S_k,P)$$
+$$ f_{\gamma}(i)=\hat{\mathcal{L}}(Q_i,S_i)= \frac{1}{n}\sum_k\hat{\mathcal{L}}(Q_i,S_k) - \frac{1}{n\gamma} \sum_k KL(Q_i||Q_k) + \frac{1}{n\gamma}\sum_k C(S_i,S_k,P)$$
 
 Plugging this into the equation for approach 1 we get:
 
-$$ \mathcal{L}(\mathcal{Q}, D_i)\leq E_{P\sim \mathcal{Q}} \left [ \frac{1}{n}\sum_k\hat{\mathcal{L}}(Q_i,S_k) - \frac{1}{n\gamma} \sum_k KL(Q_i||Q_k) + \frac{1}{n\gamma}\sum_k C(S_i,S_k,P) \right ]+ KL(\mathcal{Q}||\mathcal{P})+ E_{P\sim \mathcal{Q}}KL(Q_i||P)+\Upsilon^{\text{\Romannum{2}}}(\mathcal{P}, S_i)$$
+$$ \mathcal{L}(\mathcal{Q}, D_i)\leq E_{P\sim \mathcal{Q}} \left [ f_{\gamma}(i) \right ]+ \frac{1}{\gamma}KL(\mathcal{Q}||\mathcal{P})+\frac{1}{\gamma} E_{P\sim \mathcal{Q}}KL(Q_i||P)+\Upsilon^{\text{\Romannum{2}}}(\mathcal{P}, S_i)$$
 
 Let's mark:
-$$g(P)=\frac{1}{n}\sum_k \left ( \hat{\mathcal{L}}(Q_i,S_k) + \frac{1}{\gamma} C(S_i,S_k,P) -   \frac{1}{\gamma}  KL(Q_i||Q_k) \right )+ KL(Q_i||P)$$
+$$g(P)=f_{\gamma}(i)+ KL(Q_i||P)$$
 
 $$ \mathcal{L}(\mathcal{Q}, D_i)\leq E_{P\sim \mathcal{Q}}\left [g(P) \right ] + KL(\mathcal{Q}||\mathcal{P})+\Upsilon^{\text{\Romannum{2}}}(\mathcal{P}, S_i)$$
 
@@ -537,25 +537,25 @@ We note that this is a non-trivial statement as $-KL(Q_i||P)$ needs to be added 
 
 Developing $C(S_i,S_k,P)$ yields:
 
-$$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) = \frac{1}{n\gamma}\sum_k ln\frac{Z_{\gamma}(P,S_k)}{ Z_{\gamma}(P,S_i)} = 
-\frac{1}{n\gamma}\sum_k \left (lnZ_{\gamma}(P,S_k) - lnZ_{\gamma}(P,S_i) \right )$$
+$$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) = \frac{1}{n\gamma}\sum_k ln\frac{Z_{\gamma}(P,S_k)}{ Z_{\gamma}(P,S_i)} $$
 
-$$=  
-\frac{1}{n\gamma}\sum_k lnE_{h\sim P}\left [e^{-\beta\hat{\mathcal{L}}(h,S_k)}\right ] - \frac{1}{\gamma}lnZ_{\gamma}(P,S_i) 
-=
-\frac{1}{n\gamma}ln\Pi_k E_{h\sim P}\left [e^{-\gamma\hat{\mathcal{L}}(h,S_k)}\right ] - \frac{1}{\gamma}lnZ_{\gamma}(P,S_i) $$
+We can use the log-sum inequality (for any non-negative random variables $A,B$ we have $E(A)ln\frac{E(A)}{E(B)}\leq E(Aln\frac{A}{B})$), 
+
+$$\leq  
+\frac{1}{n\gamma}\sum_k \frac{E_{h\sim P}\left [e^{-\gamma\hat{\mathcal{L}}(h,S_k)}ln\frac{e^{-\gamma\hat{\mathcal{L}}(h,S_k)}}{e^{-\gamma\hat{\mathcal{L}}(h,S_i)}}  \right ]}{E_{h\sim P}\left [Z_{\gamma}(P,S_k)\right ]} = \frac{1}{n\gamma}\sum_k \frac{E_{h\sim P}\left [e^{-\gamma\hat{\mathcal{L}}(h,S_k)}\gamma (\hat{\mathcal{L}}(h,S_i)-\hat{\mathcal{L}}(h,S_k))  \right ]}{Z_{\gamma}(P,S_k)}$$
+
 
 This is not a great expression as it has a term that does not depend on $n,m$ in a useful manner.
-We do note that if the loss is always at least zero, we can go further and get:
+We do note that if the loss is bounded we can get:
 
-$$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) \leq \frac{1}{n\gamma}ln \Pi_k E_{h\sim P} \left [e^{0}\right ] + ln E_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]=lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]$$
+$$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) \leq \frac{1}{n\gamma}\sum_k \frac{\gamma e^{-\gamma a}(b-a)}{ e^{-\gamma b}}=\frac{1}{n\gamma}\sum_k \gamma e^{-\gamma (b-a)}(b-a)=\frac{b-a}{e^{\gamma (b-a)}}$$
 
-Taking this term, we can optimize for a new $\bar{g}$ that is less tight but possibly easier to optimize: 
-$$\bar{g}(P)=\frac{1}{n}\sum_k \left (\hat{\mathcal{L}}(Q_i,S_k)-\frac{1}{\gamma}KL(Q_i||Q_k)\right )+ KL(Q_i||P)+lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]$$ 
+%Taking this term, we can optimize for a new $\bar{g}$ that is less tight but possibly easier to optimize: 
+%$$\bar{g}(P)=\frac{1}{n}\sum_k \left (\hat{\mathcal{L}}(Q_i,S_k)-\frac{1}{\gamma}KL(Q_i||Q_k)\right )+ KL(Q_i||P)+lnE_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]$$ 
 
-This gives us a somewhat logical optimization goal: lower loss for the goal task, as well as all similar tasks. If a task is very dissimilar (in terms of KL) it can be ignored to an extent.
+%This gives us a somewhat logical optimization goal: lower loss for the goal task, as well as all similar tasks. If a task is very dissimilar (in terms of KL) it can be ignored to an extent.
 
-\subsubsection*{Conclusions from approach 3 - 4.8.21}
+\subsubsection*{Conclusions from approach 3 - 14.8.21}
 
 Let us compare this bound to Rothfuss:
 
@@ -563,118 +563,111 @@ $$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}, D_i)\leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_i,S_k) -\frac{1}{\gamma}KL(Q_i||Q_k) \right ] +  KL(\mathcal{Q}||\mathcal{P}) + E_{P\sim \mathcal{Q}}KL(Q_i||P) \\  + ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \right ]
- + \Upsilon^{\text{\Romannum{1}}}(\gamma)
+\mathcal{L}(\mathcal{Q}, D_i)\leq E_{P\sim \mathcal{Q}} \left [ f_{\gamma}(i)\right ] +  \frac{1}{\gamma}KL(\mathcal{Q}||\mathcal{P}) +\frac{1}{\gamma}E_{P\sim \mathcal{Q}}KL(Q_i||P) \\  + \frac{1}{\gamma}ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{\gamma(\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i))} \right ]
 \end{split}
 \end{equation*}
 
-Where $\Upsilon^{\text{\Romannum{1}}}(\gamma)=\frac{1}{n\gamma}\sum_k E_{P\sim \mathcal{Q}} C(S_i,S_k,P) $. To make this bound more easily comparable, we can choose $\gamma=n\beta$ and multiply the loss delta by $\gamma$, giving us:
+To make this bound more easily comparable, we can choose $\gamma=n\beta$,  giving us:
 
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}, D_i)\leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_i,S_k) -\frac{1}{n\beta}KL(Q_i||Q_k) \right ] + \frac{1}{n\beta} KL(\mathcal{Q}||\mathcal{P}) +\frac{1}{n\beta} E_{P\sim \mathcal{Q}}KL(Q_i||P) \\  + \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{n\beta(\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i))} \right ]
-+ \Upsilon^{\text{\Romannum{1}}}(n\beta)
+\mathcal{L}(\mathcal{Q}, D_i)\leq E_{P\sim \mathcal{Q}} \left [ f_{n\beta}(i) \right ] + \frac{1}{n\beta} KL(\mathcal{Q}||\mathcal{P}) +\frac{1}{n\beta} E_{P\sim \mathcal{Q}}KL(Q_i||P) \\  + \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{n\beta(\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i))} \right ]
 \end{split}
 \end{equation*}
 
-After we mark $M=\beta(\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i))$ and $K=\beta\sum_{k\neq i}(\mathcal{L}(h,\mathcal{D}_k)- \hat{\mathcal{L}}(h, S_k))$ we have:
+After we mark $M_i=\beta(\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i))$ and $K_i=\beta\sum_{k\neq i}(\mathcal{L}(h,\mathcal{D}_k)- \hat{\mathcal{L}}(h, S_k))$ (and note that $M_i+K_i=\beta\sum_{k}(\mathcal{L}(h,\mathcal{D}_k)- \hat{\mathcal{L}}(h, S_k))$) we have:
 
 \begin{equation*}
 \begin{split}
 \mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_k,S_k) \right ]} + \textcolor{red}{(\frac{1}{\lambda}+ \frac{1}{n\beta}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\sum_k \mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_k||P) \right ]}\\ 
-+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M+K} \right ]
++ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M_i+K_i} \right ]
  \\+\frac{1}{\lambda}ln \mathbb{E}_{P\sim \mathcal{P}} [e^{\frac{\lambda}{n}\sum_{k}\mathbb{E}_{\mathcal{T}}[\mathcal{L}(Q(P,S),D)- \mathcal{L}(Q_k, \mathcal{D}_k)]}]
 \end{split}
 \end{equation*}
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}, D_i)\leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_i,S_k) -\frac{1}{n\beta}KL(Q_i||Q_k) \right ]} + \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}} KL(Q_i||P)} \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM} \right ]
-\\ 
-+\textcolor{olive} {\frac{1}{n^2\beta}\sum_k E_{P\sim \mathcal{Q}} \left [C(S_i,S_k,P)\right ]}
+\mathcal{L}(\mathcal{Q}, D_i)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}} \left [ f_{n\beta}(i) \right ]} + \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}} KL(Q_i||P)} \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_i} \right ]
 \end{split}
 \end{equation*}
 
 For the case where $n=1$, meaning we only have a single task, we can pick $\beta=m$ and get:
 
-$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq  E_{P\sim \mathcal{Q}}  \left [ \hat{\mathcal{L}}(Q_i,S_i) \right ] + (1+\frac{1}{m})KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{m}\mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_i||P)\right ] + \frac{1}{m} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M} \right ] + \Upsilon^{\text{\Romannum{2}}}(n)$
+$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq  E_{P\sim \mathcal{Q}}  \left [ \hat{\mathcal{L}}(Q_i,S_i) \right ] + (1+\frac{1}{m})KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{m}\mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_i||P)\right ] + \frac{1}{m} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M_i} \right ] + \Upsilon^{\text{\Romannum{2}}}(n)$
 
 Compared to 
 
 
-$\mathcal{L}(\mathcal{Q}, D_i)\leq E_{P\sim \mathcal{Q}}  \left [ \hat{\mathcal{L}}(Q_i,S_i) \right ] + \frac{1}{m}KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{m}\mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_i||P)\right ] + \frac{1}{m} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M} \right ] $
+$\mathcal{L}(\mathcal{Q}, D_i)\leq E_{P\sim \mathcal{Q}}  \left [ \hat{\mathcal{L}}(Q_i,S_i) \right ] + \frac{1}{m}KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{m}\mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_i||P)\right ] + \frac{1}{m} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M_i} \right ] $
 
 This is essentially the same as the single task PAC-bayes bound, but with a potential extra loss due to the choice of hyper-prior. We note that this is a much tighter bound for this special case.
 
-\textcolor{red}{TODO: understand why $\frac{KL(Q||P)}{\sqrt{m}}\rightarrow 0$ as $m$ goes to $\infty$. This seems to be the case only if the loss is bounded or otherwise well behaved, and $Q$ is gibbs. }
-For consistent bounds we need to pick $\lambda=\sqrt{n}, \beta=\sqrt{m}$
+For consistent bounds we need to pick $\lambda=\sqrt{n}, \beta=\sqrt{m}$. Assuming $KL(\mathcal{Q}||\mathcal{P})\leq \infty$, as $n\rightarrow \infty$,  $\frac{1}{\sqrt{n}}KL(\mathcal{Q}||\mathcal{P})\rightarrow 0$. For similar reasons $m\rightarrow \infty$ implies $\frac{1}{\sqrt{m}}KL(Q||P)\rightarrow 0$ for the per-task divergence.
+
 
 If $n\rightarrow\infty$, we get 
 
-$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_k,S_k) \right ] + \frac{1}{n\sqrt{m}}\sum_k \mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_k||P) \right ] + \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M+K} \right ]$
+$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_k,S_k) \right ]} + \textcolor{red}{\frac{1}{n\sqrt{m}}\sum_k \mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_k||P) \right ]} + \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M_i+K_i} \right ]$
 
 Compared to 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}, D_i)\leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}}  \left [ \hat{\mathcal{L}}(Q_i,S_k) -\frac{1}{n\sqrt{m}}KL(Q_i||Q_k)\right ]  + \frac{1}{n\sqrt{m}}\mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_i||P)\right ] + \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM}\right ] \\+\frac{1}{n^2\sqrt{m}}\sum_k E_{P\sim \mathcal{Q}} \left [C(S_i,S_k,P)\right ]  
+\mathcal{L}(\mathcal{Q}, D_i)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}}  \left [ f_{n\sqrt{m}}(i) \right ]}  + \textcolor{red}{\frac{1}{n\sqrt{m}}\mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_i||P)\right ]} + \frac{1}{n\sqrt{m}} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_i}\right ]  
 \end{split}
 \end{equation*}
-
-where $\frac{1}{n^2\sqrt{m}}\sum_k E_{P\sim \mathcal{Q}} \left [C(S_i,S_k,P)\right ] \leq  lnE_{P\sim \mathcal{Q}}E_{h\sim P}\left [ e^{\hat{\mathcal{L}}(h,S_i)}\right ]$ for non-negative loss functions. 
-This may be a tighter bound if there are many tasks that are similar (in terms of loss of trained classifiers) to task i, or many tasks that are very different from task i and can be ignored.
+ 
+This may be a tighter bound if other tasks can give us a good estimate for $f_{\gamma}(i)=\hat{\mathcal{L}}(Q_i,S_i)$. We also note that the kl-term is smaller, so even if our estimate for task i is similar to other estimates, this is a tighter bound.
 
 If $m\rightarrow\infty$, we get
 
-$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_k,S_k) \right ]+ \frac{1}{\sqrt{n}}KL(\mathcal{Q}||\mathcal{P}) + \Upsilon^{\text{\Romannum{2}}}(\sqrt{n})$ 
+$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_k,S_k) \right ]}+ \textcolor{red}{\frac{1}{\sqrt{n}}KL(\mathcal{Q}||\mathcal{P})} + \Upsilon^{\text{\Romannum{2}}}(\sqrt{n})$ 
 \footnote{$\Upsilon^{\text{\Romannum{2}}}(\sqrt{n})=\frac{1}{\sqrt{n}}ln \mathbb{E}_{P\sim \mathcal{P}} \left [e^{\frac{1}{\sqrt{n}}\sum_{i=1}^{n}\mathbb{E}_{(D,S)\sim \mathcal{T}}\left [\mathcal{L}(Q(P,S),D)- \mathcal{L}(Q(P, S_i), \mathcal{D}_i)\right ]} \right ]$}
 
 Compared to 
 
-$\mathcal{L}(\mathcal{Q}, D_i)\leq \frac{1}{n}\sum_k E_{P\sim \mathcal{Q}}  \left [ \hat{\mathcal{L}}(Q_i,S_k)  -\frac{1}{n\sqrt{m}}KL(Q_i||Q_k)\right ] + \frac{1}{n\sqrt{m}}KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n^2\sqrt{m}}\sum_k E_{P\sim \mathcal{Q}} \left [C(S_i,S_k,P)\right ] $
+$\mathcal{L}(\mathcal{Q}, D_i)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}}  \left [ f_{n\sqrt{m}}(i)\right ]} + \textcolor{red}{\frac{1}{n\sqrt{m}}KL(\mathcal{Q}||\mathcal{P})} $
 
-We note that if the loss is bounded, we can deduce that $\frac{1}{n\sqrt{m}}KL(\mathcal{Q}||\mathcal{P})\rightarrow 0$, as the optimal $\mathcal{Q}^*$ reduces to a gibbs learner for $S_i$, and the $\sqrt{m}$ term is more dominant.
+Again, if $\hat{\mathcal{L}}(Q_i,S_i)$ is well-estimated (and we can expect that to be the case), this is a tighter bound, and in fact we have the generalization loss estimated by the empirical loss for the task.
 
 
-\subsection{Task dependencies with multiple tasks - 9.8.21}
+\subsection{Task dependencies with multiple tasks - 14.8.21}
 
 In section \ref{section-meta-known}, we derived a PAC-bayes bound for generalization given that the test task is known during meta-training. In this section we will extend this result to the case where it is known that the test task is of the same distribution as one of the training tasks, but we do not know the correct task during training.
 
 A simple solution to try is to train a hyper-posterior for each task as in section \ref{section-meta-known}, and pick the one to use during meta-testing by minimizing the predicted loss for target task $t$ by finding $\min_{k}E_{P\sim\mathcal{Q}_k}\left [\hat{\mathcal{L}}(Q(P,S_t), S_t)\right ]$.
+We also use training data from our task to adapt the base learner to task $t$, giving us $Q_t$.
+
 
 If we find the correct hyper-posterior $i$ such that $D_i=D_t$, we get the previous bound
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}_i, D_t)\leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}_i} \left [ \hat{\mathcal{L}}(Q_t,S_k) -\frac{1}{n\beta}KL(Q_t||Q_k) \right ]} + \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_i} KL(Q_i||P)} \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM} \right ]
-\\ 
-+\textcolor{olive} {\frac{1}{n^2\beta}\sum_k E_{P\sim \mathcal{Q}_i} \left [C(S_t,S_k,P)\right ]}
+\mathcal{L}(\mathcal{Q}_i, D_t)\leq \textcolor{blue}{ E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt{m}}(t)\right ]} + \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_i} KL(Q_t||P)} \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_t} \right ]
 \end{split}
 \end{equation*}
 
-If we do not find the correct hyper-posterior, then there is a task $j\neq i$ such that $D_j\neq D_t$ but $E_{P\sim\mathcal{Q}_j}\left [\hat{\mathcal{L}}(Q(P,S_t), S_t)\right ]\leq E_{P\sim\mathcal{Q}_i}\left [\hat{\mathcal{L}}(Q(P,S_t), S_t)\right ]$. We get:
+If we do not find the correct hyper-posterior, then there is a task $j\neq i$ such that $D_j\neq D_t$ but $E_{P\sim\mathcal{Q}_j}\left [\hat{\mathcal{L}}(Q_t, S_t)\right ]\leq E_{P\sim\mathcal{Q}_i}\left [\hat{\mathcal{L}}(Q_t, S_t)\right ]$. We get:
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}_j, D_t)\leq \hat{\mathcal{L}}(\mathcal{Q}_j, S_t) + \frac{1}{n\beta} KL(\mathcal{Q}_j||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_j} KL(Q_j||P) \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM} \right ]
+\mathcal{L}(\mathcal{Q}_j, D_t)\leq E_{P\sim \mathcal{Q}_j} \left [ f_{n\sqrt{m}}(t)\right ] + \frac{1}{n\beta} KL(\mathcal{Q}_j||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_j} KL(Q_t||P) \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_t} \right ]
 \end{split}
 \end{equation*}
 
-And since $\hat{\mathcal{L}}(\mathcal{Q}_j, S_t)\leq \hat{\mathcal{L}}(\mathcal{Q}_i, S_t)$, we can replace and get 
+And due to the definition of $f$ and the reason we chose $j$, we can replace and get 
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}_j, D_t)\leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}_i} \left [ \hat{\mathcal{L}}(Q_t,S_k) -\frac{1}{n\beta}KL(Q_t||Q_k) \right ]} + \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}_j||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_j} KL(Q_j||P)} \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM} \right ]
-\\ 
-+\textcolor{olive} {\frac{1}{n^2\beta}\sum_k E_{P\sim \mathcal{Q}_i} \left [C(S_t,S_k,P)\right ]}
+\mathcal{L}(\mathcal{Q}_j, D_t)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt{m}}(t)\right ]} + \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}_j||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_j} KL(Q_t||P)} \\+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_t} \right ]
 \end{split}
 \end{equation*}
 
 We note that this is identical to the correct hyper-posterior except for the KL-divergence terms marked in red. If $n,m\rightarrow \infty$ we get an equivalent bound.
 
-\subsubsection*{Bounding the mistake gap - 10.8.21}
+\subsubsection*{Bounding the mistake gap - 14.8.21}
 
-To give a clearer expression to this KL term, we should consider the following:
+To give a clearer expression to this KL term, we make use of the fact that the meta-learner is a gibbs learner:
 
 \begin{equation*}
 \begin{split}
@@ -724,18 +717,14 @@ KL(\mathcal{Q}_j||\mathcal{P}) + E_{\mathcal{Q}_j} KL(Q_j||P)= KL(\mathcal{Q}_i|
 
 The additional penalty from choosing the wrong task is marked in blue, and is multiplied by $\frac{1}{n\sqrt{m}}$ in the bound. We note that if the loss is bounded, this additional penalty converges to $\frac{1}{n\sqrt{m}}KL(\mathcal{Q}_j||\mathcal{Q}_i)$  as $m\rightarrow\infty$ (it is also possible to prove that this term converges to zero under these conditions).
 
-\subsubsection*{Comparison with Rothfuss bound - 10.8.21}
+\subsubsection*{Comparison with Rothfuss bound - 14.8.21}
 
 Now, let us try and compare our bound with the generalization bound from Rothfuss.
 
-Using 
-$$g(P)=\frac{1}{n}\sum_k \left ( \hat{\mathcal{L}}(Q_i,S_k) + \frac{1}{n\beta} C(S_i,S_k,P) -   \frac{1}{n\beta}  KL(Q_i||Q_k) \right )+ \frac{1}{n\beta}KL(Q_i||P)$$
-The new multi-task bound is:
-
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}, D_t)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}_i} \left [ g(P) \right ]} + \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM} \right ]\\
-+ \textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}_i||\mathcal{P}) + \frac{1}{n\beta}\Psi(\mathcal{Q},\mathcal{Q}_i,\lambda)  } \\
+\mathcal{L}(\mathcal{Q}_j, D_t)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt{m}}(t)\right ]} + \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nM_t} \right ]\\
++\textcolor{red}{\frac{1}{n\beta} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\beta}E_{P\sim \mathcal{Q}_i} KL(Q_t||P) + \frac{1}{n\beta}\Psi(\mathcal{Q},\mathcal{Q}_i,\lambda) }
 \end{split}
 \end{equation*}
 
@@ -753,7 +742,7 @@ The Rothfuss bound is:
 \begin{equation*}
 \begin{split}
 \mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_k,S_k) \right ]} 
-+ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M+K} \right ]
++ \frac{1}{n\beta} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M_t+K_t} \right ]
 \\+
 \textcolor{red}{(\frac{1}{\lambda}+ \frac{1}{n\beta}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\sum_k \mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_k||P) \right ]}\\ +\frac{1}{\lambda}ln \mathbb{E}_{P\sim \mathcal{P}} [e^{\frac{\lambda}{n}\sum_{k}\mathbb{E}_{\mathcal{T}}[\mathcal{L}(Q(P,S),D)- \mathcal{L}(Q_k, \mathcal{D}_k)]}]
 \end{split}
