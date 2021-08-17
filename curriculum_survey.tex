@@ -759,9 +759,13 @@ If $n\rightarrow\infty$ (meaning $\frac{1}{n}KL(\mathcal{Q}||\mathcal{Q}_i)\righ
 
 $$\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}, \mathcal{Q}_i, \sqrt{n})\leq  \frac{1}{\sqrt{nm}}\left ( E_{\mathcal{Q}_i} KL(Q_i||P) - E_{\mathcal{Q}} KL(Q||P) \right )$$
 
+We additionally note that if the loss is bounded in $[a,b]$ this term converges to zero since $\frac{1}{\sqrt{m}}E_{\mathcal{Q}_i} KL(Q_i||P)\leq b-a$.
+
 If $m\rightarrow\infty$:
 
 $$\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}, \mathcal{Q}_i, \sqrt{n})\leq \frac{1}{n\sqrt{m}}KL(\mathcal{Q}||\mathcal{Q}_i)$$
+
+We additionally note that if the loss is bounded in $[a,b]$ this term converges to a constant. This is the case as $\frac{1}{n\sqrt{m}}KL(\mathcal{Q}||\mathcal{Q}_i)= ln\frac{E_{P\sim \mathcal{P}} \left [ e^{-\sqrt{n} g_i(P) } \right ]}{E_{P\sim \mathcal{P}} \left [ e^{-\sqrt{n} g_j(P) }\right ]} +\int \left [ -\sqrt{n} g_j(P) d\mathcal{Q}_j \right ] - \int \left [-\sqrt{n} g_i(P) d\mathcal{Q}_j \right ]\leq \frac{1}{n\sqrt{m}}\sqrt{n}(b-a+\sqrt{m}(b-a) + b-a+\sqrt{m}(b-a))=\frac{2(b-a)}{\sqrt{nm}}+\frac{2(b-a)}{\sqrt{n}}$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
