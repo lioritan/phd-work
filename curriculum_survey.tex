@@ -73,6 +73,8 @@
 		Wrote simple formulation for multi-task meta PAC-bayes, new task from existing distribution
 		
 		Wrote simple analysis of this formulation versus Rothfuss bound
+		
+		Added a bound on the probability of mistake, and used it to improve the bound
 	\end{abstract}
 
 \tableofcontents
@@ -631,7 +633,7 @@ $\mathcal{L}(\mathcal{Q}, D_i)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}}  \left
 Again, if $\hat{\mathcal{L}}(Q_i,S_i)$ is well-estimated (and we can expect that to be the case), this is a tighter bound, and in fact we have the generalization loss estimated by the empirical loss for the task.
 
 
-\subsection{Task dependencies with multiple tasks - 14.8.21}
+\subsection{Task dependencies with multiple tasks - 18.8.21}
 
 In section \ref{section-meta-known}, we derived a PAC-bayes bound for generalization given that the test task is known during meta-training. In this section we will extend this result to the case where it is known that the test task is of the same distribution as one of the training tasks, but we do not know the correct task during training.
 
@@ -766,6 +768,34 @@ If $m\rightarrow\infty$:
 $$\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}, \mathcal{Q}_i, \sqrt{n})\leq \frac{1}{n\sqrt{m}}KL(\mathcal{Q}||\mathcal{Q}_i)$$
 
 We additionally note that if the loss is bounded in $[a,b]$ this term converges to a constant. This is the case as $\frac{1}{n\sqrt{m}}KL(\mathcal{Q}||\mathcal{Q}_i)= ln\frac{E_{P\sim \mathcal{P}} \left [ e^{-\sqrt{n} g_i(P) } \right ]}{E_{P\sim \mathcal{P}} \left [ e^{-\sqrt{n} g_j(P) }\right ]} +\int \left [ -\sqrt{n} g_j(P) d\mathcal{Q}_j \right ] - \int \left [-\sqrt{n} g_i(P) d\mathcal{Q}_j \right ]\leq \frac{1}{n\sqrt{m}}\sqrt{n}(b-a+\sqrt{m}(b-a) + b-a+\sqrt{m}(b-a))=\frac{2(b-a)}{\sqrt{nm}}+\frac{2(b-a)}{\sqrt{n}}$.
+
+\subsubsection{Probabilistic approach to bounding $\Psi$ - 18.8.21}
+
+In order to achieve a bound that converges to zero for $\Psi$ as $m\rightarrow\infty$, we must take into account the probability of incorrectly choosing the meta-learner. To do so, we must make some additional assumptions on the problem space.
+
+From simple rules we can derive that the mistake probability is bounded as follows:
+
+\begin{equation*}
+\begin{split}
+P\left (\hat{\mathcal{L}}(\mathcal{Q}_j, S_t)\leq \hat{\mathcal{L}}(\mathcal{Q}_i, S_t)\right ) = P\left (\hat{\mathcal{L}}(\mathcal{Q}_j, S_t)\leq C \cap \hat{\mathcal{L}}(\mathcal{Q}_i, S_t)\geq C\right )\\=P\left (\hat{\mathcal{L}}(\mathcal{Q}_j, S_t)\leq C \right ) + P\left (\hat{\mathcal{L}}(\mathcal{Q}_i, S_t)\geq C\right )-P\left (\hat{\mathcal{L}}(\mathcal{Q}_j, S_t)\leq C \cup \hat{\mathcal{L}}(\mathcal{Q}_i, S_t)\geq C\right )
+\\ \leq P\left (\hat{\mathcal{L}}(\mathcal{Q}_j, S_t)\leq C \right ) + P\left (\hat{\mathcal{L}}(\mathcal{Q}_i, S_t)\geq C\right )-P\left (\hat{\mathcal{L}}(\mathcal{Q}_j, S_t)\leq C \right )
+\\ = P\left (\hat{\mathcal{L}}(\mathcal{Q}_i, S_t)\geq C\right )
+\end{split}
+\end{equation*}
+
+To conclude,
+$P\left (\hat{\mathcal{L}}(\mathcal{Q}_j, S_t)\leq \hat{\mathcal{L}}(\mathcal{Q}_i, S_t)\right )\leq P\left (\hat{\mathcal{L}}(\mathcal{Q}_i, S_t)\geq C\right ) = P\left ( E_{P\sim \mathcal{Q}_i}\left [ \hat{\mathcal{L}}(Q(P, S_t), S_t) \right ]\geq C\right ) $
+
+Where 
+$E_{P\sim \mathcal{Q}_i}\left [ \hat{\mathcal{L}}(Q(P, S_t), S_t) \right ] = E_{P\sim \mathcal{Q}_i}\left [ \frac{1}{m}\sum_k \hat{\mathcal{L}}(Q(x_k), y_k) \right ] $ 
+
+One possible assumption to bound this term is by assuming that the loss is sub-gamma with parameter $\sigma^2$.
+Under this assumption, we can use the bound for a weighted sum of of sub-gamma variables to derive:
+
+$$P\left (\hat{\mathcal{L}}(\mathcal{Q}_j, S_t)\leq \hat{\mathcal{L}}(\mathcal{Q}_i, S_t)\right )\leq 2e^{\frac{-C^2}{2\sigma^2||\frac{1}{m}||^2}}=2e^{\frac{-mC^2}{2\sigma^2}} $$
+
+Since that is a bound for the probability of making a mistake, we can multiply $\Psi$ by it and get the expectation $E (\Psi)$ instead. We note that as $m\rightarrow\infty$, $E (\Psi)\rightarrow 0$ as the KL-divergence is bounded by a constant and the probability goes to zero.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
