@@ -561,7 +561,11 @@ $$\frac{1}{n\gamma}\sum_k C(S_i,S_k,P) \leq \frac{1}{n\gamma}\sum_k \frac{\gamma
 
 Let us compare this bound to Rothfuss:
 
-$$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + (\frac{1}{\lambda}+\frac{1}{n\beta}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\sum_i \mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_i||P) \right ] + \frac{1}{n\beta}ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{n\beta\frac{1}{n}\sum_i\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \right ] +\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
+\begin{equation*}
+\begin{split}
+\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_n) + (\frac{1}{\lambda}+\frac{1}{n\beta}) KL(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\beta}\sum_i \mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_i||P) \right ] \\+ \frac{1}{n\beta}ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{n\beta\frac{1}{n}\sum_i\mathcal{L}(h,\mathcal{D}_i)- \hat{\mathcal{L}}(h, S_i)} \right ] +\Upsilon^{\text{\Romannum{2}}}(\lambda)
+\end{split}
+\end{equation*}
 
 \begin{equation*}
 \begin{split}
@@ -719,7 +723,7 @@ KL(\mathcal{Q}_j||\mathcal{P}) + E_{\mathcal{Q}_j} KL(Q_j||P)= KL(\mathcal{Q}_i|
 \end{split}
 \end{equation*}
 
-The additional penalty from choosing the wrong task is marked in blue, and is multiplied by $\frac{1}{n\sqrt{m}}$ in the bound. We note that if the loss is bounded, this additional penalty converges to $\frac{1}{n\sqrt{m}}KL(\mathcal{Q}_j||\mathcal{Q}_i)$  as $m\rightarrow\infty$ (it is also possible to prove that this term converges to zero under these conditions).
+The additional penalty from choosing the wrong task is marked in blue, and is multiplied by $\frac{1}{n\sqrt{m}}$ in the bound. We note that if the loss is bounded, this additional penalty converges to $\frac{1}{n\sqrt{m}}KL(\mathcal{Q}_j||\mathcal{Q}_i)$  as $m\rightarrow\infty$.
 
 \subsubsection*{Comparison with Rothfuss bound - 14.8.21}
 
@@ -761,7 +765,7 @@ If $n\rightarrow\infty$ (meaning $\frac{1}{n}KL(\mathcal{Q}||\mathcal{Q}_i)\righ
 
 $$\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}, \mathcal{Q}_i, \sqrt{n})\leq  \frac{1}{\sqrt{nm}}\left ( E_{\mathcal{Q}_i} KL(Q_i||P) - E_{\mathcal{Q}} KL(Q||P) \right )$$
 
-We additionally note that if the loss is bounded in $[a,b]$ this term converges to zero since $\frac{1}{\sqrt{m}}E_{\mathcal{Q}_i} KL(Q_i||P)\leq b-a$.
+We additionally note that if the loss is bounded in $[a,b]$ this term converges to zero since $E_{\mathcal{Q}_i} KL(Q_i||P)\leq \sqrt{m} (b-a)$.
 
 If $m\rightarrow\infty$:
 
