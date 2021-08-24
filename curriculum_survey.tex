@@ -10,6 +10,7 @@
 \pdfpagewidth=8.5in
 \pdfpageheight=11in
 
+\usepackage{natbib}
 
 \usepackage{times} 
 \usepackage{helvet}  
@@ -24,6 +25,7 @@
 \usepackage[noend]{algpseudocode}
 
 
+
 \usepackage{multirow}
 \usepackage{ctable}
 \usepackage{color}
@@ -32,6 +34,7 @@
 
 
 \usepackage{romannum}
+
 %\usepackage[style=authoryear]{biblatex}
 
 \usepackage{hyperref}
@@ -375,7 +378,7 @@ Some very recent papers (\cite{Bateni2020, Tian2020}) show that a good represent
 These methods suggest that the current bottleneck for better meta learning is the representation, and that curricula that impose an effective order on complex representations may be highly useful.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Math for PAC-Bayesian meta learning - 19.7.21} \label{sec:bayes}
+\section{Math for PAC-Bayesian meta learning - 24.8.21} \label{sec:bayes}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Definitions and previous results}
@@ -387,7 +390,7 @@ We assume for now that $\tau_i$ are drawn i.i.d. from $\mathcal{T}$.
 We wish to bound the learned \emph{hyper-posterior} $\mathcal{Q}$, and its error - 
 $$\mathcal{L}(\mathcal{Q}, \mathcal{T})=\mathbb{E}_{P\sim \mathcal{Q}}[\mathbb{E}_{(\mathcal{D}, m)\sim \mathcal{T}}[\mathbb{E}_{S\sim \mathcal{D}^m}[\mathcal{L}(Q(S,P), D)]]]$$
 
-Using the result from Rothfuss (TODO: cite),by applying the change of measure inequality, for any $\lambda>0$,
+Using the result from \cite{Rothfuss2020}, by applying the change of measure inequality (see Seldin et. al \cite{}), for any $\lambda>0$,
 $$\mathcal{L}(\mathcal{Q}, \mathcal{T})\leq \mathcal{L}(\mathcal{Q}, \mathcal{D}_1,...,\mathcal{D}_n) + \frac{1}{\lambda} KL(\mathcal{Q}||\mathcal{P})+\Upsilon^{\text{\Romannum{2}}}(\lambda)$$
 
 Where $\Upsilon^{\text{\Romannum{2}}}(\lambda)=\frac{1}{\lambda}ln \mathbb{E}_{P\sim \mathcal{P}} [e^{\frac{\lambda}{n}\sum_{i=1}^{n}\mathbb{E}_{(D,S)\sim \mathcal{T}}[\mathcal{L}(Q(P,S),D)- \mathcal{L}(Q(P, S_i), \mathcal{D}_i)]}]$
@@ -609,7 +612,7 @@ $\mathcal{L}(\mathcal{Q}, D_i)\leq E_{P\sim \mathcal{Q}}  \left [ \hat{\mathcal{
 
 This is essentially the same as the single task PAC-bayes bound, but with a potential extra loss due to the choice of hyper-prior. We note that this is a much tighter bound for this special case.
 
-For consistent bounds we need to pick $\lambda=\sqrt{n}, \beta=\sqrt{m}$. Assuming $KL(\mathcal{Q}||\mathcal{P})\leq \infty$, as $n\rightarrow \infty$,  $\frac{1}{\sqrt{n}}KL(\mathcal{Q}||\mathcal{P})\rightarrow 0$. For similar reasons $m\rightarrow \infty$ implies $\frac{1}{\sqrt{m}}KL(Q||P)\rightarrow 0$ for the per-task divergence.
+For consistent bounds we need to pick $\lambda=\sqrt{n}, \beta=\sqrt{m}$. Assuming $KL(\mathcal{Q}||\mathcal{P})< \infty$, as $n\rightarrow \infty$,  $\frac{1}{\sqrt{n}}KL(\mathcal{Q}||\mathcal{P})\rightarrow 0$. For similar reasons $m\rightarrow \infty$ implies $\frac{1}{\sqrt{m}}KL(Q||P)\rightarrow 0$ for the per-task divergence.
 
 
 If $n\rightarrow\infty$, we get 
@@ -1190,7 +1193,7 @@ These include:
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
-\bibliographystyle{plain}
+\bibliographystyle{plainnat}
 \bibliography{library}
 
 \end{document}
