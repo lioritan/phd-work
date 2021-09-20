@@ -717,20 +717,20 @@ To give a clearer expression to this KL term, we make use of the fact that under
 
 \begin{align*}
 \begin{split}
-&\mathcal{Q}^{*}_{i}(P)=\frac{\mathcal{P}(P) e^{-\gamma g_i(P)}}{Z_{\gamma}(\mathcal{P}, i)} \\
+&\mathcal{Q}^{*}_{i}(P)=\frac{\mathcal{P}(P) e^{-\gamma g_i(P)}}{\mathcal{Z}_{\gamma}(\mathcal{P}, i)} \\
 &g_i(P)=\hat{\mathcal{L}}(Q_i,S_i)+ \frac{1}{\gamma}KL(Q_i||P)\\
-&Z_{\lambda}(\mathcal{P}, i)=E_{P\sim \mathcal{P}} \left [ e^{-\lambda g_i(P) } \right ]
+&\mathcal{Z}_{\gamma}(\mathcal{P}, i)=E_{P\sim \mathcal{P}} \left [ e^{-\lambda g_i(P) } \right ]
 \end{split}
 \end{align*}
 
 From here we will write $\mathcal{Q}_k$ instead of $\mathcal{Q}^{*}_{k}$ for convince. From this result  we can write:
 
-$$KL(\mathcal{Q}_j||\mathcal{P})= KL(\mathcal{Q}_j||\mathcal{Q}_i)+\int ln \left ( \frac{e^{-\gamma g_i(P)}}{Z_{\gamma}(\mathcal{P}, i)}\right )d\mathcal{Q}_j $$
+$$KL(\mathcal{Q}_j||\mathcal{P})= KL(\mathcal{Q}_j||\mathcal{Q}_i)+\int ln \left ( \frac{e^{-\gamma g_i(P)}}{\mathcal{Z}_{\gamma}(\mathcal{P}, i)}\right )d\mathcal{Q}_j $$
 
 \begin{align*}
 \begin{split}
- KL(\mathcal{Q}_j||\mathcal{P})- KL(\mathcal{Q}_i||\mathcal{P})& =KL(\mathcal{Q}_j||\mathcal{Q}_i)+\int ln \left ( \frac{e^{-\gamma g_i(P)}}{Z_{\gamma}(\mathcal{P}, i)}\right )d\mathcal{Q}_j-\int ln \left ( \frac{e^{-\gamma g_i(P)}}{Z_{\gamma}(\mathcal{P}, i)}\right )d\mathcal{Q}_i\\
- &=KL(\mathcal{Q}_j||\mathcal{Q}_i)+\int ln \left ( e^{-\gamma g_i(P)} \right)d\mathcal{Q}_j - lnZ_{\gamma}(\mathcal{P}, i) - \int ln \left ( e^{-\gamma g_i(P)} \right)d\mathcal{Q}_i + lnZ_{\gamma}(\mathcal{P}, i)\\
+ KL(\mathcal{Q}_j||\mathcal{P})- KL(\mathcal{Q}_i||\mathcal{P})& =KL(\mathcal{Q}_j||\mathcal{Q}_i)+\int ln \left ( \frac{e^{-\gamma g_i(P)}}{\mathcal{Z}_{\gamma}(\mathcal{P}, i)}\right )d\mathcal{Q}_j-\int ln \left ( \frac{e^{-\gamma g_i(P)}}{\mathcal{Z}_{\gamma}(\mathcal{P}, i)}\right )d\mathcal{Q}_i\\
+ &=KL(\mathcal{Q}_j||\mathcal{Q}_i)+\int ln \left ( e^{-\gamma g_i(P)} \right)d\mathcal{Q}_j - ln\mathcal{Z}_{\gamma}(\mathcal{P}, i) - \int ln \left ( e^{-\gamma g_i(P)} \right)d\mathcal{Q}_i + ln\mathcal{Z}_{\gamma}(\mathcal{P}, i)\\
  &=KL(\mathcal{Q}_j||\mathcal{Q}_i)+\int -\gamma g_i(P) d\mathcal{Q}_j - \int -\gamma g_i(P) d\mathcal{Q}_i
 \end{split}
 \end{align*}
@@ -745,7 +745,7 @@ KL(\mathcal{Q}_j||\mathcal{P}) = KL(\mathcal{Q}_i||\mathcal{P}) + KL(\mathcal{Q}
 
 We also note that by definition and from our assumptions, 
 
-$$  KL(\mathcal{Q}_j||\mathcal{Q}_i) = ln\frac{Z_{\gamma}(\mathcal{P}, i)}{Z_{\gamma}(\mathcal{P}, j)} +  \int \gamma g_i(P) d\mathcal{Q}_j - \int \gamma g_j(P) d\mathcal{Q}_j$$
+$$  KL(\mathcal{Q}_j||\mathcal{Q}_i) = ln\frac{\mathcal{Z}_{\gamma}(\mathcal{P}, i)}{\mathcal{Z}_{\gamma}(\mathcal{P}, j)} +  \int \gamma g_i(P) d\mathcal{Q}_j - \int \gamma g_j(P) d\mathcal{Q}_j$$
 
 To get easily comparable bounds, we note that a choice of  $\gamma=n\sqrt{m}$ is a good idea. Writing out $g_i$ gives us:
 
@@ -753,7 +753,7 @@ To get easily comparable bounds, we note that a choice of  $\gamma=n\sqrt{m}$ is
 
 \begin{align*}
 \begin{split}
- KL(\mathcal{Q}_j||\mathcal{P}) = KL(\mathcal{Q}_i||\mathcal{P}) + ln\frac{Z_{n\sqrt{m}}(\mathcal{P}, i)}{Z_{n\sqrt{m}}(\mathcal{P}, j)} &+n\sqrt{m}  \int  \left (\hat{\mathcal{L}}(Q_i,S_i)+ \frac{1}{n\sqrt{m}}KL(Q_i||P)\right ) d\mathcal{Q}_i \\&- n\sqrt{m} \int \left (\hat{\mathcal{L}}(Q_j,S_j)+ \frac{1}{n\sqrt{m}}KL(Q_j||P)\right ) d\mathcal{Q}_j
+ KL(\mathcal{Q}_j||\mathcal{P}) = KL(\mathcal{Q}_i||\mathcal{P}) + ln\frac{\mathcal{Z}_{n\sqrt{m}}(\mathcal{P}, i)}{\mathcal{Z}_{n\sqrt{m}}(\mathcal{P}, j)} &+n\sqrt{m}  \int  \left (\hat{\mathcal{L}}(Q_i,S_i)+ \frac{1}{n\sqrt{m}}KL(Q_i||P)\right ) d\mathcal{Q}_i \\&- n\sqrt{m} \int \left (\hat{\mathcal{L}}(Q_j,S_j)+ \frac{1}{n\sqrt{m}}KL(Q_j||P)\right ) d\mathcal{Q}_j
 \end{split}
 \end{align*}
 
@@ -761,7 +761,7 @@ Shortcutting $E_{P\sim \mathcal{Q}_j}$ to $E_{\mathcal{Q}_j}$ we get:
 
 \begin{align*}
 \begin{split}
-KL(\mathcal{Q}_j||\mathcal{P}) + E_{\mathcal{Q}_j} KL(Q_j||P) &= KL(\mathcal{Q}_i||\mathcal{P})  +  E_{\mathcal{Q}_i} KL(Q_i||P) + \textcolor{blue}{ln\frac{Z_{n\sqrt{m}}(\mathcal{P}, i)}{Z_{n\sqrt{m}}(\mathcal{P}, j)}} \\
+KL(\mathcal{Q}_j||\mathcal{P}) + E_{\mathcal{Q}_j} KL(Q_j||P) &= KL(\mathcal{Q}_i||\mathcal{P})  +  E_{\mathcal{Q}_i} KL(Q_i||P) + \textcolor{blue}{ln\frac{\mathcal{Z}_{n\sqrt{m}}(\mathcal{P}, i)}{\mathcal{Z}_{n\sqrt{m}}(\mathcal{P}, j)}} \\
 &\textcolor{blue}{+n\sqrt{m} \left (E_{\mathcal{Q}_i} \hat{\mathcal{L}}(Q_i,S_i)
     - E_{\mathcal{Q}_j} \hat{\mathcal{L}}(Q_j,S_j) \right )   }
 \end{split}
@@ -783,7 +783,7 @@ Now, let us try and compare our bound with the generalization bound from \cite{R
 Where \begin{equation*}
  \Psi(\mathcal{Q}_k,\mathcal{Q}_i,\gamma)=\begin{cases}
 0 &\mathcal{Q}_k=\mathcal{Q}_i\\
-ln\frac{Z_{\gamma}(\mathcal{P}, i)}{Z_{\gamma}(\mathcal{P}, j)} 
+ln\frac{\mathcal{Z}_{\gamma}(\mathcal{P}, i)}{\mathcal{Z}_{\gamma}(\mathcal{P}, j)} 
 +\gamma \left (E_{\mathcal{Q}_i} \hat{\mathcal{L}}(Q_i,S_i)
 	-E_{\mathcal{Q}_j} \hat{\mathcal{L}}(Q_j,S_j)\right )  &\text{otherwise}
 \end{cases}
@@ -807,7 +807,7 @@ And from this we can also derive
 
 $$2a-b\leq g_k(P) \leq 2b-a$$
 
-A simple calculation from this shows that $$ln\frac{Z_{\sqrt{n}}(\mathcal{P}, i)}{Z_{\sqrt{n}}(\mathcal{P}, j)} \leq 3n\sqrt{m}(b-a)$$
+A simple calculation from this shows that $$ln\frac{\mathcal{Z}_{\sqrt{n}}(\mathcal{P}, i)}{\mathcal{Z}_{\sqrt{n}}(\mathcal{P}, j)} \leq 3n\sqrt{m}(b-a)$$
 
 Using these, we can calculate
 
@@ -896,11 +896,11 @@ To make use of assumption \ref{assumption-similarity}, we consider 3 different a
 
 \begin{enumerate}
 	\item Use a weighted average of $\mathcal{Q}_k$, with weights proportional to $\mathcal{L}(\mathcal{Q}_k, S_t)$ (and possibly other quantities)
-	\item Meta-learn $\mathcal{Q}$ based on tasks with $\mathcal{L}(\mathcal{Q}_k, S_t)<d$ for some threshold $d>0$
+	\item Meta-learn $\mathcal{Q}$ based on tasks with $\mathcal{L}(\mathcal{Q}_k, S_t)<d$, for some threshold $d>0$
 	\item Meta-learn $\mathcal{Q}$ by greedily adding tasks based on lowest $\mathcal{L}(\mathcal{Q}, S_t)$
 \end{enumerate}
 
-\subsubsection{Weighted average approach - 16.9.21}
+\subsubsection{Weighted average approach - 19.9.21}
 
 Using the change of measure inequality, we can derive an upper bound:
 
@@ -915,7 +915,40 @@ If we use assumption \ref{assumption-gibbs}, we can derive that the optimal $\ma
 
 $$\mathcal{Q}^{*}(P)=\frac{\mathcal{P}(P) e^{-\gamma \left (\hat{\mathcal{L}}(Q_t, S_t) + \frac{1}{\gamma}KL(Q_t||P) \right)}}{E_{P\sim \mathcal{P}} \left [ e^{-\gamma \left (\hat{\mathcal{L}}(Q_t, S_t) + \frac{1}{\gamma}KL(Q_t||P) \right)} \right ]}$$
 
-We would like to give a good estimate of $\mathcal{Q}^{*}$ using $\mathcal{Q}_1,...,\mathcal{Q}_n$. To do so, 
+We would like to give a good estimate of $\mathcal{Q}^{*}$ using $\mathcal{Q}_1,...,\mathcal{Q}_n$. To do so,  \textcolor{red}{stuck.}
+
+Another method we can use is the change of measure inequality, 
+
+\begin{equation*} 
+\begin{split}
+\mathcal{L}(\mathcal{Q}^*, D_t)\leq \frac{1}{\lambda}ln E_{P\sim \mathcal{Q}}E_{h\sim Q}\left [ e^{\lambda \mathcal{L}(h, D_t)}\right ] &+ \frac{1}{\lambda}KL(\mathcal{Q}^*||\mathcal{Q})+ \frac{1}{\lambda}E_{P\sim \mathcal{Q}^*}KL(Q_t||Q)
+\end{split}
+\end{equation*}
+
+We can choose the base learner $Q=Q_t$ and get a simpler bound
+
+\begin{equation*} 
+\begin{split}
+\mathcal{L}(\mathcal{Q}^*, D_t)\leq \frac{1}{\lambda}ln E_{P\sim \mathcal{Q}}E_{h\sim Q_t}\left [ e^{\lambda \mathcal{L}(h, D_t)}\right ] &+ \frac{1}{\lambda}KL(\mathcal{Q}^*||\mathcal{Q})
+\end{split}
+\end{equation*}
+
+This trade-off depends on our choice of $\lambda$. For $\lambda>>\gamma$, the KL term becomes less important. 
+
+If $\mathcal{L}(Q_t, D_t)$ is sub-gamma with zero mean and variance $\sigma_t^2$, 
+
+$$E_{P\sim \mathcal{Q}}E_{h\sim Q_t}\left [ e^{\lambda \mathcal{L}(h, D_t)}\right ]\leq e^{4\sigma_t^2\lambda^2} $$
+
+And therefore,
+
+\begin{equation*} 
+\begin{split}
+\mathcal{L}(\mathcal{Q}^*, D_t)\leq 4\lambda\sigma_t^2 + \frac{1}{\lambda}KL(\mathcal{Q}^*||\mathcal{Q})
+\end{split}
+\end{equation*}
+
+Assuming $\lambda$ is large, we would like $\mathcal{Q}$ to minimize the variance of $\mathcal{L}(Q_t, D_t)$. \textcolor{red}{stuck.}
+
 
 %\subsubsection{Side trip - 15.9.21}
 
