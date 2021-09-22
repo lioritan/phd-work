@@ -950,41 +950,41 @@ And therefore,
 Assuming $\lambda$ is large, we would like $\mathcal{Q}$ to minimize the variance of $\mathcal{L}(Q_t, D_t)$. \textcolor{red}{stuck.}
 
 
-%\subsubsection{Side trip - 15.9.21}
+\subsubsection{Side trip - 15.9.21}
 
-%A reasonable choice for a gibbs-like meta-learner would be 
+A reasonable choice for a gibbs-like meta-learner would be 
 
-%$$ \mathcal{Q}_{avg}(P) = \frac{\mathcal{P}(P)e^{-\frac{\lambda}{n}\sum_k \hat{\mathcal{L}}(Q_k, S_t)}}{Z^{avg}_{\lambda}(\mathcal{P}, S_1, ..., S_n, S_t)}$$
+$$ \mathcal{Q}_{avg}(P) = \frac{\mathcal{P}(P)e^{-\frac{\lambda}{n}\sum_k \hat{\mathcal{L}}(Q_k, S_t)}}{Z^{avg}_{\lambda}(\mathcal{P}, S_1, ..., S_n, S_t)}$$
 
-%$$ Z^{avg}_{\lambda}(\mathcal{P}, S_1, ..., S_n, S_t)=E_{p\sim\mathcal{P}} \left [e^{-\frac{\lambda}{n}\sum_k \hat{\mathcal{L}}(Q_k, S_t)} \right ] $$
+$$ Z^{avg}_{\lambda}(\mathcal{P}, S_1, ..., S_n, S_t)=E_{p\sim\mathcal{P}} \left [e^{-\frac{\lambda}{n}\sum_k \hat{\mathcal{L}}(Q_k, S_t)} \right ] $$
 
-%By using this formulation, we can derive that 
+By using this formulation, we can derive that 
 
-%$$KL(\mathcal{Q}_{avg}|| \mathcal{P}) = Z^{avg}_{\lambda} - \frac{\lambda}{n}\sum_k E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, S_t) \right ]$$
+$$KL(\mathcal{Q}_{avg}|| \mathcal{P}) = Z^{avg}_{\lambda} - \frac{\lambda}{n}\sum_k E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, S_t) \right ]$$
 
-%Using Hoefdding's inequality and a union bound gives us that with probability at least $1-\delta$, 
+Using Hoefdding's inequality and a union bound gives us that with probability at least $1-\delta$, 
 
-%\begin{align} 
-%\begin{split}
-%KL(\mathcal{Q}_{avg}|| \mathcal{P}) & \leq Z^{avg}_{\lambda} - \frac{\lambda}{n}\sum_k E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_t) -\sqrt{\frac{1}{2m}ln\frac{n}{\delta}} \right ] \\ &= Z^{avg}_{\lambda} + \lambda \sqrt{\frac{1}{2m}ln\frac{n}{\delta}} - \frac{\lambda}{n}\sum_k E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_t)\right ]
-%\end{split}
-%\end{align}
+\begin{align} 
+\begin{split}
+KL(\mathcal{Q}_{avg}|| \mathcal{P}) & \leq Z^{avg}_{\lambda} - \frac{\lambda}{n}\sum_k E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_t) -\sqrt{\frac{1}{2m}ln\frac{n}{\delta}} \right ] \\ &= Z^{avg}_{\lambda} + \lambda \sqrt{\frac{1}{2m}ln\frac{n}{\delta}} - \frac{\lambda}{n}\sum_k E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_t)\right ]
+\end{split}
+\end{align}
 
-%Using the lower bound for $j\neq i$ \textcolor{red}{(this may not actually apply here though)} gives us that 
+Using the lower bound for $j\neq i$ \textcolor{red}{(this may not actually apply here though)} gives us that 
 
-%$$ KL(\mathcal{Q}_{avg}|| \mathcal{P})  \leq Z^{avg}_{\lambda} + \lambda \sqrt{\frac{1}{2m}ln\frac{n}{\delta}} - \frac{\lambda}{n}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k)+\epsilon \right ]-\frac{\lambda}{n}E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_i, D_t) \right ]$$
+$$ KL(\mathcal{Q}_{avg}|| \mathcal{P})  \leq Z^{avg}_{\lambda} + \lambda \sqrt{\frac{1}{2m}ln\frac{n}{\delta}} - \frac{\lambda}{n}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k)+\epsilon \right ]-\frac{\lambda}{n}E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_i, D_t) \right ]$$
 
-%$$ KL(\mathcal{Q}_{avg}|| \mathcal{P})  \leq Z^{avg}_{\lambda} + \sqrt{\frac{\lambda^2}{2m}ln\frac{n}{\delta}} -\frac{n-1}{n}\lambda\epsilon - \frac{\lambda}{n}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]-\frac{\lambda}{n}E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_i, D_t) \right ]$$
+$$ KL(\mathcal{Q}_{avg}|| \mathcal{P})  \leq Z^{avg}_{\lambda} + \sqrt{\frac{\lambda^2}{2m}ln\frac{n}{\delta}} -\frac{n-1}{n}\lambda\epsilon - \frac{\lambda}{n}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]-\frac{\lambda}{n}E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_i, D_t) \right ]$$
 
-%This gives us an interesting trade-off over the naive gibbs meta-learner:
+This gives us an interesting trade-off over the naive gibbs meta-learner:
 
-%$$ \mathcal{Q}_{i, t}(P) = \frac{\mathcal{P}(P)e^{-\lambda\hat{\mathcal{L}}(Q_i, S_t)}}{Z^{i,t}_{\lambda}(\mathcal{P}, S_i, S_t)}$$
+$$ \mathcal{Q}_{i, t}(P) = \frac{\mathcal{P}(P)e^{-\lambda\hat{\mathcal{L}}(Q_i, S_t)}}{Z^{i,t}_{\lambda}(\mathcal{P}, S_i, S_t)}$$
 
-%$$ Z^{i,t}_{\lambda}(\mathcal{P}, S_i, S_t)=E_{p\sim\mathcal{P}} \left [e^{-\lambda\hat{\mathcal{L}}(Q_i, S_t)} \right ] $$
+$$ Z^{i,t}_{\lambda}(\mathcal{P}, S_i, S_t)=E_{p\sim\mathcal{P}} \left [e^{-\lambda\hat{\mathcal{L}}(Q_i, S_t)} \right ] $$
 
-%It is easy to show that with probability at least $1-\delta$, 
+It is easy to show that with probability at least $1-\delta$, 
 
-%$$ KL(\mathcal{Q}_{i,t}|| \mathcal{P})  \leq Z^{i,t}_{\lambda} + \sqrt{\frac{\lambda^2}{2m}ln\frac{1}{\delta}} -\lambda E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_i, D_t) \right ]$$
+$$ KL(\mathcal{Q}_{i,t}|| \mathcal{P})  \leq Z^{i,t}_{\lambda} + \sqrt{\frac{\lambda^2}{2m}ln\frac{1}{\delta}} -\lambda E_{\mathcal{Q}_{i,t}} \left [\hat{\mathcal{L}}(Q_i, D_t) \right ]$$
 
 %\textcolor{red}{How is this useful? These are not easily comparable, especially since we don't have anything useful on the train error for each method. If the $Z$ terms are identical and $\lambda=\sqrt{n}$, the difference is $$\sqrt{\frac{nln n}{2m}}-\frac{1}{\sqrt{n}}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]$$ and that makes sense. }
 
