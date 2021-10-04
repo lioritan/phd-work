@@ -818,7 +818,7 @@ $$\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}_j, \mathcal{Q}_i, n\sqrt{m})\leq 3(b-a)  +
 $$\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}_j, \mathcal{Q}_i, \sqrt{n})\leq 4(b-a)$$ 
 
 
-\subsubsection{Probabilistic approach to bounding $\Psi$ - 23.9.21}
+\subsubsection{Probabilistic approach to bounding $\Psi$ - 30.9.21}
 
 In order to achieve a bound that converges to zero for $\Psi(\mathcal{Q}_j, \mathcal{Q}_i, n\sqrt{m})$ as $m\rightarrow\infty$, we must take into account the probability of incorrectly choosing the meta-learner, and calculate $E_{S_t} \left [\Psi(\mathcal{Q}_j, \mathcal{Q}_i, n\sqrt{m}) \right ]$ instead. For now, we only assume that assumption \ref{assumption-multitask} still holds.
 
@@ -850,16 +850,16 @@ We can rephrase this as $$ P(\hat{k}\neq k_1)\leq P\left(\hat{\mathcal{L}}(\math
 
 Under assumption \ref{assumption-bounded-loss} we can make use of Hoeffding's inequality, and get:
 
-$$ P(\hat{k}\neq k_1)\leq 2e^{\frac{-2(m\Delta_1/2)^2}{m(b-a)}} + \sum_{j\neq i} 2e^{\frac{-2(m\Delta_j/2)^2}{m(b-a)}}$$
+$$ P(\hat{k}\neq k_1)\leq 2e^{\frac{-2m^2(\Delta_1/2)^2}{m(b-a)^2}} + \sum_{j\neq i} 2e^{\frac{-2m^2(\Delta_j/2)^2}{m(b-a)^2}}$$
 
-$$ P(\hat{k}\neq k_1)\leq \sum_{k} 2e^{\frac{-m\Delta_k^2}{2(b-a)}}$$
+$$ P(\hat{k}\neq k_1)\leq \sum_{k} 2e^{\frac{-m\Delta_k^2}{2(b-a)^2}}$$
 
 Since $\Delta_1 \leq \Delta_k$ for all $k$, we can derive
 
 \begin{align} \label{eq-probabilities}
 \begin{split}
-P(\hat{k}\neq k_1) &\leq \sum_{k} 2e^{\frac{-m\Delta_1^2}{2(b-a)}}\\
-                 &=2ne^{\frac{-m\Delta_1^2}{2(b-a)}}
+P(\hat{k}\neq k_1) &\leq \sum_{k} 2e^{\frac{-m\Delta_1^2}{2(b-a)^2}}\\
+                 &=2ne^{\frac{-m\Delta_1^2}{2(b-a)^2}}
 \end{split}
 \end{align}
 
@@ -888,7 +888,7 @@ Using equation \ref{eq-probabilities} we get:
 \begin{align*} 
 \begin{split}
 \mathcal{L}(\mathcal{Q}_j, D_t)& \leq  E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt{m}}(t)\right ] + \frac{1}{n\sqrt{m}} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nT_t} \right ]\\
-& +\frac{1}{n\sqrt{m}} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\sqrt{m}}E_{P\sim \mathcal{Q}_i} KL(Q_t||P) \\ & + \frac{1}{n\sqrt{m}}\left (2ne^{\frac{-m\Delta_1^2}{2(b-a)}}\right )\left ( ln\frac{\mathcal{Z}_{n\sqrt{m}}(\mathcal{P}, i)}{\mathcal{Z}_{n\sqrt{m}}(\mathcal{P}, j)} 
+& +\frac{1}{n\sqrt{m}} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\sqrt{m}}E_{P\sim \mathcal{Q}_i} KL(Q_t||P) \\ & + \frac{1}{n\sqrt{m}}\left (2ne^{\frac{-m\Delta_1^2}{2(b-a)^2}}\right )\left ( ln\frac{\mathcal{Z}_{n\sqrt{m}}(\mathcal{P}, i)}{\mathcal{Z}_{n\sqrt{m}}(\mathcal{P}, j)} 
 	+n\sqrt{m} \left (E_{\mathcal{Q}_i} \hat{\mathcal{L}}(Q_i,S_i)
 	-E_{\mathcal{Q}_j} \hat{\mathcal{L}}(Q_j,S_j)\right ) \right )  
 \end{split}
@@ -899,7 +899,7 @@ Simplifying this a bit gets us to:
 \begin{align} \label{eq-new-bound-prob}
 \begin{split}
 \mathcal{L}(\mathcal{Q}_j, D_t)& \leq  \textcolor{blue}{E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt{m}}(t)\right ]} + \frac{1}{n\sqrt{m}} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nT_t} \right ]\\
-& +\textcolor{red}{\frac{1}{n\sqrt{m}} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\sqrt{m}}E_{P\sim \mathcal{Q}_i} KL(Q_t||P)} \\ & + \textcolor{purple}{\frac{2}{\sqrt{m}}e^{\frac{-m\Delta_1^2}{2(b-a)}} ln\frac{\mathcal{Z}_{n\sqrt{m}}(\mathcal{P}, i)}{\mathcal{Z}_{n\sqrt{m}}(\mathcal{P}, j)} }
+& +\textcolor{red}{\frac{1}{n\sqrt{m}} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\sqrt{m}}E_{P\sim \mathcal{Q}_i} KL(Q_t||P)} \\ & + \textcolor{purple}{\frac{2}{\sqrt{m}}e^{\frac{-m\Delta_1^2}{2(b-a)^2}} ln\frac{\mathcal{Z}_{n\sqrt{m}}(\mathcal{P}, i)}{\mathcal{Z}_{n\sqrt{m}}(\mathcal{P}, j)} }
 \\ &+ \textcolor{purple}{2ne^{\frac{-m\Delta_1^2}{2(b-a)}} \left (E_{\mathcal{Q}_i} \hat{\mathcal{L}}(Q_i,S_i)
 -E_{\mathcal{Q}_j} \hat{\mathcal{L}}(Q_j,S_j)\right ) }
 \end{split}
@@ -914,8 +914,8 @@ Using this in the bound we get
 \begin{align*} 
 \begin{split}
 \mathcal{L}(\mathcal{Q}_j, D_t)& \leq  E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt{m}}(t)\right ] + \frac{1}{n\sqrt{m}} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nT_t} \right ]\\
-& +\frac{1}{n\sqrt{m}} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\sqrt{m}}E_{P\sim \mathcal{Q}_i} KL(Q_t||P) \\ & + 6ne^{\frac{-m\Delta_1^2}{2(b-a)}} (b-a) 
-\\ &+ 2ne^{\frac{-m\Delta_1^2}{2(b-a)}} (b-a)
+& +\frac{1}{n\sqrt{m}} KL(\mathcal{Q}_i||\mathcal{P}) +\frac{1}{n\sqrt{m}}E_{P\sim \mathcal{Q}_i} KL(Q_t||P) \\ & + 6ne^{\frac{-m\Delta_1^2}{2(b-a)^2}} (b-a) 
+\\ &+ 2ne^{\frac{-m\Delta_1^2}{2(b-a)^2}} (b-a)
 \end{split}
 \end{align*}
 
@@ -962,105 +962,105 @@ To make use of assumption \ref{assumption-similarity}, we consider 3 different a
 	\item Meta-learn $\mathcal{Q}$ by greedily adding tasks based on lowest $\mathcal{L}(\mathcal{Q}, S_t)$
 \end{enumerate}
 
-\subsubsection{Weighted average approach - 21.9.21}
+%\subsubsection{Weighted average approach - 21.9.21}
+%
+%Using the change of measure inequality, we can derive an upper bound:
+%
+%\begin{equation*} 
+%\begin{split}
+%\mathcal{L}(\mathcal{Q}, D_t)\leq \hat{\mathcal{L}}(\mathcal{Q}_t, S_t)  &+ \frac{1}{\gamma}KL(\mathcal{Q}||\mathcal{P})+ \frac{1}{\gamma}E_{P\sim \mathcal{Q}}KL(Q_t||P)\\  &+lnE_{P\sim \mathcal{P}}E_{h\sim P}\left [e^{\gamma E_{S\sim D_t^{m_t}}\mathcal{L}(h, D_t)-\hat{\mathcal{L}}(h, S_t)}\right ]
+%\end{split}
+%\end{equation*}
+%
+%If we use assumption \ref{assumption-gibbs}, we can derive that the optimal $\mathcal{Q}^*$ would be
+%
+%
+%$$\mathcal{Q}^{*}(P)=\frac{\mathcal{P}(P) e^{-\gamma \left (\hat{\mathcal{L}}(Q_t, S_t) + \frac{1}{\gamma}KL(Q_t||P) \right)}}{E_{P\sim \mathcal{P}} \left [ e^{-\gamma \left (\hat{\mathcal{L}}(Q_t, S_t) + \frac{1}{\gamma}KL(Q_t||P) \right)} \right ]}$$
+%
+%We would like to give a good estimate of $\mathcal{Q}^{*}$ using $\mathcal{Q}_1,...,\mathcal{Q}_n$. To do so,  \textcolor{red}{stuck.}
+%
+%Another method we can use is the change of measure inequality, 
+%
+%\begin{equation*} 
+%\begin{split}
+%\mathcal{L}(\mathcal{Q}^*, D_t)\leq \frac{1}{\lambda}ln E_{P\sim \mathcal{Q}}E_{h\sim Q}\left [ e^{\lambda \mathcal{L}(h, D_t)}\right ] &+ \frac{1}{\lambda}KL(\mathcal{Q}^*||\mathcal{Q})+ \frac{1}{\lambda}E_{P\sim \mathcal{Q}^*}KL(Q_t||Q)
+%\end{split}
+%\end{equation*}
+%
+%We can choose the base learner $Q=Q_t$ and get a simpler bound
+%
+%\begin{equation*} 
+%\begin{split}
+%\mathcal{L}(\mathcal{Q}^*, D_t)\leq \frac{1}{\lambda}ln E_{P\sim \mathcal{Q}}E_{h\sim Q_t}\left [ e^{\lambda \mathcal{L}(h, D_t)}\right ] &+ \frac{1}{\lambda}KL(\mathcal{Q}^*||\mathcal{Q})
+%\end{split}
+%\end{equation*}
+%
+%This trade-off depends on our choice of $\lambda$. For $\lambda>>\gamma$, the KL term becomes less important. 
+%
+%If $\mathcal{L}(Q_t, D_t)$ is sub-gamma with zero mean and variance $\sigma_t^2$, 
+%
+%$$E_{P\sim \mathcal{Q}}E_{h\sim Q_t}\left [ e^{\lambda \mathcal{L}(h, D_t)}\right ]\leq e^{4\sigma_t^2\lambda^2} $$
+%
+%And therefore,
+%
+%\begin{equation*} 
+%\begin{split}
+%\mathcal{L}(\mathcal{Q}^*, D_t)\leq 4\lambda\sigma_t^2 + \frac{1}{\lambda}KL(\mathcal{Q}^*||\mathcal{Q})
+%\end{split}
+%\end{equation*}
+%
+%Assuming $\lambda$ is large, we would like $\mathcal{Q}$ to minimize the variance of $\mathcal{L}(Q_t, D_t)$. It would make sense, therefore, for $\mathcal{Q}$ to concentrate density where $\mathcal{L}(Q_t, D_t)$ is low.
+%Using Hoefding's inequality we can get with probability at least $1-\delta$
+%
+%$$ E_{P\sim \mathcal{Q}}\mathcal{L}(Q_t, D_t) \leq E_{P\sim \mathcal{Q}}\hat{\mathcal{L}}(Q_t, S_t) + \sqrt{\frac{1}{2m}ln\frac{1}{\delta}}$$
+%
+%As such, we can pick any $\mathcal{Q}$ that concentrates weight where $\hat{\mathcal{L}}(Q_t, S_t)$ is low. A possible such meta-learner is:
+%
+%$$\mathcal{Q}(P) = \mathcal{P}(P)e^{-\hat{\mathcal{L}}(Q_t, S_t)}$$
+%
+%
+%\textcolor{red}{stuck - why use $\mathcal{Q}_1,...,\mathcal{Q}_n$?}
+%
+%
+%\subsubsection{Side trip - 15.9.21}
+%
+%A reasonable choice for a gibbs-like meta-learner would be 
+%
+%$$ \mathcal{Q}_{avg}(P) = \frac{\mathcal{P}(P)e^{-\frac{\lambda}{n}\sum_k \hat{\mathcal{L}}(Q_k, S_t)}}{Z^{avg}_{\lambda}(\mathcal{P}, S_1, ..., S_n, S_t)}$$
+%
+%$$ Z^{avg}_{\lambda}(\mathcal{P}, S_1, ..., S_n, S_t)=E_{p\sim\mathcal{P}} \left [e^{-\frac{\lambda}{n}\sum_k \hat{\mathcal{L}}(Q_k, S_t)} \right ] $$
+%
+%By using this formulation, we can derive that 
+%
+%$$KL(\mathcal{Q}_{avg}|| \mathcal{P}) = Z^{avg}_{\lambda} - \frac{\lambda}{n}\sum_k E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, S_t) \right ]$$
+%
+%Using Hoefdding's inequality and a union bound gives us that with probability at least $1-\delta$, 
+%
+%\begin{align} 
+%\begin{split}
+%KL(\mathcal{Q}_{avg}|| \mathcal{P}) & \leq Z^{avg}_{\lambda} - \frac{\lambda}{n}\sum_k E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_t) -\sqrt{\frac{1}{2m}ln\frac{n}{\delta}} \right ] \\ &= Z^{avg}_{\lambda} + \lambda \sqrt{\frac{1}{2m}ln\frac{n}{\delta}} - \frac{\lambda}{n}\sum_k E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_t)\right ]
+%\end{split}
+%\end{align}
+%
+%Using the lower bound for $j\neq i$ \textcolor{red}{(this may not actually apply here though)} gives us that 
+%
+%$$ KL(\mathcal{Q}_{avg}|| \mathcal{P})  \leq Z^{avg}_{\lambda} + \lambda \sqrt{\frac{1}{2m}ln\frac{n}{\delta}} - \frac{\lambda}{n}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k)+\epsilon \right ]-\frac{\lambda}{n}E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_i, D_t) \right ]$$
+%
+%$$ KL(\mathcal{Q}_{avg}|| \mathcal{P})  \leq Z^{avg}_{\lambda} + \sqrt{\frac{\lambda^2}{2m}ln\frac{n}{\delta}} -\frac{n-1}{n}\lambda\epsilon - \frac{\lambda}{n}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]-\frac{\lambda}{n}E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_i, D_t) \right ]$$
+%
+%This gives us an interesting trade-off over the naive gibbs meta-learner:
+%
+%$$ \mathcal{Q}_{i, t}(P) = \frac{\mathcal{P}(P)e^{-\lambda\hat{\mathcal{L}}(Q_i, S_t)}}{Z^{i,t}_{\lambda}(\mathcal{P}, S_i, S_t)}$$
+%
+%$$ Z^{i,t}_{\lambda}(\mathcal{P}, S_i, S_t)=E_{p\sim\mathcal{P}} \left [e^{-\lambda\hat{\mathcal{L}}(Q_i, S_t)} \right ] $$
+%
+%It is easy to show that with probability at least $1-\delta$, 
+%
+%$$ KL(\mathcal{Q}_{i,t}|| \mathcal{P})  \leq Z^{i,t}_{\lambda} + \sqrt{\frac{\lambda^2}{2m}ln\frac{1}{\delta}} -\lambda E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_i, D_t) \right ]$$
+%
+%\textcolor{red}{How is this useful? These are not easily comparable, especially since we don't have anything useful on the train error for each method. If the $Z$ terms are identical and $\lambda=\sqrt{n}$, the difference is $$\sqrt{\frac{nln n}{2m}}-\frac{1}{\sqrt{n}}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]$$ and that makes sense. }
 
-Using the change of measure inequality, we can derive an upper bound:
-
-\begin{equation*} 
-\begin{split}
-\mathcal{L}(\mathcal{Q}, D_t)\leq \hat{\mathcal{L}}(\mathcal{Q}_t, S_t)  &+ \frac{1}{\gamma}KL(\mathcal{Q}||\mathcal{P})+ \frac{1}{\gamma}E_{P\sim \mathcal{Q}}KL(Q_t||P)\\  &+lnE_{P\sim \mathcal{P}}E_{h\sim P}\left [e^{\gamma E_{S\sim D_t^{m_t}}\mathcal{L}(h, D_t)-\hat{\mathcal{L}}(h, S_t)}\right ]
-\end{split}
-\end{equation*}
-
-If we use assumption \ref{assumption-gibbs}, we can derive that the optimal $\mathcal{Q}^*$ would be
-
-
-$$\mathcal{Q}^{*}(P)=\frac{\mathcal{P}(P) e^{-\gamma \left (\hat{\mathcal{L}}(Q_t, S_t) + \frac{1}{\gamma}KL(Q_t||P) \right)}}{E_{P\sim \mathcal{P}} \left [ e^{-\gamma \left (\hat{\mathcal{L}}(Q_t, S_t) + \frac{1}{\gamma}KL(Q_t||P) \right)} \right ]}$$
-
-We would like to give a good estimate of $\mathcal{Q}^{*}$ using $\mathcal{Q}_1,...,\mathcal{Q}_n$. To do so,  \textcolor{red}{stuck.}
-
-Another method we can use is the change of measure inequality, 
-
-\begin{equation*} 
-\begin{split}
-\mathcal{L}(\mathcal{Q}^*, D_t)\leq \frac{1}{\lambda}ln E_{P\sim \mathcal{Q}}E_{h\sim Q}\left [ e^{\lambda \mathcal{L}(h, D_t)}\right ] &+ \frac{1}{\lambda}KL(\mathcal{Q}^*||\mathcal{Q})+ \frac{1}{\lambda}E_{P\sim \mathcal{Q}^*}KL(Q_t||Q)
-\end{split}
-\end{equation*}
-
-We can choose the base learner $Q=Q_t$ and get a simpler bound
-
-\begin{equation*} 
-\begin{split}
-\mathcal{L}(\mathcal{Q}^*, D_t)\leq \frac{1}{\lambda}ln E_{P\sim \mathcal{Q}}E_{h\sim Q_t}\left [ e^{\lambda \mathcal{L}(h, D_t)}\right ] &+ \frac{1}{\lambda}KL(\mathcal{Q}^*||\mathcal{Q})
-\end{split}
-\end{equation*}
-
-This trade-off depends on our choice of $\lambda$. For $\lambda>>\gamma$, the KL term becomes less important. 
-
-If $\mathcal{L}(Q_t, D_t)$ is sub-gamma with zero mean and variance $\sigma_t^2$, 
-
-$$E_{P\sim \mathcal{Q}}E_{h\sim Q_t}\left [ e^{\lambda \mathcal{L}(h, D_t)}\right ]\leq e^{4\sigma_t^2\lambda^2} $$
-
-And therefore,
-
-\begin{equation*} 
-\begin{split}
-\mathcal{L}(\mathcal{Q}^*, D_t)\leq 4\lambda\sigma_t^2 + \frac{1}{\lambda}KL(\mathcal{Q}^*||\mathcal{Q})
-\end{split}
-\end{equation*}
-
-Assuming $\lambda$ is large, we would like $\mathcal{Q}$ to minimize the variance of $\mathcal{L}(Q_t, D_t)$. It would make sense, therefore, for $\mathcal{Q}$ to concentrate density where $\mathcal{L}(Q_t, D_t)$ is low.
-Using Hoefding's inequality we can get with probability at least $1-\delta$
-
-$$ E_{P\sim \mathcal{Q}}\mathcal{L}(Q_t, D_t) \leq E_{P\sim \mathcal{Q}}\hat{\mathcal{L}}(Q_t, S_t) + \sqrt{\frac{1}{2m}ln\frac{1}{\delta}}$$
-
-As such, we can pick any $\mathcal{Q}$ that concentrates weight where $\hat{\mathcal{L}}(Q_t, S_t)$ is low. A possible such meta-learner is:
-
-$$\mathcal{Q}(P) = \mathcal{P}(P)e^{-\hat{\mathcal{L}}(Q_t, S_t)}$$
-
-
-\textcolor{red}{stuck - why use $\mathcal{Q}_1,...,\mathcal{Q}_n$?}
-
-
-\subsubsection{Side trip - 15.9.21}
-
-A reasonable choice for a gibbs-like meta-learner would be 
-
-$$ \mathcal{Q}_{avg}(P) = \frac{\mathcal{P}(P)e^{-\frac{\lambda}{n}\sum_k \hat{\mathcal{L}}(Q_k, S_t)}}{Z^{avg}_{\lambda}(\mathcal{P}, S_1, ..., S_n, S_t)}$$
-
-$$ Z^{avg}_{\lambda}(\mathcal{P}, S_1, ..., S_n, S_t)=E_{p\sim\mathcal{P}} \left [e^{-\frac{\lambda}{n}\sum_k \hat{\mathcal{L}}(Q_k, S_t)} \right ] $$
-
-By using this formulation, we can derive that 
-
-$$KL(\mathcal{Q}_{avg}|| \mathcal{P}) = Z^{avg}_{\lambda} - \frac{\lambda}{n}\sum_k E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, S_t) \right ]$$
-
-Using Hoefdding's inequality and a union bound gives us that with probability at least $1-\delta$, 
-
-\begin{align} 
-\begin{split}
-KL(\mathcal{Q}_{avg}|| \mathcal{P}) & \leq Z^{avg}_{\lambda} - \frac{\lambda}{n}\sum_k E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_t) -\sqrt{\frac{1}{2m}ln\frac{n}{\delta}} \right ] \\ &= Z^{avg}_{\lambda} + \lambda \sqrt{\frac{1}{2m}ln\frac{n}{\delta}} - \frac{\lambda}{n}\sum_k E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_t)\right ]
-\end{split}
-\end{align}
-
-Using the lower bound for $j\neq i$ \textcolor{red}{(this may not actually apply here though)} gives us that 
-
-$$ KL(\mathcal{Q}_{avg}|| \mathcal{P})  \leq Z^{avg}_{\lambda} + \lambda \sqrt{\frac{1}{2m}ln\frac{n}{\delta}} - \frac{\lambda}{n}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k)+\epsilon \right ]-\frac{\lambda}{n}E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_i, D_t) \right ]$$
-
-$$ KL(\mathcal{Q}_{avg}|| \mathcal{P})  \leq Z^{avg}_{\lambda} + \sqrt{\frac{\lambda^2}{2m}ln\frac{n}{\delta}} -\frac{n-1}{n}\lambda\epsilon - \frac{\lambda}{n}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]-\frac{\lambda}{n}E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_i, D_t) \right ]$$
-
-This gives us an interesting trade-off over the naive gibbs meta-learner:
-
-$$ \mathcal{Q}_{i, t}(P) = \frac{\mathcal{P}(P)e^{-\lambda\hat{\mathcal{L}}(Q_i, S_t)}}{Z^{i,t}_{\lambda}(\mathcal{P}, S_i, S_t)}$$
-
-$$ Z^{i,t}_{\lambda}(\mathcal{P}, S_i, S_t)=E_{p\sim\mathcal{P}} \left [e^{-\lambda\hat{\mathcal{L}}(Q_i, S_t)} \right ] $$
-
-It is easy to show that with probability at least $1-\delta$, 
-
-$$ KL(\mathcal{Q}_{i,t}|| \mathcal{P})  \leq Z^{i,t}_{\lambda} + \sqrt{\frac{\lambda^2}{2m}ln\frac{1}{\delta}} -\lambda E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_i, D_t) \right ]$$
-
-\textcolor{red}{How is this useful? These are not easily comparable, especially since we don't have anything useful on the train error for each method. If the $Z$ terms are identical and $\lambda=\sqrt{n}$, the difference is $$\sqrt{\frac{nln n}{2m}}-\frac{1}{\sqrt{n}}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]$$ and that makes sense. }
-
-\subsubsection{Using meta-learners as priors - 28.9.21}
+\subsubsection{Using meta-learners as priors - 3.10.21}
 
 Another method we can use is to select 
 
@@ -1106,25 +1106,54 @@ $$ E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  \frac{1}{\sq
 
 We note that this bound does not depend directly on $\mathcal{Q}$, but rather on the performance of our meta-prior on $t$. A good meta-prior would try and balance:
 \begin{itemize}
-	\item Low worst case loss due to the term $ln E_{P\sim \mathcal{Q}_0} \left [e^{-\hat{\mathcal{L}}(Q_t, S_t)}\right ]$ 
-	\item Low variation on $S_t$ due to the moment term $ln\xi$
+	\item Low training loss loss due to the term $-lnE_{P\sim \mathcal{Q}_0} \left [e^{-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)}\right ]$ 
+	\item Low variation on $S_t$ due to the moment term $ln\xi'$
 \end{itemize}
 
 
-%For any $\mathcal{Q}_0$ that does not depend on $S_t$, 
+For any $\mathcal{Q}_0$ that does not depend on $S_t$, 
 
-%$$\xi = E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ e^{\mathcal{L}(Q_t, D_t) - \hat{\mathcal{L}}(Q_t, S_t)}\right ]$$
+$$\xi' = E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ e^{\sqrt{m}\left (\mathcal{L}(Q_t, D_t) - \hat{\mathcal{L}}(Q_t, S_t)\right )}\right ]$$
 
-%And using a standard bound on $\xi$ is possible from here. Otherwise,
-%we can use the identity $E(f(P,S))= E(E(f(P, S)|S))$,
+And we can also separate this to individual examples as we assume that they are i.i.d, giving us 
 
-%\begin{align*} 
-%\begin{split}
-%\xi &= E \left ( E_{S_t, \mathcal{Q}} \left [ e^{\mathcal{L}(Q_t, D_t)}  E_{P\sim \mathcal{Q}_0} \left [e^{-\hat{\mathcal{L}}(Q_t, S_t)}\right ] |S_t \right ] \right ) \\
-%&= E \left ( E_{S_t, \mathcal{Q}} \left [ E_{P\sim \mathcal{Q}_0} \left [e^{-\hat{\mathcal{L}}(Q_t, S_t)}\right ] E_{P\sim \mathcal{Q}} \left [ e^{\mathcal{L}(Q_t, D_t)} \right ]  |S_t \right ] \right ) 
-%\end{split}
-%\end{align*}
+$$\xi' = E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ \prod_{z\in S_t} e^{\sqrt{m}\frac{1}{m}\left ( E_{h\sim Q_t}\mathcal{L}(h, D_t) - E_{h\sim Q_t}l(h, z)\right )}\right ]$$
 
+Using Jensen's inequality for exponents,
+
+$$\xi' \leq E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ \prod_{z\in S_t} E_{h\sim Q_t} e^{\frac{1}{\sqrt{m}}\left ( \mathcal{L}(h, D_t) - l(h, z)\right )}\right ]$$
+
+
+Using Hoeffding's lemma for bounded random variables for each sample,
+
+$$ \xi' \leq E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ \prod_{z\in S_t}  e^{\frac{(b-a)^2}{8(\sqrt{m})^2}} \right ] = E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ e^{\frac{(b-a)^2}{8}} \right ] = e^{\frac{(b-a)^2}{8}} $$
+
+And from this we can deduce 
+
+$$  E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q_t, D_t)\right ] \leq -\frac{1}{\sqrt{m}}ln E_{P\sim \mathcal{Q}_0} \left [e^{-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)}\right ] +\frac{1}{\sqrt{m}}ln\frac{1}{\delta} + \frac{1}{\sqrt{m}}\frac{(b-a)^2}{8} $$
+
+From Jensen's inequality we know that 
+
+\begin{align*} 
+\begin{split}
+\frac{1}{\sqrt{m}}ln E_{P\sim \mathcal{Q}_0} \left [e^{-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)}\right ] & \geq \frac{1}{\sqrt{m}} E_{P\sim \mathcal{Q}_0} \left [ln e^{-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)}\right ] \\
+&= \frac{1}{\sqrt{m}} E_{P\sim \mathcal{Q}_0} \left [-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)\right ]\\
+&= - E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]
+\end{split}
+\end{align*}
+
+And therefore 
+
+$$-\frac{1}{\sqrt{m}}ln E_{P\sim \mathcal{Q}_0} \left [e^{-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)}\right ] \leq E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]$$
+
+And thus 
+
+$$  E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q_t, D_t)\right ] \leq E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] +\frac{1}{\sqrt{m}}ln\frac{1}{\delta} + \frac{1}{\sqrt{m}}\frac{(b-a)^2}{8} $$
+
+
+In order to minimize this bound, we would like our meta-prior $\mathcal{Q}_0$ to minimize $\hat{\mathcal{L}}(Q(P, S_t), S_t)$, without knowing $S_t$ or $D_t$ (since it is a data-free meta-prior). We would therefore want to optimize on expected performance for some unknown task, and so standard meta-learning methods such as the meta-learner suggested in \cite{Rothfuss2020} or MAML \citep{Finn2017} are optimal.
+
+Can we do better if we use $S_t$ to construct our meta-prior?
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
