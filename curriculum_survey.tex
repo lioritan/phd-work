@@ -1060,7 +1060,7 @@ To make use of assumption \ref{assumption-similarity}, we consider 3 different a
 %
 %\textcolor{red}{How is this useful? These are not easily comparable, especially since we don't have anything useful on the train error for each method. If the $Z$ terms are identical and $\lambda=\sqrt{n}$, the difference is $$\sqrt{\frac{nln n}{2m}}-\frac{1}{\sqrt{n}}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]$$ and that makes sense. }
 
-\subsubsection{Using meta-learners as priors - 3.10.21}
+\subsubsection{Using meta-learners as priors - 6.10.21}
 
 Another method we can use is to select 
 
@@ -1153,7 +1153,61 @@ $$  E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q_t, D_t)\right ] \leq E_{P\sim \ma
 
 In order to minimize this bound, we would like our meta-prior $\mathcal{Q}_0$ to minimize $\hat{\mathcal{L}}(Q(P, S_t), S_t)$, without knowing $S_t$ or $D_t$ (since it is a data-free meta-prior). We would therefore want to optimize on expected performance for some unknown task, and so standard meta-learning methods such as the meta-learner suggested in \cite{Rothfuss2020} or MAML \citep{Finn2017} are optimal.
 
-Can we do better if we use $S_t$ to construct our meta-prior?
+Can we do better if we use $S_t$ in other ways? 
+Let us consider a posterior of the form:
+$$ \mathcal{Q}_\alpha(P) = \begin{cases}
+\mathcal{Q}_0(P) & \text{w.p. } \alpha\\
+\mathcal{Q}_{gibbs}(S_t)(P)  &\text{w.p. } 1-\alpha
+\end{cases} $$
+
+Where $\mathcal{Q}_0$ is a data-free meta-learner and $\mathcal{Q}_{gibbs}(S_t)$ is the gibbs meta-learner for $S_t$ with meta-prior $\mathcal{P}$.
+We know from \cite{Rivasplata2020} that with probability at least $1-\delta_1$ over the choice of $S_t$:
+
+\begin{equation*}
+\begin{split}
+E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}KL(\mathcal{Q}_\alpha||\mathcal{Q}_{gibbs}(S_t)) + \frac{1}{\sqrt{m}}C_1(a,b, \delta_1)
+\end{split}
+\end{equation*}
+
+We also know from using Hoeffding's lemma with a change-of-measure that with probability at least $1-\delta_2$ over the choice of $S_t$:
+
+\begin{equation*}
+\begin{split}
+E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}KL(\mathcal{Q}_\alpha||\mathcal{Q}_0) + \frac{1}{\sqrt{m}}C_2(a,b,\delta_2)
+\end{split}
+\end{equation*}
+
+We can therefore derive that 
+
+\begin{equation*}
+\begin{split}
+E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}\min\left \{KL(\mathcal{Q}_\alpha||\mathcal{Q}_{gibbs}(S_t))+C_1(a,b, \delta_1), KL(\mathcal{Q}_\alpha||\mathcal{Q}_0)+C_2(a,b,\delta_2)\right \} 
+\end{split}
+\end{equation*}
+
+Using the smoothing property, if $\alpha$ does not depend on $P$, we can derive that 
+
+$$ E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] = E_{\alpha}E_{P\sim \mathcal{Q}_a} \left [\hat{\mathcal{L}}(Q_t, S_t)|\alpha=a \right ] = \alpha E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + (1-\alpha)E_{P\sim \mathcal{Q}_{gibbs}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] $$
+
+And similarly for the KL-divergences
+
+$$ KL(\mathcal{Q}_\alpha||\mathcal{Q}_{gibbs}(S_t)) = \alpha KL(\mathcal{Q}_0||\mathcal{Q}_{gibbs}(S_t)) + (1-\alpha)KL(\mathcal{Q}_{gibbs}(S_t)||\mathcal{Q}_{gibbs}(S_t)) = \alpha KL(\mathcal{Q}_0||\mathcal{Q}_{gibbs}(S_t))$$
+
+$$ KL(\mathcal{Q}_\alpha||\mathcal{Q}_0) = \alpha KL(\mathcal{Q}_0||\mathcal{Q}_0) + (1-\alpha)KL(\mathcal{Q}_{gibbs}(S_t)||\mathcal{Q}_0) = (1-\alpha)KL(\mathcal{Q}_{gibbs}(S_t)||\mathcal{Q}_0)$$
+
+Meaning 
+
+\begin{equation*}
+\begin{split}
+E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] &\leq  \alpha E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + (1-\alpha)E_{P\sim \mathcal{Q}_{gibbs}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]  \\ &+ \frac{1}{\sqrt{m}}\min\left \{\alpha KL(\mathcal{Q}_0||\mathcal{Q}_{gibbs}(S_t))+C_1(a,b, \delta_1), (1-\alpha)KL(\mathcal{Q}_{gibbs}(S_t)||\mathcal{Q}_0)+C_2(a,b,\delta_2)\right \} 
+\end{split}
+\end{equation*}
+
+For large $m$, $C_1$ and $C_2$ are negligible, and therefore if $E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] < E_{P\sim \mathcal{Q}_{gibbs}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]$, the choice of $\alpha=1$ is optimal, and otherwise the choice of $\alpha=0$ is optimal (if both give the same loss, pick one).
+
+Therefore, if $m$ is large, for any set of data-free meta-priors or data-aware ones with $ln\xi=O(1)$, the optimal probabilistic choice meta-learner is to deterministically choose the one that minimizes $\hat{\mathcal{L}}(\mathcal{Q}^*, S_t)$.
+
+This is a somewhat surprising result, as it means that mixing learners by a randomized algorithm is not useful unless our probability is chosen dynamically based on the learners. It is also somewhat unintuitive as the bound does not directly depend on the original meta-prior $\mathcal{P}$, since it is taken into consideration while bounding the moment $\xi$. A careful look at $C_1$ and $C_2$ shows us that we pay an additional $O(\frac{1}{\sqrt{m}})$ term.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
