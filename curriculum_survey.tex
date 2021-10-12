@@ -1231,7 +1231,7 @@ Since $\alpha\leq 1$ and the second term within the logarithm is non-negative, w
 
 \begin{equation*}
 \begin{split}
-KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0) & \leq \int \mathcal{Q}'_\alpha \frac{(1-\alpha)\mathcal{Q}_{gibbs}(S_t)}{\mathcal{Q}_0} dP \\ &= \int \alpha(1-\alpha)\mathcal{Q}_{gibbs}(S_t) \frac{(1-\alpha)^2\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP \\& = \alpha(1-\alpha)\int \mathcal{Q}_{gibbs}(S_t) dP + (1-\alpha)^2\int \frac{\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP \\ &= \alpha(1-\alpha) + (1-\alpha)^2\int \frac{\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP
+KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0) & \leq \int \mathcal{Q}'_\alpha \frac{(1-\alpha)\mathcal{Q}_{gibbs}(S_t)}{\mathcal{Q}_0} dP \\ &= \int \alpha(1-\alpha)\mathcal{Q}_{gibbs}(S_t)+ \frac{(1-\alpha)^2\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP \\& = \alpha(1-\alpha)\int \mathcal{Q}_{gibbs}(S_t) dP + (1-\alpha)^2\int \frac{\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP \\ &= \alpha(1-\alpha) + (1-\alpha)^2\int \frac{\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP
 \end{split}
 \end{equation*}
 
@@ -1241,14 +1241,22 @@ $$ KL(\mathcal{Q}'_\alpha||\mathcal{Q}_{gibbs}(S_t)) \leq \alpha(1-\alpha) + \al
 
 And using these, we can deduce
 
-\begin{equation*}
+\begin{equation}
 \begin{split}
 \mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min\left \{\alpha^2\int \frac{\mathcal{Q}_0^2}{\mathcal{Q}_{gibbs}(S_t)}  dP, (1-\alpha)^2\int \frac{\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP\right \} + \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
 \end{split}
-\end{equation*}
+\end{equation}
 
 If the empirical loss function $\hat{\mathcal{L}}(P, S_t)$ is sub-additive with respect to $P$, meaning $\hat{\mathcal{L}}(X+Y, S_t)\leq +\hat{\mathcal{L}}(X, S_t)+\hat{\mathcal{L}}(Y, S_t)$,
 we get the same result as above, where the optimal $\alpha$ is either zero or one, depending on which meta-learner has lower average training loss.
+
+Another way to phrase the above equation would be:
+
+\begin{equation}
+\begin{split}
+\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min\left \{\alpha^2 E_{P\sim \mathcal{Q}_0} \left [ \frac{\mathcal{Q}_0}{\mathcal{Q}_{gibbs}(S_t)} \right ], (1-\alpha)^2 E_{P\sim \mathcal{Q}_{gibbs}(S_t)} \left [ \frac{\mathcal{Q}_{gibbs}(S_t)}{\mathcal{Q}_0} \right ]\right \} + \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+\end{split}
+\end{equation}
 
 If the loss is not sub-additive, we must choose $\alpha$ to trade-off the training loss for the mixed meta-learner with the second term. This integral term will be large if the meta-learners are significantly different. For our specific case we can calculate further that:
 
@@ -1274,7 +1282,7 @@ Using simple exponent rules, we get:
 \end{split}
 \end{equation*}
 
-The optimal value for $\alpha$ must balance low training loss for $\mathcal{Q}'_\alpha$ with low divergence between the two meta-priors. Choosing $\alpha=0$ or $\alpha=1$ minimizes this distance term, but may not be optimal in terms of loss. A mixed approach that minimizes the training loss alone may suffer a very large penalty here, as this distance term is upper bounded by $\frac{1}{4\sqrt{m}}e^{\sqrt{m}(b-a)}$. We do note, however that due to the normalization term it is unlikely that we would incur such a penalty in practice.
+The optimal value for $\alpha$ must balance low training loss for $\mathcal{Q}'_\alpha$ with low divergence between the two meta-priors. Choosing $\alpha=0$ or $\alpha=1$ minimizes this distance term, but may not be optimal in terms of loss. A mixed approach that minimizes the training loss alone may suffer a very large penalty here, as this distance term is upper bounded by $\frac{1}{4\sqrt{m}}e^{\sqrt{m}(b-a)}$. We do note, however that due to the normalization term it is unlikely that we would incur such a penalty in practice. We also note that this extra term is higher the more dissimilar the two priors. 
 
 Let us consider the case where $\alpha=\alpha(P)$, meaning that the combination depends on the choice of prior.
 
