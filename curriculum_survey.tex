@@ -1266,7 +1266,17 @@ And since the normalization terms do not depend on the hyper-posterior,
 \end{split}
 \end{equation*}
 
+Using simple exponent rules, we get:
+
+\begin{equation*}
+\begin{split}
+\mathcal{L}(\mathcal{Q}'_\alpha, D_t) &\leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) \\&+ \frac{1}{\sqrt{m}}\min \left \{ \alpha^2 \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  E_{P\sim \mathcal{Q}_0}\left [  \frac{exp( \beta \hat{\mathcal{L}}(Q_t, S_t))}{\prod_i Z_\beta(S_i,P)^{\frac{\lambda}{n\beta+\lambda}}} \right ],(1-\alpha)^2 \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})} E_{P\sim \mathcal{Q}_{gibbs}(S_t)}\left [  \frac{\prod_i Z_\beta(S_i,P)^{\frac{\lambda}{n\beta+\lambda}}}{exp(\beta \hat{\mathcal{L}}(Q_t, S_t))} \right ] \right \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+\end{split}
+\end{equation*}
+
 The optimal value for $\alpha$ must balance low training loss for $\mathcal{Q}'_\alpha$ with low divergence between the two meta-priors. Choosing $\alpha=0$ or $\alpha=1$ minimizes this distance term, but may not be optimal in terms of loss. A mixed approach that minimizes the training loss alone may suffer a very large penalty here, as this distance term is upper bounded by $\frac{1}{4\sqrt{m}}e^{\sqrt{m}(b-a)}$. We do note, however that due to the normalization term it is unlikely that we would incur such a penalty in practice.
+
+Let us consider the case where $\alpha=\alpha(P)$, meaning that the combination depends on the choice of prior.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
