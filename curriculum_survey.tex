@@ -1060,7 +1060,7 @@ To make use of assumption \ref{assumption-similarity}, we consider 3 different a
 %
 %\textcolor{red}{How is this useful? These are not easily comparable, especially since we don't have anything useful on the train error for each method. If the $Z$ terms are identical and $\lambda=\sqrt{n}$, the difference is $$\sqrt{\frac{nln n}{2m}}-\frac{1}{\sqrt{n}}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]$$ and that makes sense. }
 
-\subsubsection{Using meta-learners as priors - 6.10.21}
+\subsubsection{Using meta-learners as priors - 12.10.21}
 
 Another method we can use is to select 
 
@@ -1160,7 +1160,7 @@ $$ \mathcal{Q}_\alpha(P) = \begin{cases}
 \mathcal{Q}_{gibbs}(S_t)(P)  &\text{w.p. } 1-\alpha
 \end{cases} $$
 
-Where $\mathcal{Q}_0$ is a data-free meta-learner and $\mathcal{Q}_{gibbs}(S_t)$ is the gibbs meta-learner for $S_t$ with meta-prior $\mathcal{P}$.
+Where $\mathcal{Q}_0$ is a data-free meta-learner, $\alpha$ is not a function of $P$ and $\mathcal{Q}_{gibbs}(S_t)$ is the gibbs meta-learner for $S_t$ with meta-prior $\mathcal{P}$.
 We know from \cite{Rivasplata2020} that with probability at least $1-\delta_1$ over the choice of $S_t$:
 
 \begin{equation*}
@@ -1208,6 +1208,66 @@ For large $m$, $C_1$ and $C_2$ are negligible, and therefore if $E_{P\sim \mathc
 Therefore, if $m$ is large, for any set of data-free meta-priors or data-aware ones with $ln\xi=O(1)$, the optimal probabilistic choice meta-learner is to deterministically choose the one that minimizes $\hat{\mathcal{L}}(\mathcal{Q}^*, S_t)$.
 
 This is a somewhat surprising result, as it means that mixing learners by a randomized algorithm is not useful unless our probability is chosen dynamically based on the learners. It is also somewhat unintuitive as the bound does not directly depend on the original meta-prior $\mathcal{P}$, since it is taken into consideration while bounding the moment $\xi$. A careful look at $C_1$ and $C_2$ shows us that we pay an additional $O(\frac{1}{\sqrt{m}})$ term.
+
+Let us consider a slightly more complex combination,
+
+$$ \mathcal{Q}'_\alpha(P) = 
+\alpha \mathcal{Q}_0(P) + 
+(1-\alpha) \mathcal{Q}_{gibbs}(S_t)(P) $$ 
+
+Where as before, $\alpha$ is not a function of $P$, $\mathcal{Q}_0$ is some data-free hyper-posterior, and $\mathcal{Q}_{gibbs}(S_t)$ is the gibbs meta-learner.
+
+As before, we can choose $\delta_1=\frac{\delta}{2}, delta_2=\frac{\delta}{2}$ such that with probability at least $1-\delta$,
+
+\begin{equation*}
+\begin{split}
+E_{P\sim \mathcal{Q}'_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}'_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}\min\left \{KL(\mathcal{Q}'_\alpha||\mathcal{Q}_{gibbs}(S_t))+C_1(a,b, \delta), KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0)+C_2(a,b,\delta)\right \} 
+\end{split}
+\end{equation*}
+
+$$ KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0) = \int \mathcal{Q}'_\alpha ln\frac{\mathcal{Q}'_\alpha}{\mathcal{Q}_0} dP = \int \mathcal{Q}'_\alpha ln\left (\alpha + \frac{(1-\alpha)\mathcal{Q}_{gibbs}(S_t)}{\mathcal{Q}_0}\right ) dP$$
+
+Since $\alpha\leq 1$ and the second term within the logarithm is non-negative, we can use the identity $ln(1+x)\leq x$ to derive:
+
+\begin{equation*}
+\begin{split}
+KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0) & \leq \int \mathcal{Q}'_\alpha \frac{(1-\alpha)\mathcal{Q}_{gibbs}(S_t)}{\mathcal{Q}_0} dP \\ &= \int \alpha(1-\alpha)\mathcal{Q}_{gibbs}(S_t) \frac{(1-\alpha)^2\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP \\& = \alpha(1-\alpha)\int \mathcal{Q}_{gibbs}(S_t) dP + (1-\alpha)^2\int \frac{\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP \\ &= \alpha(1-\alpha) + (1-\alpha)^2\int \frac{\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP
+\end{split}
+\end{equation*}
+
+And similarly we can derive 
+
+$$ KL(\mathcal{Q}'_\alpha||\mathcal{Q}_{gibbs}(S_t)) \leq \alpha(1-\alpha) + \alpha^2\int \frac{\mathcal{Q}_0^2}{\mathcal{Q}_{gibbs}(S_t)}  dP$$
+
+And using these, we can deduce
+
+\begin{equation*}
+\begin{split}
+\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min\left \{\alpha^2\int \frac{\mathcal{Q}_0^2}{\mathcal{Q}_{gibbs}(S_t)}  dP, (1-\alpha)^2\int \frac{\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP\right \} + \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+\end{split}
+\end{equation*}
+
+If the empirical loss function $\hat{\mathcal{L}}(P, S_t)$ is sub-additive with respect to $P$, meaning $\hat{\mathcal{L}}(X+Y, S_t)\leq +\hat{\mathcal{L}}(X, S_t)+\hat{\mathcal{L}}(Y, S_t)$,
+we get the same result as above, where the optimal $\alpha$ is either zero or one, depending on which meta-learner has lower average training loss.
+
+If the loss is not sub-additive, we must choose $\alpha$ to trade-off the training loss for the mixed meta-learner with the second term. This integral term will be large if the meta-learners are significantly different. For our specific case we can calculate further that:
+
+\begin{equation*}
+\begin{split}
+\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min \{ &\alpha^2 E_{P\sim \mathcal{Q}_0}\left [ \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  exp\left ( \beta \hat{\mathcal{L}}(Q_t, S_t)-\frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P) \right ) \right ],\\ &(1-\alpha)^2 E_{P\sim \mathcal{Q}_{gibbs}(S_t)}\left [ \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}  exp\left ( \frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P)-\beta \hat{\mathcal{L}}(Q_t, S_t) \right ) \right ]  \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+\end{split}
+\end{equation*}
+
+And since the normalization terms do not depend on the hyper-posterior,
+
+\begin{equation*}
+\begin{split}
+\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min \{ &\alpha^2 \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  E_{P\sim \mathcal{Q}_0}\left [  exp\left ( \beta \hat{\mathcal{L}}(Q_t, S_t)-\frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P) \right ) \right ],\\ &(1-\alpha)^2 \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})} E_{P\sim \mathcal{Q}_{gibbs}(S_t)}\left [   exp\left ( \frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P)-\beta \hat{\mathcal{L}}(Q_t, S_t) \right ) \right ]  \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+\end{split}
+\end{equation*}
+
+The optimal value for $\alpha$ must balance low training loss for $\mathcal{Q}'_\alpha$ with low divergence between the two meta-priors. Choosing $\alpha=0$ or $\alpha=1$ minimizes this distance term, but may not be optimal in terms of loss. A mixed approach that minimizes the training loss alone may suffer a very large penalty here, as this distance term is upper bounded by $\frac{1}{4\sqrt{m}}e^{\sqrt{m}(b-a)}$. We do note, however that due to the normalization term it is unlikely that we would incur such a penalty in practice.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model-Based RL - 1.3.21} \label{sec:mbrl}
