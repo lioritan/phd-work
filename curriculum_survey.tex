@@ -88,6 +88,8 @@
 		Added justification to the choice of minimum for expected task loss
 		
 		Updated the probabilistic formulation with express calculations and a new color
+		
+		Created a bound for a proportional mix posterior, giving a criterion for the mix parameter
 	\end{abstract}
 
 \tableofcontents
@@ -1060,7 +1062,7 @@ To make use of assumption \ref{assumption-similarity}, we consider 3 different a
 %
 %\textcolor{red}{How is this useful? These are not easily comparable, especially since we don't have anything useful on the train error for each method. If the $Z$ terms are identical and $\lambda=\sqrt{n}$, the difference is $$\sqrt{\frac{nln n}{2m}}-\frac{1}{\sqrt{n}}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]$$ and that makes sense. }
 
-\subsubsection{Using meta-learners as priors - 12.10.21}
+\subsubsection{Using meta-learners as priors - 13.10.21}
 
 Another method we can use is to select 
 
@@ -1157,15 +1159,15 @@ Can we do better if we use $S_t$ in other ways?
 Let us consider a posterior of the form:
 $$ \mathcal{Q}_\alpha(P) = \begin{cases}
 \mathcal{Q}_0(P) & \text{w.p. } \alpha\\
-\mathcal{Q}_{gibbs}(S_t)(P)  &\text{w.p. } 1-\alpha
+\mathcal{Q}_{g}(S_t)(P)  &\text{w.p. } 1-\alpha
 \end{cases} $$
 
-Where $\mathcal{Q}_0$ is a data-free meta-learner, $\alpha$ is not a function of $P$ and $\mathcal{Q}_{gibbs}(S_t)$ is the gibbs meta-learner for $S_t$ with meta-prior $\mathcal{P}$.
+Where $\mathcal{Q}_0$ is a data-free meta-learner, $\alpha$ is not a function of $P$ and $\mathcal{Q}_{g}(S_t)$ is the gibbs meta-learner for $S_t$ with meta-prior $\mathcal{P}$.
 We know from \cite{Rivasplata2020} that with probability at least $1-\delta_1$ over the choice of $S_t$:
 
 \begin{equation*}
 \begin{split}
-E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}KL(\mathcal{Q}_\alpha||\mathcal{Q}_{gibbs}(S_t)) + \frac{1}{\sqrt{m}}C_1(a,b, \delta_1)
+E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}KL(\mathcal{Q}_\alpha||\mathcal{Q}_{g}(S_t)) + \frac{1}{\sqrt{m}}C_1(a,b, \delta_1)
 \end{split}
 \end{equation*}
 
@@ -1181,29 +1183,29 @@ We can therefore derive that
 
 \begin{equation*}
 \begin{split}
-E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}\min\left \{KL(\mathcal{Q}_\alpha||\mathcal{Q}_{gibbs}(S_t))+C_1(a,b, \delta_1), KL(\mathcal{Q}_\alpha||\mathcal{Q}_0)+C_2(a,b,\delta_2)\right \} 
+E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}\min\left \{KL(\mathcal{Q}_\alpha||\mathcal{Q}_{g}(S_t))+C_1(a,b, \delta_1), KL(\mathcal{Q}_\alpha||\mathcal{Q}_0)+C_2(a,b,\delta_2)\right \} 
 \end{split}
 \end{equation*}
 
 Using the smoothing property, if $\alpha$ does not depend on $P$, we can derive that 
 
-$$ E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] = E_{\alpha}E_{P\sim \mathcal{Q}_a} \left [\hat{\mathcal{L}}(Q_t, S_t)|\alpha=a \right ] = \alpha E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + (1-\alpha)E_{P\sim \mathcal{Q}_{gibbs}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] $$
+$$ E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] = E_{\alpha}E_{P\sim \mathcal{Q}_a} \left [\hat{\mathcal{L}}(Q_t, S_t)|\alpha=a \right ] = \alpha E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + (1-\alpha)E_{P\sim \mathcal{Q}_{g}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] $$
 
 And similarly for the KL-divergences
 
-$$ KL(\mathcal{Q}_\alpha||\mathcal{Q}_{gibbs}(S_t)) = \alpha KL(\mathcal{Q}_0||\mathcal{Q}_{gibbs}(S_t)) + (1-\alpha)KL(\mathcal{Q}_{gibbs}(S_t)||\mathcal{Q}_{gibbs}(S_t)) = \alpha KL(\mathcal{Q}_0||\mathcal{Q}_{gibbs}(S_t))$$
+$$ KL(\mathcal{Q}_\alpha||\mathcal{Q}_{g}(S_t)) = \alpha KL(\mathcal{Q}_0||\mathcal{Q}_{g}(S_t)) + (1-\alpha)KL(\mathcal{Q}_{g}(S_t)||\mathcal{Q}_{g}(S_t)) = \alpha KL(\mathcal{Q}_0||\mathcal{Q}_{g}(S_t))$$
 
-$$ KL(\mathcal{Q}_\alpha||\mathcal{Q}_0) = \alpha KL(\mathcal{Q}_0||\mathcal{Q}_0) + (1-\alpha)KL(\mathcal{Q}_{gibbs}(S_t)||\mathcal{Q}_0) = (1-\alpha)KL(\mathcal{Q}_{gibbs}(S_t)||\mathcal{Q}_0)$$
+$$ KL(\mathcal{Q}_\alpha||\mathcal{Q}_0) = \alpha KL(\mathcal{Q}_0||\mathcal{Q}_0) + (1-\alpha)KL(\mathcal{Q}_{g}(S_t)||\mathcal{Q}_0) = (1-\alpha)KL(\mathcal{Q}_{g}(S_t)||\mathcal{Q}_0)$$
 
 Meaning 
 
 \begin{equation*}
 \begin{split}
-E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] &\leq  \alpha E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + (1-\alpha)E_{P\sim \mathcal{Q}_{gibbs}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]  \\ &+ \frac{1}{\sqrt{m}}\min\left \{\alpha KL(\mathcal{Q}_0||\mathcal{Q}_{gibbs}(S_t))+C_1(a,b, \delta_1), (1-\alpha)KL(\mathcal{Q}_{gibbs}(S_t)||\mathcal{Q}_0)+C_2(a,b,\delta_2)\right \} 
+E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] &\leq  \alpha E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + (1-\alpha)E_{P\sim \mathcal{Q}_{g}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]  \\ &+ \frac{1}{\sqrt{m}}\min\left \{\alpha KL(\mathcal{Q}_0||\mathcal{Q}_{g}(S_t))+C_1(a,b, \delta_1), (1-\alpha)KL(\mathcal{Q}_{g}(S_t)||\mathcal{Q}_0)+C_2(a,b,\delta_2)\right \} 
 \end{split}
 \end{equation*}
 
-For large $m$, $C_1$ and $C_2$ are negligible, and therefore if $E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] < E_{P\sim \mathcal{Q}_{gibbs}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]$, the choice of $\alpha=1$ is optimal, and otherwise the choice of $\alpha=0$ is optimal (if both give the same loss, pick one).
+For large $m$, $C_1$ and $C_2$ are negligible, and therefore if $E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] < E_{P\sim \mathcal{Q}_{g}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]$, the choice of $\alpha=1$ is optimal, and otherwise the choice of $\alpha=0$ is optimal (if both give the same loss, pick one).
 
 Therefore, if $m$ is large, for any set of data-free meta-priors or data-aware ones with $ln\xi=O(1)$, the optimal probabilistic choice meta-learner is to deterministically choose the one that minimizes $\hat{\mathcal{L}}(\mathcal{Q}^*, S_t)$.
 
@@ -1213,37 +1215,37 @@ Let us consider a slightly more complex combination,
 
 $$ \mathcal{Q}'_\alpha(P) = 
 \alpha \mathcal{Q}_0(P) + 
-(1-\alpha) \mathcal{Q}_{gibbs}(S_t)(P) $$ 
+(1-\alpha) \mathcal{Q}_{g}(S_t)(P) $$ 
 
-Where as before, $\alpha$ is not a function of $P$, $\mathcal{Q}_0$ is some data-free hyper-posterior, and $\mathcal{Q}_{gibbs}(S_t)$ is the gibbs meta-learner.
+Where as before, $\alpha$ is not a function of $P$, $\mathcal{Q}_0$ is some data-free hyper-posterior, and $\mathcal{Q}_{g}(S_t)$ is the gibbs meta-learner.
 
 As before, we can choose $\delta_1=\frac{\delta}{2}, delta_2=\frac{\delta}{2}$ such that with probability at least $1-\delta$,
 
 \begin{equation*}
 \begin{split}
-E_{P\sim \mathcal{Q}'_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}'_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}\min\left \{KL(\mathcal{Q}'_\alpha||\mathcal{Q}_{gibbs}(S_t))+C_1(a,b, \delta), KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0)+C_2(a,b,\delta)\right \} 
+E_{P\sim \mathcal{Q}'_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}'_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}\min\left \{KL(\mathcal{Q}'_\alpha||\mathcal{Q}_{g}(S_t))+C_1(a,b, \delta), KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0)+C_2(a,b,\delta)\right \} 
 \end{split}
 \end{equation*}
 
-$$ KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0) = \int \mathcal{Q}'_\alpha ln\frac{\mathcal{Q}'_\alpha}{\mathcal{Q}_0} dP = \int \mathcal{Q}'_\alpha ln\left (\alpha + \frac{(1-\alpha)\mathcal{Q}_{gibbs}(S_t)}{\mathcal{Q}_0}\right ) dP$$
+$$ KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0) = \int \mathcal{Q}'_\alpha ln\frac{\mathcal{Q}'_\alpha}{\mathcal{Q}_0} dP = \int \mathcal{Q}'_\alpha ln\left (\alpha + \frac{(1-\alpha)\mathcal{Q}_{g}(S_t)}{\mathcal{Q}_0}\right ) dP$$
 
-Since $\alpha\leq 1$ and the second term within the logarithm is non-negative, we can use the identity $ln(1+x)\leq x$ to derive:
+Since $\alpha\leq 1$ and the second term within the logarithm is non-negative, we can use the identity $ln(1+x)\leq x$\footnote{Fox $x>-1$. We note that other identities such as $ln(x+\alpha)\leq ln(x)+\frac{\alpha}{x}$ can also be used, but do not have a significant impact.} to derive:
 
 \begin{equation*}
 \begin{split}
-KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0) & \leq \int \mathcal{Q}'_\alpha \frac{(1-\alpha)\mathcal{Q}_{gibbs}(S_t)}{\mathcal{Q}_0} dP \\ &= \int \alpha(1-\alpha)\mathcal{Q}_{gibbs}(S_t)+ \frac{(1-\alpha)^2\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP \\& = \alpha(1-\alpha)\int \mathcal{Q}_{gibbs}(S_t) dP + (1-\alpha)^2\int \frac{\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP \\ &= \alpha(1-\alpha) + (1-\alpha)^2\int \frac{\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP
+KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0) & \leq \int \mathcal{Q}'_\alpha \frac{(1-\alpha)\mathcal{Q}_{g}(S_t)}{\mathcal{Q}_0} dP \\ &= \int \alpha(1-\alpha)\mathcal{Q}_{g}(S_t)+ \frac{(1-\alpha)^2\mathcal{Q}_{g}(S_t)^2}{\mathcal{Q}_0}  dP \\& = \alpha(1-\alpha)\int \mathcal{Q}_{g}(S_t) dP + (1-\alpha)^2\int \frac{\mathcal{Q}_{g}(S_t)^2}{\mathcal{Q}_0}  dP \\ &= \alpha(1-\alpha) + (1-\alpha)^2\int \frac{\mathcal{Q}_{g}(S_t)^2}{\mathcal{Q}_0}  dP
 \end{split}
 \end{equation*}
 
 And similarly we can derive 
 
-$$ KL(\mathcal{Q}'_\alpha||\mathcal{Q}_{gibbs}(S_t)) \leq \alpha(1-\alpha) + \alpha^2\int \frac{\mathcal{Q}_0^2}{\mathcal{Q}_{gibbs}(S_t)}  dP$$
+$$ KL(\mathcal{Q}'_\alpha||\mathcal{Q}_{g}(S_t)) \leq \alpha(1-\alpha) + \alpha^2\int \frac{\mathcal{Q}_0^2}{\mathcal{Q}_{g}(S_t)}  dP$$
 
 And using these, we can deduce
 
 \begin{equation}
 \begin{split}
-\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min\left \{\alpha^2\int \frac{\mathcal{Q}_0^2}{\mathcal{Q}_{gibbs}(S_t)}  dP, (1-\alpha)^2\int \frac{\mathcal{Q}_{gibbs}(S_t)^2}{\mathcal{Q}_0}  dP\right \} + \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min\left \{\alpha^2\int \frac{\mathcal{Q}_0^2}{\mathcal{Q}_{g}(S_t)}  dP, (1-\alpha)^2\int \frac{\mathcal{Q}_{g}(S_t)^2}{\mathcal{Q}_0}  dP\right \} + \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
 \end{split}
 \end{equation}
 
@@ -1254,7 +1256,7 @@ Another way to phrase the above equation would be:
 
 \begin{equation}
 \begin{split}
-\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min\left \{\alpha^2 E_{P\sim \mathcal{Q}_0} \left [ \frac{\mathcal{Q}_0}{\mathcal{Q}_{gibbs}(S_t)} \right ], (1-\alpha)^2 E_{P\sim \mathcal{Q}_{gibbs}(S_t)} \left [ \frac{\mathcal{Q}_{gibbs}(S_t)}{\mathcal{Q}_0} \right ]\right \} + \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min\left \{\alpha^2 E_{P\sim \mathcal{Q}_0} \left [ \frac{\mathcal{Q}_0}{\mathcal{Q}_{g}(S_t)} \right ], (1-\alpha)^2 E_{P\sim \mathcal{Q}_{g}(S_t)} \left [ \frac{\mathcal{Q}_{g}(S_t)}{\mathcal{Q}_0} \right ]\right \} + \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
 \end{split}
 \end{equation}
 
@@ -1262,7 +1264,7 @@ If the loss is not sub-additive, we must choose $\alpha$ to trade-off the traini
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min \{ &\alpha^2 E_{P\sim \mathcal{Q}_0}\left [ \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  exp\left ( \beta \hat{\mathcal{L}}(Q_t, S_t)-\frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P) \right ) \right ],\\ &(1-\alpha)^2 E_{P\sim \mathcal{Q}_{gibbs}(S_t)}\left [ \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}  exp\left ( \frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P)-\beta \hat{\mathcal{L}}(Q_t, S_t) \right ) \right ]  \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min \{ &\alpha^2 E_{P\sim \mathcal{Q}_0}\left [ \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  exp\left ( \beta \hat{\mathcal{L}}(Q_t, S_t)-\frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P) \right ) \right ],\\ &(1-\alpha)^2 E_{P\sim \mathcal{Q}_{g}(S_t)}\left [ \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}  exp\left ( \frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P)-\beta \hat{\mathcal{L}}(Q_t, S_t) \right ) \right ]  \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
 \end{split}
 \end{equation*}
 
@@ -1270,7 +1272,7 @@ And since the normalization terms do not depend on the hyper-posterior,
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min \{ &\alpha^2 \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  E_{P\sim \mathcal{Q}_0}\left [  exp\left ( \beta \hat{\mathcal{L}}(Q_t, S_t)-\frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P) \right ) \right ],\\ &(1-\alpha)^2 \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})} E_{P\sim \mathcal{Q}_{gibbs}(S_t)}\left [   exp\left ( \frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P)-\beta \hat{\mathcal{L}}(Q_t, S_t) \right ) \right ]  \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min \{ &\alpha^2 \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  E_{P\sim \mathcal{Q}_0}\left [  exp\left ( \beta \hat{\mathcal{L}}(Q_t, S_t)-\frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P) \right ) \right ],\\ &(1-\alpha)^2 \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})} E_{P\sim \mathcal{Q}_{g}(S_t)}\left [   exp\left ( \frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P)-\beta \hat{\mathcal{L}}(Q_t, S_t) \right ) \right ]  \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
 \end{split}
 \end{equation*}
 
@@ -1278,13 +1280,21 @@ Using simple exponent rules, we get:
 
 \begin{equation*}
 \begin{split}
-\mathcal{L}(\mathcal{Q}'_\alpha, D_t) &\leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) \\&+ \frac{1}{\sqrt{m}}\min \left \{ \alpha^2 \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  E_{P\sim \mathcal{Q}_0}\left [  \frac{exp( \beta \hat{\mathcal{L}}(Q_t, S_t))}{\prod_i Z_\beta(S_i,P)^{\frac{\lambda}{n\beta+\lambda}}} \right ],(1-\alpha)^2 \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})} E_{P\sim \mathcal{Q}_{gibbs}(S_t)}\left [  \frac{\prod_i Z_\beta(S_i,P)^{\frac{\lambda}{n\beta+\lambda}}}{exp(\beta \hat{\mathcal{L}}(Q_t, S_t))} \right ] \right \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+\mathcal{L}(\mathcal{Q}'_\alpha, D_t) &\leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) \\&+ \frac{1}{\sqrt{m}}\min \left \{ \alpha^2 \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  E_{P\sim \mathcal{Q}_0}\left [  \frac{exp( \beta \hat{\mathcal{L}}(Q_t, S_t))}{\prod_i Z_\beta(S_i,P)^{\frac{\lambda}{n\beta+\lambda}}} \right ],(1-\alpha)^2 \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})} E_{P\sim \mathcal{Q}_{g}(S_t)}\left [  \frac{\prod_i Z_\beta(S_i,P)^{\frac{\lambda}{n\beta+\lambda}}}{exp(\beta \hat{\mathcal{L}}(Q_t, S_t))} \right ] \right \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
 \end{split}
 \end{equation*}
 
 The optimal value for $\alpha$ must balance low training loss for $\mathcal{Q}'_\alpha$ with low divergence between the two meta-priors. Choosing $\alpha=0$ or $\alpha=1$ minimizes this distance term, but may not be optimal in terms of loss. A mixed approach that minimizes the training loss alone may suffer a very large penalty here, as this distance term is upper bounded by $\frac{1}{4\sqrt{m}}e^{\sqrt{m}(b-a)}$. We do note, however that due to the normalization term it is unlikely that we would incur such a penalty in practice. We also note that this extra term is higher the more dissimilar the two priors. 
 
-Let us consider the case where $\alpha=\alpha(P)$, meaning that the combination depends on the choice of prior.
+Let us consider the case where $\alpha=\alpha(P)$, meaning that the combination depends on the choice of prior. Under this formulation, we can repeat most of the previous steps, but since $\alpha$ is no longer a scalar, we need to consider its expectation with regards to each meta-prior. More formally,
+
+\begin{equation}
+\begin{split}
+\mathcal{L}(\mathcal{Q}'_\alpha, D_t) & \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) \\&+ \frac{1}{\sqrt{m}}\min\left \{E_{P\sim \mathcal{Q}_0} \left [ \alpha(P)^2 \frac{\mathcal{Q}_0}{\mathcal{Q}_{g}(S_t)} + \alpha(P)(1-\alpha(P))\right ],  E_{P\sim \mathcal{Q}_{g}(S_t)} \left [ (1-\alpha(P))^2\frac{\mathcal{Q}_{g}(S_t)}{\mathcal{Q}_0} \right ] + \alpha(P)(1-\alpha(P))\right \} \\&+ \frac{1}{\sqrt{m}}C(a,b,\delta)
+\end{split}
+\end{equation}
+
+For this new bound, we can change the ratios depending on the prior, giving us a prior that can potentially create a better mixture of the models. This is offset by the $\alpha(P)(1-\alpha(P))$ term, encouraging one of $\alpha(P), 1-\alpha(P)$ to be low in expectation over the better meta-prior. This can be seen as an approximate sparsity term.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
