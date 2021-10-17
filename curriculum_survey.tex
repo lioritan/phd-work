@@ -1062,7 +1062,7 @@ To make use of assumption \ref{assumption-similarity}, we consider 3 different a
 %
 %\textcolor{red}{How is this useful? These are not easily comparable, especially since we don't have anything useful on the train error for each method. If the $Z$ terms are identical and $\lambda=\sqrt{n}$, the difference is $$\sqrt{\frac{nln n}{2m}}-\frac{1}{\sqrt{n}}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]$$ and that makes sense. }
 
-\subsubsection{Using meta-learners as priors - 13.10.21}
+\subsubsection{Using meta-learners as priors - 17.10.21}
 
 Another method we can use is to select 
 
@@ -1290,7 +1290,7 @@ Let us consider the case where $\alpha=\alpha(P)$, meaning that the combination 
 
 \begin{equation}
 \begin{split}
-\mathcal{L}(\mathcal{Q}'_\alpha, D_t) & \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) \\&+ \frac{1}{\sqrt{m}}\min\left \{E_{P\sim \mathcal{Q}_0} \left [ \alpha(P)^2 \frac{\mathcal{Q}_0}{\mathcal{Q}_{g}(S_t)} + \alpha(P)(1-\alpha(P))\right ],  E_{P\sim \mathcal{Q}_{g}(S_t)} \left [ (1-\alpha(P))^2\frac{\mathcal{Q}_{g}(S_t)}{\mathcal{Q}_0} \right ] + \alpha(P)(1-\alpha(P))\right \} \\&+ \frac{1}{\sqrt{m}}C(a,b,\delta)
+\mathcal{L}(\mathcal{Q}'_\alpha, D_t) & \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) \\&+ \frac{1}{\sqrt{m}}\min\left \{E_{P\sim \mathcal{Q}_0} \left [ \alpha(P)^2 \frac{\mathcal{Q}_0}{\mathcal{Q}_{g}(S_t)} + \alpha(P)(1-\alpha(P))\right ],  E_{P\sim \mathcal{Q}_{g}(S_t)} \left [ (1-\alpha(P))^2\frac{\mathcal{Q}_{g}(S_t)}{\mathcal{Q}_0}  + \alpha(P)(1-\alpha(P))\right ]\right \} \\&+ \frac{1}{\sqrt{m}}C(a,b,\delta)
 \end{split}
 \end{equation}
 
