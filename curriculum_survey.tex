@@ -817,7 +817,7 @@ Using these, we can calculate
 
 $$\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}_j, \mathcal{Q}_i, n\sqrt{m})\leq 3(b-a)  + (b-a)$$ 
 
-$$\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}_j, \mathcal{Q}_i, \sqrt{n})\leq 4(b-a)$$ 
+$$\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}_j, \mathcal{Q}_i, n\sqrt{m})\leq 4(b-a)$$ 
 
 
 \subsubsection{Probabilistic approach to bounding $\Psi$ - 30.9.21}
@@ -1154,6 +1154,8 @@ $$  E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q_t, D_t)\right ] \leq E_{P\sim \ma
 
 
 In order to minimize this bound, we would like our meta-prior $\mathcal{Q}_0$ to minimize $\hat{\mathcal{L}}(Q(P, S_t), S_t)$, without knowing $S_t$ or $D_t$ (since it is a data-free meta-prior). We would therefore want to optimize on expected performance for some unknown task, and so standard meta-learning methods such as the meta-learner suggested in \cite{Rothfuss2020} or MAML \citep{Finn2017} are optimal.
+
+% TODO: review from here
 
 Can we do better if we use $S_t$ in other ways? 
 Let us consider a posterior of the form:
