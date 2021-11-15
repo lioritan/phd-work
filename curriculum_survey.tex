@@ -90,6 +90,12 @@
 		Updated the probabilistic formulation with express calculations and a new color
 		
 		Created a bound for a proportional mix posterior, giving a criterion for the mix parameter
+		
+		Cleaned up section on task similarities and test data, removing some incorrect statements
+		
+		Re-phrased the questions for test-task adaptation
+		
+		
 	\end{abstract}
 
 \tableofcontents
@@ -651,9 +657,13 @@ If $n\rightarrow\infty$, we get
 
 $$\mathcal{L}(\mathcal{Q}, \mathcal{T}) \leq \textcolor{blue}{\frac{1}{n}\sum_k E_{P\sim \mathcal{Q}} \left [ \hat{\mathcal{L}}(Q_k,S_k) \right ]} + \textcolor{red}{(\frac{1}{\sqrt{n}}+\frac{1}{n\sqrt{m}})KL(\mathcal{Q}||\mathcal{P})+\frac{1}{n\sqrt{m}}\sum_k \mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_k||P) \right ]} + \frac{1}{n\sqrt{m}} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{M} \right ]$$
 
+
 Compared to 
 
 $$\mathcal{L}(\mathcal{Q}, D_i)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}}  \left [ f_{n\sqrt{m}}(i) \right ]}  + \textcolor{red}{\frac{1}{n\sqrt{m}}KL(\mathcal{Q}||\mathcal{P})+\frac{1}{n\sqrt{m}}\mathbb{E}_{P\sim \mathcal{Q}} \left [KL(Q_i||P)\right ]} + \frac{1}{n\sqrt{m}} ln\mathbb{E}_{P\sim \mathcal{P}}\mathbb{E}_{h\sim P}\left [ e^{nT_i}\right ]  $$
+
+% the moment term explodes to infinity if we try Hoeffding's lemma, so this doesn't go to zero
+% Using alternative f leads to a weird expression in n : $nL(D_i)-\sum_k L(Q_i, S_k)$, if we do a naive bound this is not useful, but maybe some connection between tasks helps here?
 
 This may be a tighter bound if other tasks can give us a good estimate for $f_{\gamma}(i)=\hat{\mathcal{L}}(Q_i,S_i)$. We also note that the kl-term is smaller, so even if our estimate for task i is similar to other estimates, this is a tighter bound.
 
@@ -856,6 +866,10 @@ $$ P(\hat{k}\neq k_1)\leq 2e^{\frac{-2m^2(\Delta_1/2)^2}{m(b-a)^2}} + \sum_{j\ne
 
 $$ P(\hat{k}\neq k_1)\leq \sum_{k} 2e^{\frac{-m\Delta_k^2}{2(b-a)^2}}$$
 
+% if delta_1 ~= (b-a)/sqrt(n), we good (wrong choices are always wrong, but as n increases the closest one gets better)
+% if delta_1 is 0, we pay. If there is a finite number of tasks with generalization loss that is O(0), we can easily make the mistake (but the loss cost is unlikely to be high)
+% if delta_1 = (b-a) we're also screwed because the bound is not tight enough (we might get a bad task with reasonable train error)
+
 Since $\Delta_1 \leq \Delta_k$ for all $k$, we can derive
 
 \begin{align} \label{eq-probabilities}
@@ -944,25 +958,99 @@ $$\mathcal{L}(\mathcal{Q}_j, D_t) \leq E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt
 
 In essence, under this optimization scheme the $\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}_j, \mathcal{Q}_i, n\sqrt{m})$ term is not needed.
 
-\subsection{Task similarities with multiple tasks - 21.9.21}
+\subsection{Using test data for improved adaptation - 13.11.21}
+In this section, we will examine how data for the new test task can be used to improve transfer.
+We will denote $\tau_t=(D_t, m_t)\sim \mathcal{T}$ our test task, and $S_t\sim D_t^{m_t}$ an adaptation dataset.
 
-Suppose we have a new assumption:
+One key observation is that meta-learning PB bounds provide us with an upper bound on $$\mathcal{L}(\mathcal{Q}, \mathcal{T})\triangleq E_{P\sim \mathcal{Q}}E_{(D, m)\sim \mathcal{T}}E_{S\sim D^m}\left [\mathcal{L}(Q(P, S), D)\right ]$$
 
-\begin{assumption} \label{assumption-similarity}
-	For $\tau_t=(D_t, m_t)\sim \mathcal{T}$ chosen for testing, there is a constant $\epsilon\geq 0$ and a task $S_i\sim D_i^{m_i}$ such that $$ \left |\mathcal{L}(\mathcal{Q}_i, D_t)-\mathcal{L}(\mathcal{Q}_i, D_i) \right |\leq \epsilon$$
-	
-	Where $\mathcal{Q}_i$ is defined in section \ref{sec:bayes:dependencies}.
-\end{assumption} 
+Given a bound on $\mathcal{L}(\mathcal{Q}, \mathcal{T})$, we would like to have a bound on $\mathcal{L}(\mathcal{Q}, D_t|S_t)\triangleq E_{P\sim \mathcal{Q}}\mathcal{L}(Q(S_t, P), D_t)$.
 
-This assumption is a generalization of assumption \ref{assumption-multitask} with $\epsilon>0$, and is significantly different. We note that while we can take the same approach as section \ref{sec:bayes:multi}, there are many cases where that would not give us a good result. As a simple case, if $\left |\mathcal{L}(\mathcal{Q}_k, D_t)-\mathcal{L}(\mathcal{Q}_k, D_k) \right |=c$ for all tasks, we would expect a $\mathcal{Q}$ trained using meta-learning to be a better estimator, as well as give a more meaningful upper bound.
+A simple method to do so is by applying Hoeffding's inequality. With probability at least $1-\delta_t$ over the choice of $S_t, D_t$ we have:
 
-To make use of assumption \ref{assumption-similarity}, we consider 3 different approaches:
+\begin{equation}
+\mathcal{L}(\mathcal{Q}, D_t|S_t) \leq \mathcal{L}(\mathcal{Q}, \mathcal{T}) + \sqrt{\frac{(b-a)^2 ln(1/\delta_t)}{2m}}
+\end{equation}
 
-\begin{enumerate}
-	\item Use a weighted average of $\mathcal{Q}_k$, with weights proportional to $\mathcal{L}(\mathcal{Q}_k, S_t)$ (and possibly other quantities)
-	\item Meta-learn $\mathcal{Q}$ based on tasks with $\mathcal{L}(\mathcal{Q}_k, S_t)<d$, for some threshold $d>0$
-	\item Meta-learn $\mathcal{Q}$ by greedily adding tasks based on lowest $\mathcal{L}(\mathcal{Q}, S_t)$
-\end{enumerate}
+This serves as a bound on adapting a hyper-posterior for a specific test task given $S_t$, and gives us a simple method to link between the expected error in general and the expected error after transfer. It is important to note that this bound also applies to $\mathcal{L}(\mathcal{Q}, D_t)$ discussed in section \ref{sec:bayes:multi}.
+
+\subsubsection{The role of an informative prior - 14.11.21}
+
+Given a trained hyper-posterior $\mathcal{Q}_0$, we would like to have a more useful bound on meta-learning. We can use the bound from \cite{Rivasplata2020} on each specific prior:
+For each $P\sim \mathcal{Q}_0$, With probability at least $1-\delta_t$ over the choice of $S_t$: 
+
+$$\mathcal{L}(Q_t, D_t) \leq \hat{\mathcal{L}}(Q_t, S_t) + \frac{1}{\sqrt{m}}KL(Q_t|| P(S_t)) + \frac{1}{\sqrt{m}}ln\frac{\xi}{\delta_t}$$
+
+Where $$\xi=E_{S\sim D_t}E_{h\sim P(S_t)}\left [e^{\sqrt{m}(\mathcal{L}(h, D_t)-\hat{\mathcal{L}}(h, S))} \right ]$$
+
+\textcolor{red}{This is potentially useful, since an informative $P$ actually helps us get a better bound on adaptation (but is less generic) }
+
+If we use \cite{Rivasplata2020} on a meta-level only we get:
+
+ $$E_{P\sim \mathcal{Q}}E_{S\sim D_t}\mathcal{L}(Q(P, S), D_t) \leq E_{P\sim \mathcal{Q}_0}\hat{\mathcal{L}}(Q_t, S_t) + \frac{1}{\sqrt{m}}KL(\mathcal{Q}|| \mathcal{P}(S_t)) + \frac{1}{\sqrt{m}}ln\frac{\xi}{\delta_t}$$
+ 
+ Where $$\xi=E_{S\sim D_t}E_{P\sim \mathcal{P}(S_t)}\left [e^{\sqrt{m}(E_{S'\sim D_t}\mathcal{L}(Q(S', P), D_t)-\hat{\mathcal{L}}(Q(S, P), S))} \right ]$$
+ 
+ \textcolor{red}{This is non-useful (because the moment is hell), but seemingly correct and makes sense}
+ 
+ If we use \cite{Rivasplata2020} with a 2-level hypothesis we get:
+ 
+ $$E_{P\sim \mathcal{Q}}\mathcal{L}(Q_t, D_t) \leq E_{P\sim \mathcal{Q}}\hat{\mathcal{L}}(Q_t, S_t) + \frac{1}{\sqrt{m}}KL(\mathcal{Q}|| \mathcal{P}(S_t)) + E_{P\sim \mathcal{Q}}\frac{1}{\sqrt{m}}KL(Q_t||P) + \frac{1}{\sqrt{m}}ln\frac{\xi}{\delta_t}$$
+ 
+ Where $$\xi=E_{S\sim D_t}E_{P\sim \mathcal{P}(S_t)}E_{h\sim P}\left [e^{\sqrt{m}(\mathcal{L}(h, D_t)-\hat{\mathcal{L}}(h, S))} \right ]$$
+ 
+ \textcolor{red}{This is actually a post-adaptation bound?}
+ 
+ In any case, the question that interests us is as follows ``is this $P$ better than a non-informative prior?"
+ 
+The first version gives us some useful information, in that adapting gives a bound on the specific prior and how it performs. If it is informative, we have a lower KL term (but possibly a higher moment term).
+
+We note that when $Q$ is the gibbs learner, we have :
+
+$$KL(Q_t||P(S_t))=\int ln \frac{P(h)e^{-\beta'\hat{\mathcal{L}}(h, S_t)}}{P(h)E_{h\sim P}\left [e^{-\beta'\hat{\mathcal{L}}(h, S_t)} \right ]} dQ_t=E_{h\sim Q_t}\left [-\beta'\hat{\mathcal{L}}(h, S_t) \right ]-lnE_{h\sim P}\left [e^{-\beta'\hat{\mathcal{L}}(h, S_t)} \right ]$$
+
+Using Jensen's inequality for logarithms on the second term, we get:
+
+$$KL(Q_t||P(S_t))\leq E_{h\sim Q_t}\left [-\beta'\hat{\mathcal{L}}(h, S_t) \right ]+E_{h\sim P}\left [\beta'\hat{\mathcal{L}}(h, S_t) \right ]=\beta'\left (\hat{\mathcal{L}}(P(S_t), S_t)-\hat{\mathcal{L}}(Q_t, S_t) \right )$$
+
+We note that we need to choose $\beta'=\sqrt{m}$ to match the first equation, but choosing $n\sqrt{m}$ would make thing more easily comparable to existing bounds (though it is unclear if the moment term converges, as in section \ref{assumption-known-task}). Choosing so we get: 
+
+$$\mathcal{L}(Q_t, D_t) \leq \hat{\mathcal{L}}(P(S_t), S_t) + \frac{1}{\sqrt{m}}ln\frac{\xi}{\delta_t}$$
+
+Where $$\xi=E_{S\sim D_t}E_{h\sim P(S_t)}\left [e^{\sqrt{m}(\mathcal{L}(h, D_t)-\hat{\mathcal{L}}(h, S))} \right ]$$
+
+Interestingly, this bound on post-transfer generalization depends only on the prior $P(S_t)$, giving us a potentially easier optimization target.
+
+\textcolor{red}{TODO - show that if $P$ is informative, this is actually better. Also, can we show something for $\beta'=n\sqrt{m}$? that would be nice. Making the gibbs parameter higher by itself doesn't help, it would actually help more to keep it as is and have the moment/kl multiplier be $\sqrt{nm}$ or something along those lines, but we would need some way to bound the moment.
+	We can also probably compare $\alpha$-mix to pure posterior using this bound, with results in terms of relative losses (need to use expectation over prior to get anything useful?)}
+
+We can take the expectation over any hyper-posterior $\mathcal{Q}_0$ and get:
+
+$$\mathcal{L}(\mathcal{Q}_0, D_t|S_t) \leq E_{P\sim \mathcal{Q}_0}\hat{\mathcal{L}}(P, S_t) + \frac{1}{\sqrt{m}}E_{P\sim \mathcal{Q}_0}\left [ln\frac{\xi}{\delta_t}\right ]$$
+
+We can use Jensen's inequality and get:
+
+$$\mathcal{L}(\mathcal{Q}_0, D_t|S_t) \leq E_{P\sim \mathcal{Q}_0}\hat{\mathcal{L}}(P, S_t) + \frac{1}{\sqrt{m}}ln\frac{E_{P\sim \mathcal{Q}_0}\left [\xi\right ]}{\delta_t}$$
+
+\subsection{(Somewhat outdated) Task similarities with multiple tasks - 21.9.21}
+
+%Suppose we have a new assumption:
+%
+%\begin{assumption} \label{assumption-similarity}
+%	For $\tau_t=(D_t, m_t)\sim \mathcal{T}$ chosen for testing, there is a constant $\epsilon\geq 0$ and a task $S_i\sim D_i^{m_i}$ such that $$ \left |\mathcal{L}(\mathcal{Q}_i, D_t)-\mathcal{L}(\mathcal{Q}_i, D_i) \right |\leq \epsilon$$
+%	
+%	Where $\mathcal{Q}_i$ is defined in section \ref{sec:bayes:dependencies}.
+%\end{assumption} 
+%
+%This assumption is a generalization of assumption \ref{assumption-multitask} with $\epsilon>0$, and is significantly different. We note that while we can take the same approach as section \ref{sec:bayes:multi}, there are many cases where that would not give us a good result. As a simple case, if $\left |\mathcal{L}(\mathcal{Q}_k, D_t)-\mathcal{L}(\mathcal{Q}_k, D_k) \right |=c$ for all tasks, we would expect a $\mathcal{Q}$ trained using meta-learning to be a better estimator, as well as give a more meaningful upper bound.
+%
+%To make use of assumption \ref{assumption-similarity}, we consider 3 different approaches:
+%
+%\begin{enumerate}
+%	\item Use a weighted average of $\mathcal{Q}_k$, with weights proportional to $\mathcal{L}(\mathcal{Q}_k, S_t)$ (and possibly other quantities)
+%	\item Meta-learn $\mathcal{Q}$ based on tasks with $\mathcal{L}(\mathcal{Q}_k, S_t)<d$, for some threshold $d>0$
+%	\item Meta-learn $\mathcal{Q}$ by greedily adding tasks based on lowest $\mathcal{L}(\mathcal{Q}, S_t)$
+%\end{enumerate}
 
 %\subsubsection{Weighted average approach - 21.9.21}
 %
@@ -1062,35 +1150,32 @@ To make use of assumption \ref{assumption-similarity}, we consider 3 different a
 %
 %\textcolor{red}{How is this useful? These are not easily comparable, especially since we don't have anything useful on the train error for each method. If the $Z$ terms are identical and $\lambda=\sqrt{n}$, the difference is $$\sqrt{\frac{nln n}{2m}}-\frac{1}{\sqrt{n}}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]$$ and that makes sense. }
 
-\subsubsection{Using meta-learners as priors - 18.10.21}
+\subsubsection{Using meta-learners as priors - 30.10.21}
 
-Another method we can use is to select 
+One method we can use is to select 
 
 $$ \mathcal{Q}(P) = \frac{\mathcal{Q}_0(P)e^{-\phi \hat{\mathcal{L}}(Q_t, S_t)}}{E_{P\sim \mathcal{Q}_0} \left [e^{-\phi \hat{\mathcal{L}}(Q_t, S_t)}\right ]}$$
 
 For some meta-learner $\mathcal{Q}_0$.
 Using a result from \cite{Rivasplata2020}, we know that with probability at least $1-\delta$ over the choice of training data $S_t$,
 
-$$ E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q_t, D_t) - \hat{\mathcal{L}}(Q_t, S_t) \right ] \leq KL(\mathcal{Q}||\mathcal{Q}_0) + ln\frac{\xi}{\delta} $$
+\textcolor{red}{See also the second equation above}
+
+$$ E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q, D_t) - \hat{\mathcal{L}}(Q_t, S_t) \right ] \leq KL(\mathcal{Q}||\mathcal{Q}_0) + ln\frac{\xi}{\delta} $$
 
 Where 
 
-$$ \xi = E_{S_t, \mathcal{Q}_0}\left [e^{\mathcal{L}(Q_t, D_t) - \hat{\mathcal{L}}(Q_t, S_t)} \right ] =  E_{S_t, \mathcal{Q}}\left [e^{\mathcal{L}(Q_t, D_t) - \hat{\mathcal{L}}(Q_t, S_t)-ln\frac{d\mathcal{Q}}{d\mathcal{Q}_0}} \right ]$$
+$$ \xi = E_{S_t, \mathcal{Q}_0}\left [e^{\mathcal{L}(Q, D_t) - \hat{\mathcal{L}}(Q_t, S_t)} \right ]$$
 
 We note that we can also pick a different function such as $\sqrt{m}\left (\mathcal{L}(Q_t, D_t) - \hat{\mathcal{L}}(Q_t, S_t) \right )$ to have an easier time with convergence.
 From the definitions, we can easily get that
 
 $$ KL(\mathcal{Q}||\mathcal{Q}_0) = -\phi E_{P\sim \mathcal{Q}}\left [ \hat{\mathcal{L}}(Q_t, S_t)  \right ] -ln E_{P\sim \mathcal{Q}_0} \left [e^{-\phi \hat{\mathcal{L}}(Q_t, S_t)}\right ]$$
 
-And similarly,
-
-$$\xi = E_{S_t, \mathcal{Q}}\left [e^{\mathcal{L}(Q_t, D_t) - \hat{\mathcal{L}}(Q_t, S_t)+\phi \hat{\mathcal{L}}(Q_t, S_t)  +lnE_{P\sim \mathcal{Q}_0} \left [e^{-\phi \hat{\mathcal{L}}(Q_t, S_t)}\right ]} \right ]$$
-
 Picking $\phi=1$ leads to some of the terms canceling out:
 
 $$ KL(\mathcal{Q}||\mathcal{Q}_0) = -E_{P\sim \mathcal{Q}}\left [ \hat{\mathcal{L}}(Q_t, S_t)  \right ] -ln E_{P\sim \mathcal{Q}_0} \left [e^{-\hat{\mathcal{L}}(Q_t, S_t)}\right ]$$
 
-$$\xi = E_{S_t, \mathcal{Q}}\left [e^{\mathcal{L}(Q_t, D_t) +lnE_{P\sim \mathcal{Q}_0} \left [e^{-\hat{\mathcal{L}}(Q_t, S_t)}\right ]} \right ]=E_{S_t, \mathcal{Q}}\left [e^{\mathcal{L}(Q_t, D_t)}  E_{P\sim \mathcal{Q}_0} \left [e^{-\hat{\mathcal{L}}(Q_t, S_t)}\right ] \right ]$$
 
 Putting everything together,
 
@@ -1102,37 +1187,9 @@ E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  ln\frac{\xi}{\d
 \end{align}
 
 
-If we choose to use $\sqrt{m}\left (\mathcal{L}(Q_t, D_t) - \hat{\mathcal{L}}(Q_t, S_t) \right )$ we get a slightly different expression
+If we choose to use $\sqrt{m}\left (\mathcal{L}(Q, D_t) - \hat{\mathcal{L}}(Q_t, S_t) \right )$ we get a slightly different expression
 
-$$ E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  \frac{1}{\sqrt{m}}ln\frac{\xi'}{\delta} -\frac{1}{\sqrt{m}}ln E_{P\sim \mathcal{Q}_0} \left [e^{-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)}\right ] $$
-
-We note that this bound does not depend directly on $\mathcal{Q}$, but rather on the performance of our meta-prior on $t$. A good meta-prior would try and balance:
-\begin{itemize}
-	\item Low training loss loss due to the term $-lnE_{P\sim \mathcal{Q}_0} \left [e^{-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)}\right ]$ 
-	\item Low variation on $S_t$ due to the moment term $ln\xi'$
-\end{itemize}
-
-
-For any $\mathcal{Q}_0$ that does not depend on $S_t$, 
-
-$$\xi' = E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ e^{\sqrt{m}\left (\mathcal{L}(Q_t, D_t) - \hat{\mathcal{L}}(Q_t, S_t)\right )}\right ]$$
-
-And we can also separate this to individual examples as we assume that they are i.i.d, giving us 
-
-$$\xi' = E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ \prod_{z\in S_t} e^{\sqrt{m}\frac{1}{m}\left ( E_{h\sim Q_t}\mathcal{L}(h, D_t) - E_{h\sim Q_t}l(h, z)\right )}\right ]$$
-
-Using Jensen's inequality for exponents,
-
-$$\xi' \leq E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ \prod_{z\in S_t} E_{h\sim Q_t} e^{\frac{1}{\sqrt{m}}\left ( \mathcal{L}(h, D_t) - l(h, z)\right )}\right ]$$
-
-
-Using Hoeffding's lemma for bounded random variables for each sample,
-
-$$ \xi' \leq E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ \prod_{z\in S_t}  e^{\frac{(b-a)^2}{8(\sqrt{m})^2}} \right ] = E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ e^{\frac{(b-a)^2}{8}} \right ] = e^{\frac{(b-a)^2}{8}} $$
-
-And from this we can deduce 
-
-$$  E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q_t, D_t)\right ] \leq -\frac{1}{\sqrt{m}}ln E_{P\sim \mathcal{Q}_0} \left [e^{-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)}\right ] +\frac{1}{\sqrt{m}}ln\frac{1}{\delta} + \frac{1}{\sqrt{m}}\frac{(b-a)^2}{8} $$
+$$ E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q, D_t)\right ] \leq  \frac{1}{\sqrt{m}}ln\frac{\xi'}{\delta} -\frac{1}{\sqrt{m}}ln E_{P\sim \mathcal{Q}_0} \left [e^{-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)}\right ] $$
 
 From Jensen's inequality we know that 
 
@@ -1148,14 +1205,60 @@ And therefore
 
 $$-\frac{1}{\sqrt{m}}ln E_{P\sim \mathcal{Q}_0} \left [e^{-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)}\right ] \leq E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]$$
 
-And thus 
+This gives us the following:
 
-$$  E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q_t, D_t)\right ] \leq E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] +\frac{1}{\sqrt{m}}ln\frac{1}{\delta} + \frac{1}{\sqrt{m}}\frac{(b-a)^2}{8} $$
+$$ E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q, D_t)\right ] \leq  \frac{1}{\sqrt{m}}ln\frac{\xi'}{\delta} + E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] $$
+
+For any $\mathcal{Q}_0$ that does not depend on $S_t$, 
+
+$$\xi' = E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ e^{\sqrt{m}\left (\mathcal{L}(Q, D_t) - \hat{\mathcal{L}}(Q_t, S_t)\right )}\right ]$$
+
+And we can also separate this to individual examples as we assume that they are i.i.d, giving us 
+
+$$\xi' = E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ \prod_{z\in S_t} e^{\sqrt{m}\frac{1}{m}\left ( E_{S\sim D_t}E_{h\sim Q(S,P)}\mathcal{L}(h, D_t) - E_{h\sim Q_t}l(h, z)\right )}\right ]$$
+
+\textcolor{red}{Stuck from here, can't use Hoeffding's lemma directly because the expectations are not on the same things.}
+
+\textcolor{red}{This direction is unlikely to lead to a useful bound, since it uses $E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]$ and the most useful way to compare that to an existing bound is via Hoeffding's inequality, giving us (with $\delta_t$ over the choice of $S_t$):
+	$$E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] \leq \mathcal{L}(\mathcal{Q}_0, D_t|S_t) + \sqrt{\frac{(b-a)^2 ln(1/\delta_t)}{2m}} $$
+If the log moment term is positive that is already a worse bound.
+A useful note is that we can bound $\mathcal{L}(\mathcal{Q}, D_t|S_t)$ instead of $\mathcal{L}(\mathcal{Q}, D_t)$ by changing the moment term appropriately. A negative side effect of this is that it complicates bounding the log moment significantly. }
+
+%Using Jensen's inequality for exponents,
+
+%$$\xi' \leq E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ \prod_{z\in S_t} E_{h\sim Q_t} e^{\frac{1}{\sqrt{m}}\left ( \mathcal{L}(h, D_t) - l(h, z)\right )}\right ]$$
 
 
-In order to minimize this bound, we would like our meta-prior $\mathcal{Q}_0$ to minimize $\hat{\mathcal{L}}(Q(P, S_t), S_t)$, without knowing $S_t$ or $D_t$ (since it is a data-free meta-prior). We would therefore want to optimize on expected performance for some unknown task, and so standard meta-learning methods such as the meta-learner suggested in \cite{Rothfuss2020} or MAML \citep{Finn2017} are optimal.
+%Using Hoeffding's lemma for bounded random variables for each sample,
 
-% TODO: review from here
+%$$ \xi' \leq E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ \prod_{z\in S_t}  e^{\frac{(b-a)^2}{8(\sqrt{m})^2}} \right ] = E_{P\sim \mathcal{Q}_0} E_{S_t} \left [ e^{\frac{(b-a)^2}{8}} \right ] = e^{\frac{(b-a)^2}{8}} $$
+
+%And from this we can deduce 
+
+%$$  E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q_t, D_t)\right ] \leq -\frac{1}{\sqrt{m}}ln E_{P\sim \mathcal{Q}_0} \left [e^{-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)}\right ] +\frac{1}{\sqrt{m}}ln\frac{1}{\delta} + \frac{1}{\sqrt{m}}\frac{(b-a)^2}{8} $$
+
+
+
+%And thus 
+
+%$$  E_{P\sim \mathcal{Q}} \left [\mathcal{L}(Q_t, D_t)\right ] \leq E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] +\frac{1}{\sqrt{m}}ln\frac{1}{\delta} + \frac{1}{\sqrt{m}}\frac{(b-a)^2}{8} $$
+
+
+%In order to minimize this bound, we would like our meta-prior $\mathcal{Q}_0$ to minimize $\hat{\mathcal{L}}(Q(P, S_t), S_t)$, without knowing $S_t$ or $D_t$ (since it is a data-free meta-prior). We would therefore want to optimize on expected performance for some unknown task, and so standard meta-learning methods such as the meta-learner suggested in \cite{Rothfuss2020} or MAML \citep{Finn2017} are optimal.
+
+%\subsubsection{Applying a meta-bound for adaptation - 30.10.21}
+%
+%Given a bound on $\mathcal{L}(\mathcal{Q}, \mathcal{T})$, we would like to have a bound on $\mathcal{L}(\mathcal{Q}, D_t|S_t)\triangleq E_{P\sim \mathcal{Q}}\mathcal{L}(Q(S_t, P), D_t)$.
+%
+%A simple method to do so is by applying Hoeffding's inequality. With probability at least $1-\delta_t$ over the choice of$S_t, D_t$ we have:
+%
+%\begin{equation}
+%	\mathcal{L}(\mathcal{Q}, D_t|S_t) \leq \mathcal{L}(\mathcal{Q}, \mathcal{T}) + \sqrt{\frac{(b-a)^2 ln(1/\delta_t)}{2m}}
+%\end{equation}
+%
+%This serves as a bound on adapting a hyper-posterior for a specific test task with a specific adaptation dataset $S_t$, and will be useful for comparison later. It is important to note that this applies for both existing methods as well as the results presented in section \ref{sec:bayes:multi}.
+
+\subsubsection{Probabilistic mixing of meta-learner and test-task - 30.10.21}
 
 Can we do better if we use $S_t$ in other ways? 
 Let us consider a posterior of the form:
@@ -1165,19 +1268,21 @@ $$ \mathcal{Q}_\alpha(P) = \begin{cases}
 \end{cases} $$
 
 Where $\mathcal{Q}_0$ is a data-free meta-learner, $\alpha$ is not a function of $P$ and $\mathcal{Q}_{g}(S_t)$ is the gibbs meta-learner for $S_t$ with meta-prior $\mathcal{P}$.
-We know from \cite{Rivasplata2020} that with probability at least $1-\delta_1$ over the choice of $S_t$:
+We can apply the bound from \cite{Rivasplata2020} with pair hypothesis $(\mathcal{Q}_g(S_t), P)$ mapping to $(\mathcal{Q}_\alpha, Q(S_t, P))$ and get that with probability at least $1-\delta_1$ over the choice of $D_t, S_t$:
 
 \begin{equation*}
 \begin{split}
-E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}KL(\mathcal{Q}_\alpha||\mathcal{Q}_{g}(S_t)) + \frac{1}{\sqrt{m}}C_1(a,b, \delta_1)
+E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}KL(\mathcal{Q}_\alpha||\mathcal{Q}_{g}(S_t)) + \frac{1}{\sqrt{m}}E_{P\sim \mathcal{Q}_\alpha}KL(Q_t||P) + \frac{1}{\sqrt{m}}C_1(a,b, \delta_1)
 \end{split}
 \end{equation*}
 
-We also know from using Hoeffding's lemma with a change-of-measure that with probability at least $1-\delta_2$ over the choice of $S_t$:
+Note that we need to choose our measured function as $f\left ((P, h),S_t\right )=\sqrt{m}\left (E_{S\sim D_t}\mathcal{L}(Q(S, P), D_t)-\hat{\mathcal{L}}(h, S_t)\right )$, and this can somewhat complicate our calculation of the moment term. 
+
+We also know from using Hoeffding's lemma with a change-of-measure that with probability at least $1-\delta_2$ over the choice of $D_t, S_t$:
 
 \begin{equation*}
 \begin{split}
-E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}KL(\mathcal{Q}_\alpha||\mathcal{Q}_0) + \frac{1}{\sqrt{m}}C_2(a,b,\delta_2)
+E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}KL(\mathcal{Q}_\alpha||\mathcal{Q}_0) +\frac{1}{\sqrt{m}}E_{P\sim \mathcal{Q}_\alpha}KL(Q_t||P)+ \frac{1}{\sqrt{m}}C_2(a,b,\delta_2)
 \end{split}
 \end{equation*}
 
@@ -1185,7 +1290,8 @@ We can therefore derive that
 
 \begin{equation*}
 \begin{split}
-E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}\min\left \{KL(\mathcal{Q}_\alpha||\mathcal{Q}_{g}(S_t))+C_1(a,b, \delta_1), KL(\mathcal{Q}_\alpha||\mathcal{Q}_0)+C_2(a,b,\delta_2)\right \} 
+E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q, D_t)\right ] \leq  E_{P\sim \mathcal{Q}_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] &+ \frac{1}{\sqrt{m}}\min\left \{KL(\mathcal{Q}_\alpha||\mathcal{Q}_{g}(S_t))+C_1(a,b, \delta_1), KL(\mathcal{Q}_\alpha||\mathcal{Q}_0)+C_2(a,b,\delta_2)\right \} \\ &+
+\frac{1}{\sqrt{m}}E_{P\sim \mathcal{Q}_\alpha}KL(Q_t||P)
 \end{split}
 \end{equation*}
 
@@ -1199,104 +1305,132 @@ $$ KL(\mathcal{Q}_\alpha||\mathcal{Q}_{g}(S_t)) = \alpha KL(\mathcal{Q}_0||\math
 
 $$ KL(\mathcal{Q}_\alpha||\mathcal{Q}_0) = \alpha KL(\mathcal{Q}_0||\mathcal{Q}_0) + (1-\alpha)KL(\mathcal{Q}_{g}(S_t)||\mathcal{Q}_0) = (1-\alpha)KL(\mathcal{Q}_{g}(S_t)||\mathcal{Q}_0)$$
 
+$$E_{P\sim \mathcal{Q}_\alpha}KL(Q_t||P) = \alpha E_{P\sim \mathcal{Q}_0}KL(Q_t||P) + (1-\alpha)E_{P\sim \mathcal{Q}_g(S_t)}KL(Q_t||P)$$
+
 Meaning 
 
-\begin{equation*}
+\begin{equation}
 \begin{split}
-E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] &\leq  \alpha E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + (1-\alpha)E_{P\sim \mathcal{Q}_{g}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]  \\ &+ \frac{1}{\sqrt{m}}\min\left \{\alpha KL(\mathcal{Q}_0||\mathcal{Q}_{g}(S_t))+C_1(a,b, \delta_1), (1-\alpha)KL(\mathcal{Q}_{g}(S_t)||\mathcal{Q}_0)+C_2(a,b,\delta_2)\right \} 
+E_{P\sim \mathcal{Q}_\alpha} \left [\mathcal{L}(Q, D_t)\right ] &\leq  \alpha E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + (1-\alpha)E_{P\sim \mathcal{Q}_{g}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]  \\ &+ \frac{1}{\sqrt{m}}\min\left \{\alpha KL(\mathcal{Q}_0||\mathcal{Q}_{g}(S_t))+C_1(a,b, \delta_1), (1-\alpha)KL(\mathcal{Q}_{g}(S_t)||\mathcal{Q}_0)+C_2(a,b,\delta_2)\right \} \\ &+
+\alpha\frac{1}{\sqrt{m}} E_{P\sim \mathcal{Q}_0}KL(Q_t||P) + (1-\alpha)\frac{1}{\sqrt{m}}E_{P\sim \mathcal{Q}_g(S_t)}KL(Q_t||P)
 \end{split}
-\end{equation*}
+\end{equation}
+
 
 For large $m$, $C_1$ and $C_2$ are negligible, and therefore if $E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] < E_{P\sim \mathcal{Q}_{g}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]$, the choice of $\alpha=1$ is optimal, and otherwise the choice of $\alpha=0$ is optimal (if both give the same loss, pick one).
 
 Therefore, if $m$ is large, for any set of data-free meta-priors or data-aware ones with $ln\xi=O(1)$, the optimal probabilistic choice meta-learner is to deterministically choose the one that minimizes $\hat{\mathcal{L}}(\mathcal{Q}^*, S_t)$.
 
-This is a somewhat surprising result, as it means that mixing learners by a randomized algorithm is not useful unless our probability is chosen dynamically based on the learners. It is also somewhat unintuitive as the bound does not directly depend on the original meta-prior $\mathcal{P}$, since it is taken into consideration while bounding the moment $\xi$. A careful look at $C_1$ and $C_2$ shows us that we pay an additional $O(\frac{1}{\sqrt{m}})$ term.
+This is a somewhat surprising result, as it means that mixing learners by a randomized algorithm is not useful unless our probability is chosen dynamically based on the learners. It is also somewhat unintuitive as the bound does not directly depend on the original meta-prior $\mathcal{P}$, since it is taken into consideration while bounding the moment $\xi$. A careful look at $C_1$ and $C_2$ shows us that we pay an additive $O(\frac{1}{\sqrt{m}})$ term.
 
-Let us consider a slightly more complex combination,
+If the hyper-posterior $\mathcal{Q}_0$ is better, we get 
 
-$$ \mathcal{Q}'_\alpha(P) = 
-\alpha \mathcal{Q}_0(P) + 
-(1-\alpha) \mathcal{Q}_{g}(S_t)(P) $$ 
+$$ E_{P\sim \mathcal{Q}_0} \left [\mathcal{L}(Q, D_t)\right ] \leq   E_{P\sim \mathcal{Q}_0} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]  +
+\frac{1}{\sqrt{m}} E_{P\sim \mathcal{Q}_0}KL(Q_t||P) + \frac{1}{\sqrt{m}}C_2(a,b,\delta_2)$$
 
-Where as before, $\alpha$ is not a function of $P$, $\mathcal{Q}_0$ is some data-free hyper-posterior, and $\mathcal{Q}_{g}(S_t)$ is the gibbs meta-learner.
+This may be a tighter bound depending on these terms. If $\mathcal{Q}_{g}(S_t)$ is better, we get instead
 
-As before, we can choose $\delta_1=\frac{\delta}{2}, delta_2=\frac{\delta}{2}$ such that with probability at least $1-\delta$,
+$$ E_{P\sim \mathcal{Q}_{g}(S_t)} \left [\mathcal{L}(Q, D_t)\right ] \leq   E_{P\sim \mathcal{Q}_{g}(S_t)} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ]  +
+\frac{1}{\sqrt{m}} E_{P\sim \mathcal{Q}{g}(S_t)}KL(Q_t||P) + \frac{1}{\sqrt{m}}C_1(a,b,\delta_1)$$
 
-\begin{equation*}
-\begin{split}
-E_{P\sim \mathcal{Q}'_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}'_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}\min\left \{KL(\mathcal{Q}'_\alpha||\mathcal{Q}_{g}(S_t))+C_1(a,b, \delta), KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0)+C_2(a,b,\delta)\right \} 
-\end{split}
-\end{equation*}
+Since we know $\mathcal{Q}_{g}(S_t)$, we can develop the KL-term and get
 
-$$ KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0) = \int \mathcal{Q}'_\alpha ln\frac{\mathcal{Q}'_\alpha}{\mathcal{Q}_0} dP = \int \mathcal{Q}'_\alpha ln\left (\alpha + \frac{(1-\alpha)\mathcal{Q}_{g}(S_t)}{\mathcal{Q}_0}\right ) dP$$
+$$ E_{P\sim \mathcal{Q}_{g}(S_t)} \left[\mathcal{L}(Q, D_t)\right ] \leq -\frac{1}{\sqrt{m}}E_{P\sim \mathcal{Q}_{g}(S_t)} \left[ e^{-\sqrt{m}\hat{\mathcal{L}}(Q_t, S_t)}\right ] + \frac{1}{\sqrt{m}}C_1(a,b,\delta_1)$$
 
-Since $\alpha\leq 1$ and the second term within the logarithm is non-negative, we can use the identity $ln(1+x)\leq x$\footnote{Fox $x>-1$. We note that other identities such as $ln(x+\alpha)\leq ln(x)+\frac{\alpha}{x}$ can also be used, but do not have a significant impact.} to derive:
+And by using Jensen's inequality we can give a simpler bound:
 
-\begin{equation*}
-\begin{split}
-KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0) & \leq \int \mathcal{Q}'_\alpha \frac{(1-\alpha)\mathcal{Q}_{g}(S_t)}{\mathcal{Q}_0} dP \\ &= \int \alpha(1-\alpha)\mathcal{Q}_{g}(S_t)+ \frac{(1-\alpha)^2\mathcal{Q}_{g}(S_t)^2}{\mathcal{Q}_0}  dP \\& = \alpha(1-\alpha)\int \mathcal{Q}_{g}(S_t) dP + (1-\alpha)^2\int \frac{\mathcal{Q}_{g}(S_t)^2}{\mathcal{Q}_0}  dP \\ &= \alpha(1-\alpha) + (1-\alpha)^2\int \frac{\mathcal{Q}_{g}(S_t)^2}{\mathcal{Q}_0}  dP
-\end{split}
-\end{equation*}
+$$ E_{P\sim \mathcal{Q}_{g}(S_t)} \left[\mathcal{L}(Q, D_t)\right ] \leq E_{P\sim \mathcal{Q}_{g}(S_t)} \left[ \hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}C_1(a,b,\delta_1)$$
 
-And similarly we can derive 
+If $m$ is large enough, this is tighter than the bound for using $\mathcal{Q}_0$, since this bound will only be used if $E_{P\sim \mathcal{Q}_{g}(S_t)} \left[ \hat{\mathcal{L}}(Q_t, S_t)\right ]\leq E_{P\sim \mathcal{Q}_0} \left[ \hat{\mathcal{L}}(Q_t, S_t)\right ]$
 
-$$ KL(\mathcal{Q}'_\alpha||\mathcal{Q}_{g}(S_t)) \leq \alpha(1-\alpha) + \alpha^2\int \frac{\mathcal{Q}_0^2}{\mathcal{Q}_{g}(S_t)}  dP$$
+% TODO: review from here
 
-And using these, we can deduce
-
-\begin{equation}
-\begin{split}
-\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min\left \{\alpha^2\int \frac{\mathcal{Q}_0^2}{\mathcal{Q}_{g}(S_t)}  dP, (1-\alpha)^2\int \frac{\mathcal{Q}_{g}(S_t)^2}{\mathcal{Q}_0}  dP\right \} + \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
-\end{split}
-\end{equation}
-
-If the empirical loss function $\hat{\mathcal{L}}(P, S_t)$ is sub-additive with respect to $P$, meaning $\hat{\mathcal{L}}(X+Y, S_t)\leq +\hat{\mathcal{L}}(X, S_t)+\hat{\mathcal{L}}(Y, S_t)$,
-we get the same result as above, where the optimal $\alpha$ is either zero or one, depending on which meta-learner has lower average training loss.
-
-Another way to phrase the above equation would be:
-
-\begin{equation}
-\begin{split}
-\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min\left \{\alpha^2 E_{P\sim \mathcal{Q}_0} \left [ \frac{d\mathcal{Q}_0}{d\mathcal{Q}_{g}(S_t)} \right ], (1-\alpha)^2 E_{P\sim \mathcal{Q}_{g}(S_t)} \left [ \frac{d\mathcal{Q}_{g}(S_t)}{d\mathcal{Q}_0} \right ]\right \} + \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
-\end{split}
-\end{equation}
-
-If the loss is not sub-additive, we must choose $\alpha$ to trade-off the training loss for the mixed meta-learner with the second term. This integral term will be large if the meta-learners are significantly different. For our specific case we can calculate further that:
-
-\begin{equation*}
-\begin{split}
-\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min \{ &\alpha^2 E_{P\sim \mathcal{Q}_0}\left [ \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  exp\left ( \beta \hat{\mathcal{L}}(Q_t, S_t)-\frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P) \right ) \right ],\\ &(1-\alpha)^2 E_{P\sim \mathcal{Q}_{g}(S_t)}\left [ \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}  exp\left ( \frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P)-\beta \hat{\mathcal{L}}(Q_t, S_t) \right ) \right ]  \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
-\end{split}
-\end{equation*}
-
-And since the normalization terms do not depend on the hyper-posterior,
-
-\begin{equation*}
-\begin{split}
-\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min \{ &\alpha^2 \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  E_{P\sim \mathcal{Q}_0}\left [  exp\left ( \beta \hat{\mathcal{L}}(Q_t, S_t)-\frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P) \right ) \right ],\\ &(1-\alpha)^2 \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})} E_{P\sim \mathcal{Q}_{g}(S_t)}\left [   exp\left ( \frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P)-\beta \hat{\mathcal{L}}(Q_t, S_t) \right ) \right ]  \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
-\end{split}
-\end{equation*}
-
-Using simple exponent rules, we get:
-
-\begin{equation*}
-\begin{split}
-\mathcal{L}(\mathcal{Q}'_\alpha, D_t) &\leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) \\&+ \frac{1}{\sqrt{m}}\min \left \{ \alpha^2 \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  E_{P\sim \mathcal{Q}_0}\left [  \frac{exp( \beta \hat{\mathcal{L}}(Q_t, S_t))}{\prod_i Z_\beta(S_i,P)^{\frac{\lambda}{n\beta+\lambda}}} \right ],(1-\alpha)^2 \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})} E_{P\sim \mathcal{Q}_{g}(S_t)}\left [  \frac{\prod_i Z_\beta(S_i,P)^{\frac{\lambda}{n\beta+\lambda}}}{exp(\beta \hat{\mathcal{L}}(Q_t, S_t))} \right ] \right \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
-\end{split}
-\end{equation*}
-
-The optimal value for $\alpha$ must balance low training loss for $\mathcal{Q}'_\alpha$ with low divergence between the two meta-priors. Choosing $\alpha=0$ or $\alpha=1$ minimizes this distance term, but may not be optimal in terms of loss. A mixed approach that minimizes the training loss alone may suffer a very large penalty here, as this distance term is upper bounded by $\frac{1}{4\sqrt{m}}e^{\sqrt{m}(b-a)}$. We do note, however that due to the normalization term it is unlikely that we would incur such a penalty in practice. We also note that this extra term is higher the more dissimilar the two priors. 
-
-Let us consider the case where $\alpha=\alpha(P)$, meaning that the combination depends on the choice of prior. Under this formulation, we can repeat most of the previous steps, but since $\alpha$ is no longer a scalar, we need to consider its expectation with regards to each meta-prior. More formally,
-
-\begin{equation}
-\begin{split}
-\mathcal{L}(\mathcal{Q}'_\alpha, D_t) & \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) \\&+ \frac{1}{\sqrt{m}}\min\left \{E_{P\sim \mathcal{Q}_0} \left [ \alpha(P)^2 \frac{d\mathcal{Q}_0}{d\mathcal{Q}_{g}(S_t)} + \alpha(P)(1-\alpha(P))\right ],  E_{P\sim \mathcal{Q}_{g}(S_t)} \left [ (1-\alpha(P))^2\frac{d\mathcal{Q}_{g}(S_t)}{d\mathcal{Q}_0}  + \alpha(P)(1-\alpha(P))\right ]\right \} \\&+ \frac{1}{\sqrt{m}}C(a,b,\delta)
-\end{split}
-\end{equation}
-
-For this new bound, we can change the ratios depending on the prior, giving us a prior that can potentially create a better mixture of the models. This is offset by the $\alpha(P)(1-\alpha(P))$ term, encouraging one of $\alpha(P), 1-\alpha(P)$ to be low in expectation over the better meta-prior. This can be seen as an approximate sparsity term.
+%\subsubsection{Mixing - 30.10.21}
+%
+%Let us consider a slightly more complex combination,
+%
+%$$ \mathcal{Q}'_\alpha(P) = 
+%\alpha \mathcal{Q}_0(P) + 
+%(1-\alpha) \mathcal{Q}_{g}(S_t)(P) $$ 
+%
+%Where as before, $\alpha$ is not a function of $P$, $\mathcal{Q}_0$ is some data-free hyper-posterior, and $\mathcal{Q}_{g}(S_t)$ is the gibbs meta-learner.
+%
+%As before, we can choose $\delta_1=\frac{\delta}{2}, \delta_2=\frac{\delta}{2}$ such that with probability at least $1-\delta$,
+%
+%\begin{equation*}
+%\begin{split}
+%E_{P\sim \mathcal{Q}'_\alpha} \left [\mathcal{L}(Q_t, D_t)\right ] \leq  E_{P\sim \mathcal{Q}'_\alpha} \left [\hat{\mathcal{L}}(Q_t, S_t)\right ] + \frac{1}{\sqrt{m}}\min\left \{KL(\mathcal{Q}'_\alpha||\mathcal{Q}_{g}(S_t))+C_1(a,b, \delta), KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0)+C_2(a,b,\delta)\right \} 
+%\end{split}
+%\end{equation*}
+%
+%$$ KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0) = \int \mathcal{Q}'_\alpha ln\frac{\mathcal{Q}'_\alpha}{\mathcal{Q}_0} dP = \int \mathcal{Q}'_\alpha ln\left (\alpha + \frac{(1-\alpha)\mathcal{Q}_{g}(S_t)}{\mathcal{Q}_0}\right ) dP$$
+%
+%Since $\alpha\leq 1$ and the second term within the logarithm is non-negative, we can use the identity $ln(1+x)\leq x$\footnote{Fox $x>-1$. We note that other identities such as $ln(x+\alpha)\leq ln(x)+\frac{\alpha}{x}$ can also be used, but do not have a significant impact.} to derive:
+%
+%\begin{equation*}
+%\begin{split}
+%KL(\mathcal{Q}'_\alpha||\mathcal{Q}_0) & \leq \int \mathcal{Q}'_\alpha \frac{(1-\alpha)\mathcal{Q}_{g}(S_t)}{\mathcal{Q}_0} dP \\ &= \int \alpha(1-\alpha)\mathcal{Q}_{g}(S_t)+ \frac{(1-\alpha)^2\mathcal{Q}_{g}(S_t)^2}{\mathcal{Q}_0}  dP \\& = \alpha(1-\alpha)\int \mathcal{Q}_{g}(S_t) dP + (1-\alpha)^2\int \frac{\mathcal{Q}_{g}(S_t)^2}{\mathcal{Q}_0}  dP \\ &= \alpha(1-\alpha) + (1-\alpha)^2\int \frac{\mathcal{Q}_{g}(S_t)^2}{\mathcal{Q}_0}  dP
+%\end{split}
+%\end{equation*}
+%
+%And similarly we can derive 
+%
+%$$ KL(\mathcal{Q}'_\alpha||\mathcal{Q}_{g}(S_t)) \leq \alpha(1-\alpha) + \alpha^2\int \frac{\mathcal{Q}_0^2}{\mathcal{Q}_{g}(S_t)}  dP$$
+%
+%And using these, we can deduce
+%
+%\begin{equation}
+%\begin{split}
+%\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min\left \{\alpha^2\int \frac{\mathcal{Q}_0^2}{\mathcal{Q}_{g}(S_t)}  dP, (1-\alpha)^2\int \frac{\mathcal{Q}_{g}(S_t)^2}{\mathcal{Q}_0}  dP\right \} + \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+%\end{split}
+%\end{equation}
+%
+%If the empirical loss function $\hat{\mathcal{L}}(P, S_t)$ is sub-additive with respect to $P$, meaning $\hat{\mathcal{L}}(X+Y, S_t)\leq +\hat{\mathcal{L}}(X, S_t)+\hat{\mathcal{L}}(Y, S_t)$,
+%we get the same result as above, where the optimal $\alpha$ is either zero or one, depending on which meta-learner has lower average training loss.
+%
+%Another way to phrase the above equation would be:
+%
+%\begin{equation}
+%\begin{split}
+%\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min\left \{\alpha^2 E_{P\sim \mathcal{Q}_0} \left [ \frac{d\mathcal{Q}_0}{d\mathcal{Q}_{g}(S_t)} \right ], (1-\alpha)^2 E_{P\sim \mathcal{Q}_{g}(S_t)} \left [ \frac{d\mathcal{Q}_{g}(S_t)}{d\mathcal{Q}_0} \right ]\right \} + \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+%\end{split}
+%\end{equation}
+%
+%If the loss is not sub-additive, we must choose $\alpha$ to trade-off the training loss for the mixed meta-learner with the second term. This integral term will be large if the meta-learners are significantly different. For our specific case we can calculate further that:
+%
+%\begin{equation*}
+%\begin{split}
+%\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min \{ &\alpha^2 E_{P\sim \mathcal{Q}_0}\left [ \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  exp\left ( \beta \hat{\mathcal{L}}(Q_t, S_t)-\frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P) \right ) \right ],\\ &(1-\alpha)^2 E_{P\sim \mathcal{Q}_{g}(S_t)}\left [ \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}  exp\left ( \frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P)-\beta \hat{\mathcal{L}}(Q_t, S_t) \right ) \right ]  \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+%\end{split}
+%\end{equation*}
+%
+%And since the normalization terms do not depend on the hyper-posterior,
+%
+%\begin{equation*}
+%\begin{split}
+%\mathcal{L}(\mathcal{Q}'_\alpha, D_t) \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) + \frac{1}{\sqrt{m}}\min \{ &\alpha^2 \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  E_{P\sim \mathcal{Q}_0}\left [  exp\left ( \beta \hat{\mathcal{L}}(Q_t, S_t)-\frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P) \right ) \right ],\\ &(1-\alpha)^2 \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})} E_{P\sim \mathcal{Q}_{g}(S_t)}\left [   exp\left ( \frac{\lambda}{n\beta+\lambda}\sum_i lnZ_\beta(S_i,P)-\beta \hat{\mathcal{L}}(Q_t, S_t) \right ) \right ]  \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+%\end{split}
+%\end{equation*}
+%
+%Using simple exponent rules, we get:
+%
+%\begin{equation*}
+%\begin{split}
+%\mathcal{L}(\mathcal{Q}'_\alpha, D_t) &\leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) \\&+ \frac{1}{\sqrt{m}}\min \left \{ \alpha^2 \frac{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})}{Z^{\text{\Romannum{2}}}(\mathcal{P})}  E_{P\sim \mathcal{Q}_0}\left [  \frac{exp( \beta \hat{\mathcal{L}}(Q_t, S_t))}{\prod_i Z_\beta(S_i,P)^{\frac{\lambda}{n\beta+\lambda}}} \right ],(1-\alpha)^2 \frac{Z^{\text{\Romannum{2}}}(\mathcal{P})}{Z^{\text{\Romannum{1}}}_\beta(S_t, \mathcal{P})} E_{P\sim \mathcal{Q}_{g}(S_t)}\left [  \frac{\prod_i Z_\beta(S_i,P)^{\frac{\lambda}{n\beta+\lambda}}}{exp(\beta \hat{\mathcal{L}}(Q_t, S_t))} \right ] \right \}\\&+ \frac{1}{\sqrt{m}}C(a,b,\delta, \alpha)
+%\end{split}
+%\end{equation*}
+%
+%The optimal value for $\alpha$ must balance low training loss for $\mathcal{Q}'_\alpha$ with low divergence between the two meta-priors. Choosing $\alpha=0$ or $\alpha=1$ minimizes this distance term, but may not be optimal in terms of loss. A mixed approach that minimizes the training loss alone may suffer a very large penalty here, as this distance term is upper bounded by $\frac{1}{4\sqrt{m}}e^{\sqrt{m}(b-a)}$. We do note, however that due to the normalization term it is unlikely that we would incur such a penalty in practice. We also note that this extra term is higher the more dissimilar the two priors. 
+%
+%Let us consider the case where $\alpha=\alpha(P)$, meaning that the combination depends on the choice of prior. Under this formulation, we can repeat most of the previous steps, but since $\alpha$ is no longer a scalar, we need to consider its expectation with regards to each meta-prior. More formally,
+%
+%\begin{equation}
+%\begin{split}
+%\mathcal{L}(\mathcal{Q}'_\alpha, D_t) & \leq  \hat{\mathcal{L}}(\mathcal{Q}'_\alpha, S_t) \\&+ \frac{1}{\sqrt{m}}\min\left \{E_{P\sim \mathcal{Q}_0} \left [ \alpha(P)^2 \frac{d\mathcal{Q}_0}{d\mathcal{Q}_{g}(S_t)} + \alpha(P)(1-\alpha(P))\right ],  E_{P\sim \mathcal{Q}_{g}(S_t)} \left [ (1-\alpha(P))^2\frac{d\mathcal{Q}_{g}(S_t)}{d\mathcal{Q}_0}  + \alpha(P)(1-\alpha(P))\right ]\right \} \\&+ \frac{1}{\sqrt{m}}C(a,b,\delta)
+%\end{split}
+%\end{equation}
+%
+%For this new bound, we can change the ratios depending on the prior, giving us a prior that can potentially create a better mixture of the models. This is offset by the $\alpha(P)(1-\alpha(P))$ term, encouraging one of $\alpha(P), 1-\alpha(P)$ to be low in expectation over the better meta-prior. This can be seen as an approximate sparsity term.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1394,6 +1528,7 @@ papers
 	\item \sout{Add Mujoco env based on PEARL code (seems not to work on Windows)}
 	\item \sout{Consider optimization for the entire RHS of $\hat{\mathcal{L}}(\mathcal{Q}, D_t)$ and its implications}
 	\item \sout{Prove probabilistic behavior for $i$}
+	\item Continue deriving a bound for ``using meta-learner as prior". 
 	\item Consider what happens if the test task is $\epsilon$ far from a training task and what can be done. It's possible that meta-learning is better depending on directionality
 	%\item Attempt to quantify problem complexity for each environment - there's probably a teacher algorithm here
 	%\item Add PAIRED / similar adversarial generation method (Rancarnier?)
