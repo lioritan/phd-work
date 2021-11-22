@@ -95,6 +95,8 @@
 		
 		Re-phrased the questions for test-task adaptation
 		
+		Added subsection \ref{subsec:pb-adapt} on domain adaptation and PB
+		
 		
 	\end{abstract}
 
@@ -546,6 +548,8 @@ Where $C(S_i,S_k,P)=ln\frac{Z_{\gamma}(P,S_k)}{ Z_{\gamma}(P,S_i)}$.
 By moving $\hat{\mathcal{L}}(Q_i,S_i)$ we get for each $k$:
 
 $$ \hat{\mathcal{L}}(Q_i,S_i)= \hat{\mathcal{L}}(Q_i,S_k) - \frac{1}{\gamma} KL(Q_i||Q_k) + \frac{1}{\gamma}C(S_i,S_k,P)$$
+
+(we note that from a lemma cited by \cite{Rivasplata2020}, $\frac{1}{\gamma}C(S_i,S_k,P)\leq E_{h\sim Q_k}\left [\hat{\mathcal{L}}(h, S_i)-\hat{\mathcal{L}}(h, S_k)\right ]$, because everything would cancel out)
 
 By averaging over all tasks we get:
 
@@ -1031,6 +1035,29 @@ $$\mathcal{L}(\mathcal{Q}_0, D_t|S_t) \leq E_{P\sim \mathcal{Q}_0}\hat{\mathcal{
 We can use Jensen's inequality and get:
 
 $$\mathcal{L}(\mathcal{Q}_0, D_t|S_t) \leq E_{P\sim \mathcal{Q}_0}\hat{\mathcal{L}}(P, S_t) + \frac{1}{\sqrt{m}}ln\frac{E_{P\sim \mathcal{Q}_0}\left [\xi\right ]}{\delta_t}$$
+
+\textcolor{red}{An interesting direction is to take general gibbs with param $\beta$ and choose optimal $\beta$ wrt a specific stable prior $P$ (also interesting but much harder - optimize wrt $P$)}
+
+\subsection{(Ongoing) Task adaptation and PB - 22.11.21} \label{subsec:pb-adapt}
+
+\subsubsection{Option 1 - take DA bound and apply PB on source}
+Take bound of the form $$R_{\mathcal{T}}(h)\leq R_{\mathcal{S}}(h)+C\sqrt{JS(\mathcal{T}||\mathcal{S})}$$
+
+Take expectation over $h\sim Q$, apply PB bound on $E_{h\sim Q}\left [R_{\mathcal{S}}(h)\right ]$
+
+\subsubsection{Option 2 - take PB bound and use it on a DA expression}
+Take a bound of form $$F(\mathcal{L}, H, S, Q)\leq KL(Q||P) + log\frac{\xi}{\delta}$$
+
+and choose a pair hypothesis $Q=(Q,Q_0), P=(Q_0, P_0)$ and $$F=\lambda_1 \left (\mathcal{L}(Q, \mathcal{T})-\hat{\mathcal{L}}(Q,T)\right )-\lambda_2 \left (\mathcal{L}(Q_0,\mathcal{S})+\hat{\mathcal{L}}(Q_0,S) \right )$$
+
+Or something very similar, and possibly use the fact that KL-divergence does not obey triangle inequality to gain something over $KL(Q||P_0)$.
+
+\subsubsection{Option 3 - Joint CoM inequality}
+Option 1 is derived via CoM on the data distributions $\mathcal{T},\mathcal{S}$.
+Option 2 is derived via CoM on the hypothesis distributions $Q,P$.
+
+Can a CoM from $\mathcal{S},P$ to $\mathcal{T},Q$ give a useful term?
+
 
 \subsection{(Somewhat outdated) Task similarities with multiple tasks - 21.9.21}
 
@@ -1528,7 +1555,8 @@ papers
 	\item \sout{Add Mujoco env based on PEARL code (seems not to work on Windows)}
 	\item \sout{Consider optimization for the entire RHS of $\hat{\mathcal{L}}(\mathcal{Q}, D_t)$ and its implications}
 	\item \sout{Prove probabilistic behavior for $i$}
-	\item Continue deriving a bound for ``using meta-learner as prior". 
+	\item Continue \ref{subsec:pb-adapt} on DA and PB
+	\item \sout{Continue deriving a bound for ``using meta-learner as prior".} 
 	\item Consider what happens if the test task is $\epsilon$ far from a training task and what can be done. It's possible that meta-learning is better depending on directionality
 	%\item Attempt to quantify problem complexity for each environment - there's probably a teacher algorithm here
 	%\item Add PAIRED / similar adversarial generation method (Rancarnier?)
