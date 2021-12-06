@@ -1038,7 +1038,7 @@ $$\mathcal{L}(\mathcal{Q}_0, D_t|S_t) \leq E_{P\sim \mathcal{Q}_0}\hat{\mathcal{
 
 \textcolor{red}{An interesting direction is to take general gibbs with param $\beta$ and choose optimal $\beta$ wrt a specific stable prior $P$ (also interesting but much harder - optimize wrt $P$)}
 
-\subsection{Task adaptation and PB - 5.12.21} \label{subsec:pb-adapt}
+\subsection{Task adaptation and PB - 6.12.21} \label{subsec:pb-adapt}
 
 \subsubsection{Option 1 - take DA bound and apply PB on source}
 From CoM on the domains we know that:
@@ -1078,12 +1078,20 @@ On one extreme end, we can choose $Q_0=P, \lambda_2$ and get a classic PB bound
 
 $$ \mathcal{L}(Q, \mathcal{T}) \leq \hat{\mathcal{L}}(Q,T) +\frac{1}{\lambda_1}KL(Q||P)+ \frac{1}{\lambda_1}log\frac{C}{\delta}$$
 
-For any other choice of $Q_0$, we therefore have a relative gain of
+For any other choice of $Q_0$, we therefore have a relative loss of
 
 $$\underbrace{\frac{\lambda_2}{\lambda_1} \left (\hat{\mathcal{L}}(Q_0,S)-\mathcal{L}(Q_0,\mathcal{S}) \right )}_{(1)} + \underbrace{\frac{1}{\lambda_1}KL(Q||Q_0)+\frac{1}{\lambda_1}KL(Q_0||P)-\frac{1}{\lambda_1}KL(Q||P)}_{(2)}$$
 
 Where it is likely that $(1)<0$, and it is possible to find $Q_0$ such that $(2)<0$ since  KL-divergence does not obey the triangle inequality.
 
+If $Q\propto Q_0 e^{-\beta \hat{\mathcal{L}}(h,T)}$, we have $(2)<0$ if:
+$$ -log Z_{\beta}(P, T) > -log Z_{\beta}(Q_0, T) +KL(Q_0||P)$$
+
+In other words, 
+
+$$KL(Q_0||P) \leq log\frac{E_{h\sim Q_0}\left [e^{-\beta\hat{\mathcal{L}}(h,T)}\right ]}{E_{h\sim P}\left [e^{-\beta\hat{\mathcal{L}}(h,T)}\right ]}$$
+
+\textcolor{red}{The best source-target transfer is if the source has good performance on target without being too far in KL, and also we learn the source task reasonably well. This suggests that we should try to combine tasks with high test gain constrained by not too high KL. Unlike option 1, we need labeled test data for this to work.}
 
 \subsection{(Somewhat outdated) Task similarities with multiple tasks - 21.9.21}
 
