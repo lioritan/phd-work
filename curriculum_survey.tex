@@ -1093,6 +1093,39 @@ $$KL(Q_0||P) \leq log\frac{E_{h\sim Q_0}\left [e^{-\beta\hat{\mathcal{L}}(h,T)}\
 
 \textcolor{red}{The best source-target transfer is if the source has good performance on target without being too far in KL, and also we learn the source task reasonably well. This suggests that we should try to combine tasks with high test gain constrained by not too high KL. Unlike option 1, we need labeled test data for this to work.}
 
+\subsection{Using the adaptation data - 22.12.21}
+
+\subsubsection{gibbs}
+
+Let $\mathcal{Q}_{1:N}$ be a hyper-posterior learned on the training data, and let $\mathcal{Q}_{1:N,T}\propto \mathcal{Q}_{1:N}e^{-\gamma\hat{\mathcal{L}}(P,S_T)}$
+
+From \cite{Rothfuss2020}, with Hoeffding on the test task (and $Q$ being gibbs with parameter $\beta=O(\sqrt{m})$ we know:
+
+$$\mathcal{L}(\mathcal{Q}_{1:N}, D_T) \leq \mathcal{L}(\mathcal{Q}_{1:N}, \mathcal{T}) + C(\delta_T,m) \leq (\frac{1}{\sqrt{n}}+\frac{1}{n\sqrt{m}})KL(\mathcal{Q}_{1:N}||\mathcal{P})-\frac{1}{n\sqrt{m}}\sum_{i}E_{P\sim \mathcal{Q}_{1:N}}\left [lnZ_{\beta}(S_i,P)\right ]+C(\delta,m, n)$$
+
+Using \cite{Rivasplata2020}, with $\mathcal{P}=\mathcal{Q}_{1:N}$, we get:
+
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\gamma})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\gamma}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})-\frac{1}{\gamma}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+C(\delta,m)$$
+
+And we also have 
+$$KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})=-\gamma\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]$$ 
+
+Where $\hat{\mathcal{L}}'$ is without task adaptation.
+So,
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\gamma})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) -\frac{\beta}{\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) - \frac{1}{\gamma}lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]-\frac{1}{\gamma}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+C(\delta,m,\gamma)$$
+
+We note that the second term is not quite the same as the third ($Z_\beta(S,P)=E_{h\sim P} \left [ e^{-\beta\hat{\mathcal{L}}(h,S)}\right ]$) as the order of expectations is different and the hyper-prior is also different. We can add adaptation in $\mathcal{Q}_{1:N,T}$ to simplify this expression to an extent. 
+
+There is some discussion on how to pick $\gamma$ (though it's probably not good to have it be bigger than $O(\beta)$)
+
+\subsubsection{mix}
+
+For $\alpha$-mix, using $ln(1+x)\leq x$, we get 
+$$KL(\mathcal{Q}_{mix}||\mathcal{Q}_{1:N})\leq \alpha\int \frac{\mathcal{Q}_{T}}{\mathcal{Q}_{1:N}}d\mathcal{Q}_{mix} $$
+
+This means we can pick $\alpha$ accordingly
+
+
 \subsection{(Somewhat outdated) Task similarities with multiple tasks - 21.9.21}
 
 %Suppose we have a new assumption:
