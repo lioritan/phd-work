@@ -1093,7 +1093,7 @@ $$KL(Q_0||P) \leq log\frac{E_{h\sim Q_0}\left [e^{-\beta\hat{\mathcal{L}}(h,T)}\
 
 \textcolor{red}{The best source-target transfer is if the source has good performance on target without being too far in KL, and also we learn the source task reasonably well. This suggests that we should try to combine tasks with high test gain constrained by not too high KL. Unlike option 1, we need labeled test data for this to work.}
 
-\subsection{Using the adaptation data - 22.12.21}
+\subsection{Using the adaptation data - 19.1.22}
 
 \subsubsection{gibbs}
 
@@ -1103,20 +1103,61 @@ From \cite{Rothfuss2020}, with Hoeffding on the test task (and $Q$ being gibbs w
 
 $$\mathcal{L}(\mathcal{Q}_{1:N}, D_T) \leq \mathcal{L}(\mathcal{Q}_{1:N}, \mathcal{T}) + C(\delta_T,m) \leq (\frac{1}{\sqrt{n}}+\frac{1}{n\sqrt{m}})KL(\mathcal{Q}_{1:N}||\mathcal{P})-\frac{1}{n\sqrt{m}}\sum_{i}E_{P\sim \mathcal{Q}_{1:N}}\left [lnZ_{\beta}(S_i,P)\right ]+C(\delta,m, n)$$
 
-Using \cite{Rivasplata2020}, with $\mathcal{P}=\mathcal{Q}_{1:N}$, we get:
+Using \cite{Rivasplata2020}, with $\mathcal{P}=\mathcal{Q}_{1:N}$, we get (from the fact that the base learner is gibbs with parameter $\beta$):
 
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\gamma})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\gamma}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})-\frac{1}{\gamma}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+C(\delta,m)$$
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\gamma}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda)}{\delta_t}$$
 
 And we also have 
 $$KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})=-\gamma\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]$$ 
 
 Where $\hat{\mathcal{L}}'$ is without task adaptation.
 So,
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\gamma})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) -\frac{\beta}{\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) - \frac{1}{\gamma}lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]-\frac{1}{\gamma}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+C(\delta,m,\gamma)$$
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) -\frac{\gamma}{\lambda}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) - \frac{1}{\lambda}lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda)}{\delta_t}$$
 
 We note that the second term is not quite the same as the third ($Z_\beta(S,P)=E_{h\sim P} \left [ e^{-\beta\hat{\mathcal{L}}(h,S)}\right ]$) as the order of expectations is different and the hyper-prior is also different. We can add adaptation in $\mathcal{Q}_{1:N,T}$ to simplify this expression to an extent. 
 
-There is some discussion on how to pick $\gamma$ (though it's probably not good to have it be bigger than $O(\beta)$)
+Choosing $\lambda=\beta$ as well as simplifying the third term using Jensen's inequality gives us:
+
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq  -\frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + \frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)-\frac{1}{\beta}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\beta}ln\frac{\xi(\beta)}{\delta_t}$$
+
+We can also use Jensen's inequality on the third term here to get:
+
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq  -\frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + \frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)+\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T},S_T)+\frac{1}{\beta}ln\frac{\xi(\beta)}{\delta_t}$$
+
+Deriving by $\gamma$ we get:
+
+$$-\frac{1}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+ (1-\frac{\gamma}{\beta})\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) +  \frac{1}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)=0$$
+
+$$\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)=\int \frac{d}{d\gamma}\mathcal{Q}_{1:N,T}(P)\hat{\mathcal{L}}(P, S_T)dP=\int \mathcal{Q}_{1:N}(P)\hat{\mathcal{L}}(P, S_T)\frac{d}{d\gamma}\frac{e^{-\gamma\hat{\mathcal{L}}(P,S_T)}}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}dP$$
+
+$$=\int \mathcal{Q}_{1:N}(P)\hat{\mathcal{L}}(P, S_T)\frac{-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)}E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]-e^{-\gamma\hat{\mathcal{L}}(P,S_T)}E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]^2}dP$$
+
+$$=\int \mathcal{Q}_{1:N,T}(P)\hat{\mathcal{L}}(P, S_T)\left (-\hat{\mathcal{L}}(P,S_T)-\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}\right)dP$$
+
+To conclude,
+
+$$\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)=-E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]-\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) $$
+
+Marking $R(\gamma)=\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}$, we get
+
+$$-\frac{1}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+ (1-\frac{\gamma}{\beta})\left (-E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]-R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )  +  \frac{1}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)=0$$
+
+Cleaning up a bit, we have:
+
+$$\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+ (\beta-\gamma)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )  -  \hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)=0$$
+
+Using the rules for variance, we get:
+
+$$(\beta-\gamma)\left (Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)^2 +R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )  =  \hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)$$
+
+Assuming we consider the expectations to be constant, we can extract $\gamma$ (this results in a two-step optimization process of calculating $\gamma$ and updating the distribution):
+
+$$\gamma=\beta+\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}{Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T)^2 +R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}  $$
+
+Interestingly, we can expect the numerator to be negative, and if $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\approx 0$ we have $$\gamma\approx \beta-\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}{ Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))} $$
+
+This suggests that if the adaptation is very good, the value of $\gamma$ should be lowered.
+
 
 \subsubsection{mix}
 
