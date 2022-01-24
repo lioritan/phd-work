@@ -1093,7 +1093,7 @@ $$KL(Q_0||P) \leq log\frac{E_{h\sim Q_0}\left [e^{-\beta\hat{\mathcal{L}}(h,T)}\
 
 \textcolor{red}{The best source-target transfer is if the source has good performance on target without being too far in KL, and also we learn the source task reasonably well. This suggests that we should try to combine tasks with high test gain constrained by not too high KL. Unlike option 1, we need labeled test data for this to work.}
 
-\subsection{Using the adaptation data - 19.1.22}
+\subsection{Using the adaptation data - 24.1.22}
 
 \subsubsection{gibbs}
 
@@ -1105,7 +1105,7 @@ $$\mathcal{L}(\mathcal{Q}_{1:N}, D_T) \leq \mathcal{L}(\mathcal{Q}_{1:N}, \mathc
 
 Using \cite{Rivasplata2020}, with $\mathcal{P}=\mathcal{Q}_{1:N}$, we get (from the fact that the base learner is gibbs with parameter $\beta$):
 
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\gamma}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda)}{\delta_t}$$
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\lambda}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda)}{\delta_t}$$
 
 And we also have 
 $$KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})=-\gamma\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]$$ 
@@ -1146,17 +1146,35 @@ Cleaning up a bit, we have:
 
 $$\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+ (\beta-\gamma)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )  -  \hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)=0$$
 
-Using the rules for variance, we get:
+Using the definition of variance, we get:
 
-$$(\beta-\gamma)\left (Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)^2 +R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )  =  \hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)$$
+$$(\beta-\gamma)\left (Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T)^2 +R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )  =  \hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)$$
 
-Assuming we consider the expectations to be constant, we can extract $\gamma$ (this results in a two-step optimization process of calculating $\gamma$ and updating the distribution):
+Extracting $\gamma$ as an implicit function gets us:
 
 $$\gamma=\beta+\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}{Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T)^2 +R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}  $$
 
-Interestingly, we can expect the numerator to be negative, and if $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\approx 0$ we have $$\gamma\approx \beta-\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}{ Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))} $$
+Interestingly, we can expect the numerator to be negative (the denominator can be negative since $R(\gamma)\leq 0$), and if $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\approx 0$ we have $$\gamma\approx \beta-\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}{ Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))} $$
 
-This suggests that if the adaptation is very good, the value of $\gamma$ should be lowered.
+The left-hand side is monotonically increasing, whereas the right-hand side is monotonically decreasing, leading to some equilibrium.
+
+If we consider how $\gamma$ correlates to $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$,
+if $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)\approx 0$, we get:
+
+$$\gamma\approx \beta + \frac{1}{\frac{Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))}{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+R(\gamma)}$$
+
+Even knowing this, there is not enough information on $R$ except $R(\gamma)\leq 0$.
+Since \textcolor{red}{(check this)} $E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]\approx 1$, we can expect $R(\gamma)\approx 0$, meaning $\gamma^*\geq \beta$. In other words, we want the adaptation to be high.
+
+If $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$ is very high, we would need the equilibrium to happen when the denominator and the numerator cancel each other in terms of scale. We know $\gamma=0$ is not a correct equilibrium (trivial).
+Under these conditions \textcolor{red}{(check this)}, $R(\gamma)\approx -\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$,
+so we have:
+
+ $$\gamma\approx \beta + \frac{1}{\frac{Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))}{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}\approx \beta + \frac{1}{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}$$
+ 
+ From this expression, we get a monotonically increasing term on the LHS and a monotonically decreasing term on the RHS, meaning there is some equilibrium point $\gamma^*\geq \beta$.
+
+
 
 
 \subsubsection{mix}
