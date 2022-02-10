@@ -104,7 +104,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Problem formulations - 14.1.21} \label{sec:formulation}
+\section{*Problem formulations - 14.1.21} \label{sec:formulation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{defn}
 	A \textbf{task} (sometimes called an environment) is defined as a MDP $<S,A,P,R,\gamma>$,
@@ -151,7 +151,7 @@ It is also important to note that if the student is required to perform the give
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Measuring task difficulty and curriculum - 23.2.21} \label{sec:difficulty}
+\section{*Measuring task difficulty and curriculum - 23.2.21} \label{sec:difficulty}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In \cite{Matiisen2020}, the task probability is based on the absolute value of the reward improvement rate, measured by the difference between the trained task reward $r_t$ and the trained task reward last measured for the same task $r_{t'}$.
@@ -219,7 +219,7 @@ In \cite{Won2019}, a PPO-based agent learns a policy that is robust (to a degree
 The expected reward for a task is estimated from the value function estimates for that task. The resulting trained policy can also adapt to online changes to the body parameters, since the parameters are included in the state representation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Ensuring task variety - 24.1.21} \label{sec:variety}
+\section{*Ensuring task variety - 24.1.21} \label{sec:variety}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In \cite{Jiang2020}, a probability bonus is given proportional to the number of tasks seen since a given task was sampled, thus forcing the task to eventually be re-played.
@@ -249,7 +249,7 @@ The utility used in the paper was picking maximal surprise (self-information) - 
 In \cite{Wang2019}, \textit{POET}, a genetic algorithm for varied task generation is proposed. A set of environments and a set of agents are maintained, and at each step, environment parameters are randomly changed (with a ranking based on euclidean distance of parameters from already existing environments), each agent is trained on each environment (using a single step of ES - evolution strategies), and if an environment is challenging (mean reward at least $x$ and at most $y$), it is kept.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Method summary - 1.6.21} \label{sec:summary}
+\section{*Method summary - 1.6.21} \label{sec:summary}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 See table \ref{methods-table}
@@ -299,7 +299,7 @@ See table \ref{methods-table}
 \end{table*}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Curriculum learning in ML - 18.6.21} \label{sec:CLML}
+\section{*Curriculum learning in ML - 18.6.21} \label{sec:CLML}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 To begin, let us discuss ``self-paced learning'' (SPL), a common form of easy-to-hard curriculum.
@@ -366,7 +366,7 @@ This result is empirically reinforced by a later paper (\cite{Hacohen2019}), sho
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Notable empirical results in CL - 24.6.21} \label{sec:empirical-cl}
+\section{*Notable empirical results in CL - 24.6.21} \label{sec:empirical-cl}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In \cite{Anonymous2021}, the effect of several difficulty-based curricula is checked.
@@ -383,7 +383,7 @@ In \cite{Hacohen2019}, A similar experiment is performed with a reference loss f
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Notable empirical results in Meta-ML - 24.6.21} \label{sec:empirical-meta}
+\section{*Notable empirical results in Meta-ML - 24.6.21} \label{sec:empirical-meta}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 For meta learning, a good reference point is MAML (\cite{Finn2017})), showing a major improvement over previous methods for few-shot transfer.
@@ -398,10 +398,10 @@ Some very recent papers (\cite{Bateni2020, Tian2020}) show that a good represent
 These methods suggest that the current bottleneck for better meta learning is the representation, and that curricula that impose an effective order on complex representations may be highly useful.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Math for PAC-Bayesian meta learning - 24.8.21} \label{sec:bayes}
+\section{*Math for PAC-Bayesian meta learning - 24.8.21} \label{sec:bayes}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Definitions and previous results} 
+\subsection{*Definitions and previous results} 
 
 Let $\mathcal{T}$ be an unknown task distribution, let $\mathcal{P}$ be a \emph{hyper-prior} over distributions of hypotheses (data-free). Let $\tau_i=(\mathcal{D}_i, S_i)~\mathcal{T}$ be a set of tasks ($i=1,...,n$).
 
@@ -494,7 +494,7 @@ Where $\Upsilon^{\text{\Romannum{2}}}(\lambda)=\frac{1}{\lambda}ln \mathbb{E}_{P
 	
 %We note that under mild assumptions on the learner $Q$, we get that as $m\rightarrow\infty$, all terms dependent on $m$ go to zero, and as $n\rightarrow\infty$, all terms dependant on $n$ go to zero.
 
-\subsection{Task dependencies - 29.8.21} \label{sec:bayes:dependencies}
+\subsection{*Task dependencies - 29.8.21} \label{sec:bayes:dependencies}
 
 Suppose we know something more about tasks. Can we devise a better bound?
 As an initial case, let's start with an easy case.
@@ -683,7 +683,7 @@ $$\mathcal{L}(\mathcal{Q}, D_i)\leq \textcolor{blue}{E_{P\sim \mathcal{Q}}  \lef
 Again, if $\hat{\mathcal{L}}(Q_i,S_i)$ is well-estimated (and we can expect that to be the case), this is a much tighter bound, and in fact we have the generalization loss estimated by the empirical loss for the task.
 
 
-\subsection{Task dependencies with multiple tasks - 24.8.21} \label{sec:bayes:multi}
+\subsection{*Task dependencies with multiple tasks - 24.8.21} \label{sec:bayes:multi}
 
 In section \ref{section-meta-known}, we derived a PAC-bayes bound for generalization given that the test task is known during meta-training. In this section we will extend this result to the case where it is known that the test task is of the same distribution as one of the training tasks, but we do not know the correct task during training. More formally, 
 
@@ -834,7 +834,7 @@ $$\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}_j, \mathcal{Q}_i, n\sqrt{m})\leq 3(b-a)  +
 $$\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}_j, \mathcal{Q}_i, n\sqrt{m})\leq 4(b-a)$$ 
 
 
-\subsubsection{Probabilistic approach to bounding $\Psi$ - 30.9.21}
+\subsubsection{*Probabilistic approach to bounding $\Psi$ - 30.9.21}
 
 In order to achieve a bound that converges to zero for $\Psi(\mathcal{Q}_j, \mathcal{Q}_i, n\sqrt{m})$ as $m\rightarrow\infty$, we must take into account the probability of incorrectly choosing the meta-learner, and calculate $E_{S_t} \left [\Psi(\mathcal{Q}_j, \mathcal{Q}_i, n\sqrt{m}) \right ]$ instead. For now, we only assume that assumption \ref{assumption-multitask} still holds.
 
@@ -945,7 +945,7 @@ For $n\rightarrow\infty$ and finite $m$, however, this term does not converge. S
 This means that a wrong choice of meta-learner would lead to a penalty in the bound that is proportional to the difference between empirical losses for each meta learner.
 
 
-\subsection{Task dependencies with multiple tasks, alternative - 30.8.21}
+\subsection{*Task dependencies with multiple tasks, alternative - 30.8.21}
 
 Instead of optimizing on the loss for the target task, we can try to optimize over the bound:
 
@@ -962,7 +962,7 @@ $$\mathcal{L}(\mathcal{Q}_j, D_t) \leq E_{P\sim \mathcal{Q}_i} \left [ f_{n\sqrt
 
 In essence, under this optimization scheme the $\frac{1}{n\sqrt{m}}\Psi(\mathcal{Q}_j, \mathcal{Q}_i, n\sqrt{m})$ term is not needed.
 
-\subsection{Using test data for improved adaptation - 13.11.21}
+\subsection{*Using test data for improved adaptation - 13.11.21}
 In this section, we will examine how data for the new test task can be used to improve transfer.
 We will denote $\tau_t=(D_t, m_t)\sim \mathcal{T}$ our test task, and $S_t\sim D_t^{m_t}$ an adaptation dataset.
 
@@ -978,7 +978,7 @@ A simple method to do so is by applying Hoeffding's inequality. With probability
 
 This serves as a bound on adapting a hyper-posterior for a specific test task given $S_t$, and gives us a simple method to link between the expected error in general and the expected error after transfer. It is important to note that this bound also applies to $\mathcal{L}(\mathcal{Q}, D_t)$ discussed in section \ref{sec:bayes:multi}.
 
-\subsubsection{The role of an informative prior - 14.11.21}
+\subsubsection{*The role of an informative prior - 14.11.21}
 
 Given a trained hyper-posterior $\mathcal{Q}_0$, we would like to have a more useful bound on meta-learning. We can use the bound from \cite{Rivasplata2020} on each specific prior:
 For each $P\sim \mathcal{Q}_0$, With probability at least $1-\delta_t$ over the choice of $S_t$: 
@@ -1038,7 +1038,7 @@ $$\mathcal{L}(\mathcal{Q}_0, D_t|S_t) \leq E_{P\sim \mathcal{Q}_0}\hat{\mathcal{
 
 \textcolor{red}{An interesting direction is to take general gibbs with param $\beta$ and choose optimal $\beta$ wrt a specific stable prior $P$ (also interesting but much harder - optimize wrt $P$)}
 
-\subsection{Task adaptation and PB - 6.12.21} \label{subsec:pb-adapt}
+\subsection{Task adaptation and PB - 9.2.22} \label{subsec:pb-adapt}
 
 \subsubsection{Option 1 - take DA bound and apply PB on source}
 From CoM on the domains we know that:
@@ -1056,6 +1056,8 @@ $$E_{h\sim Q}L(h, \mathcal{T}) \leq E_{h\sim Q}\hat{L}(h, S) + \frac{1}{\beta}KL
 We can also use the Jensen-Shannon divergence instead of KL for the last term (and this may be a good idea since JS is bounded)
 
 \textcolor{red}{Taking two+ datasets as source would increase $m_S$, hurt the training loss, and the KL/JS will be better than the worst but not as good as picking the best dataset. For JS this would be the middle point. This would suggest that meta-learning with task weight proportional to JS would be the best (lower all terms that depend on $m_S$ and get low JS penalty. The only part of the bound that may suffer is the train loss on source)}
+
+\textcolor{red}{In short, this suggests we can use unsupervised data KL to pick the closest task, and we can expect it to be the best single task estimator (but it's not easy to say how it compares to multiple tasks)}
 
 \subsubsection{Option 2 - take PB bound and use it on a DA expression}
 
@@ -1084,45 +1086,57 @@ $$\underbrace{\frac{\lambda_2}{\lambda_1} \left (\hat{\mathcal{L}}(Q_0,S)-\mathc
 
 Where it is likely that $(1)<0$, and it is possible to find $Q_0$ such that $(2)<0$ since  KL-divergence does not obey the triangle inequality.
 
-If $Q\propto Q_0 e^{-\beta \hat{\mathcal{L}}(h,T)}$, we have $(2)<0$ if:
-$$ -log Z_{\beta}(P, T) > -log Z_{\beta}(Q_0, T) +KL(Q_0||P)$$
+If $Q\propto Q_0 e^{-\beta \hat{\mathcal{L}}(h,T)}$ (and assuming we have the same $Q$ on both sides), we have $(2)<0$ if:
+$$ KL(Q||Q_0)+KL(Q_0||P)-KL(Q||P) < 0$$
+
+Opening this gets us 
+$$ -\beta \hat{\mathcal{L}}(Q,T)-logZ_{\beta}(P,T)+KL(Q_0||P)-\int Qlog\left (\frac{Q_0}{P}\frac{e^{-\beta \hat{\mathcal{L}}(h,T)}}{Z_\beta(Q_0,T)}\right )dh<0$$
+
+$$ -\beta \hat{\mathcal{L}}(Q,T)-logZ_{\beta}(P,T)+KL(Q_0||P)-\int Qlog\frac{Q_0}{P}dh-\int Qlog\frac{e^{-\beta \hat{\mathcal{L}}(h,T)}}{Z_\beta(Q_0,T)}dh<0$$
+
+And so we can simplify this expression to
+$$ KL(Q_0||P)-\int Qlog\frac{Q_0}{P}dh<0$$
 
 In other words, 
 
-$$KL(Q_0||P) \leq log\frac{E_{h\sim Q_0}\left [e^{-\beta\hat{\mathcal{L}}(h,T)}\right ]}{E_{h\sim P}\left [e^{-\beta\hat{\mathcal{L}}(h,T)}\right ]}$$
+$$\int (Q_0-Q)log\frac{Q_0}{P}dh<0$$
 
-\textcolor{red}{The best source-target transfer is if the source has good performance on target without being too far in KL, and also we learn the source task reasonably well. This suggests that we should try to combine tasks with high test gain constrained by not too high KL. Unlike option 1, we need labeled test data for this to work.}
+\textcolor{red}{What does this mean? It seems like unless $Q_0$ is a poor predictor of $T$ this won't happen.}
 
-\subsection{Using the adaptation data - 24.1.22}
+\subsection{Using the adaptation data - 10.2.22}
 
 \subsubsection{gibbs}
 
 Let $\mathcal{Q}_{1:N}$ be a hyper-posterior learned on the training data, and let $\mathcal{Q}_{1:N,T}\propto \mathcal{Q}_{1:N}e^{-\gamma\hat{\mathcal{L}}(P,S_T)}$
 
-From \cite{Rothfuss2020}, with Hoeffding on the test task (and $Q$ being gibbs with parameter $\beta=O(\sqrt{m})$ we know:
+%From \cite{Rothfuss2020}, with Hoeffding on the test task (and $Q$ being gibbs with parameter $\beta=O(\sqrt{m})$ we know:
 
-$$\mathcal{L}(\mathcal{Q}_{1:N}, D_T) \leq \mathcal{L}(\mathcal{Q}_{1:N}, \mathcal{T}) + C(\delta_T,m) \leq (\frac{1}{\sqrt{n}}+\frac{1}{n\sqrt{m}})KL(\mathcal{Q}_{1:N}||\mathcal{P})-\frac{1}{n\sqrt{m}}\sum_{i}E_{P\sim \mathcal{Q}_{1:N}}\left [lnZ_{\beta}(S_i,P)\right ]+C(\delta,m, n)$$
+%$$\mathcal{L}(\mathcal{Q}_{1:N}, D_T) \leq \mathcal{L}(\mathcal{Q}_{1:N}, \mathcal{T}) + C(\delta_T,m) \leq (\frac{1}{\sqrt{n}}+\frac{1}{n\sqrt{m}})KL(\mathcal{Q}_{1:N}||\mathcal{P})-\frac{1}{n\sqrt{m}}\sum_{i}E_{P\sim \mathcal{Q}_{1:N}}\left [lnZ_{\beta}(S_i,P)\right ]+C(\delta,m, n)$$
 
-Using \cite{Rivasplata2020}, with $\mathcal{P}=\mathcal{Q}_{1:N}$, we get (from the fact that the base learner is gibbs with parameter $\beta$):
+Using \cite{Rivasplata2020}, with $\mathcal{P}=\mathcal{Q}_{1:N}$, we get 
 
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\lambda}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda)}{\delta_t}$$
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq \hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\lambda}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})+\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [KL(Q(P,S_T)||P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_t}$$
+
+Since the base learner $Q$ is gibbs with parameter $\beta$:
+
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\lambda}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_t}$$
 
 And we also have 
 $$KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})=-\gamma\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]$$ 
 
 Where $\hat{\mathcal{L}}'$ is without task adaptation.
 So,
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) -\frac{\gamma}{\lambda}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) - \frac{1}{\lambda}lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda)}{\delta_t}$$
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) -\frac{\gamma}{\lambda}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) - \frac{1}{\lambda}lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_t}$$
 
 We note that the second term is not quite the same as the third ($Z_\beta(S,P)=E_{h\sim P} \left [ e^{-\beta\hat{\mathcal{L}}(h,S)}\right ]$) as the order of expectations is different and the hyper-prior is also different. We can add adaptation in $\mathcal{Q}_{1:N,T}$ to simplify this expression to an extent. 
 
 Choosing $\lambda=\beta$ as well as simplifying the third term using Jensen's inequality gives us:
 
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq  -\frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + \frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)-\frac{1}{\beta}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\beta}ln\frac{\xi(\beta)}{\delta_t}$$
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq  -\frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + \frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)-\frac{1}{\beta}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\beta}ln\frac{\xi(\beta,\mathcal{Q}_{1:N})}{\delta_t}$$
 
 We can also use Jensen's inequality on the third term here to get:
 
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq  -\frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + \frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)+\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T},S_T)+\frac{1}{\beta}ln\frac{\xi(\beta)}{\delta_t}$$
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq  -\frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + \frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)+\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T},S_T)+\frac{1}{\beta}ln\frac{\xi(\beta,\mathcal{Q}_{1:N})}{\delta_t}$$
 
 Deriving by $\gamma$ we get:
 
@@ -1177,7 +1191,7 @@ so we have:
 
 
 
-\subsubsection{mix}
+\subsubsection{*mix}
 
 For $\alpha$-mix, using $ln(1+x)\leq x$, we get 
 $$KL(\mathcal{Q}_{mix}||\mathcal{Q}_{1:N})\leq \alpha\int \frac{\mathcal{Q}_{T}}{\mathcal{Q}_{1:N}}d\mathcal{Q}_{mix} $$
@@ -1185,7 +1199,7 @@ $$KL(\mathcal{Q}_{mix}||\mathcal{Q}_{1:N})\leq \alpha\int \frac{\mathcal{Q}_{T}}
 This means we can pick $\alpha$ accordingly
 
 
-\subsection{(Somewhat outdated) Task similarities with multiple tasks - 21.9.21}
+\subsection{*Task similarities with multiple tasks - 21.9.21}
 
 %Suppose we have a new assumption:
 %
@@ -1303,7 +1317,7 @@ This means we can pick $\alpha$ accordingly
 %
 %\textcolor{red}{How is this useful? These are not easily comparable, especially since we don't have anything useful on the train error for each method. If the $Z$ terms are identical and $\lambda=\sqrt{n}$, the difference is $$\sqrt{\frac{nln n}{2m}}-\frac{1}{\sqrt{n}}\sum_{k\neq i} E_{\mathcal{Q}_{avg}} \left [\hat{\mathcal{L}}(Q_k, D_k) \right ]$$ and that makes sense. }
 
-\subsubsection{Using meta-learners as priors - 30.10.21}
+\subsubsection{*Using meta-learners as priors - 30.10.21}
 
 One method we can use is to select 
 
@@ -1411,7 +1425,7 @@ A useful note is that we can bound $\mathcal{L}(\mathcal{Q}, D_t|S_t)$ instead o
 %
 %This serves as a bound on adapting a hyper-posterior for a specific test task with a specific adaptation dataset $S_t$, and will be useful for comparison later. It is important to note that this applies for both existing methods as well as the results presented in section \ref{sec:bayes:multi}.
 
-\subsubsection{Probabilistic mixing of meta-learner and test-task - 30.10.21}
+\subsubsection{*Probabilistic mixing of meta-learner and test-task - 30.10.21}
 
 Can we do better if we use $S_t$ in other ways? 
 Let us consider a posterior of the form:
@@ -1587,7 +1601,7 @@ If $m$ is large enough, this is tighter than the bound for using $\mathcal{Q}_0$
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Model-Based RL - 1.3.21} \label{sec:mbrl}
+\section{*Model-Based RL - 1.3.21} \label{sec:mbrl}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 papers
@@ -1601,7 +1615,7 @@ papers
 \cite{Raileanu2020} - RIDE
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Measurable problem parameters - 3.2.21} \label{sec:experiments}
+\section{*Measurable problem parameters - 3.2.21} \label{sec:experiments}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{enumerate}
@@ -1613,7 +1627,7 @@ papers
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Relevant posts - 19.4.21} \label{sec:blogs}
+\section{*Relevant posts - 19.4.21} \label{sec:blogs}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{enumerate}
@@ -1634,7 +1648,7 @@ papers
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Code bases - 3.2.21} \label{sec:code}
+\section{*Code bases - 3.2.21} \label{sec:code}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{enumerate}
@@ -1665,7 +1679,7 @@ papers
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Short-term goals - 5.9.21} \label{sec:short-term}
+\section{*Short-term goals - 5.9.21} \label{sec:short-term}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{itemize}
@@ -1694,7 +1708,7 @@ papers
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Long-term goals - 3.2.21} \label{sec:long-term}
+\section{*Long-term goals - 3.2.21} \label{sec:long-term}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{itemize}
@@ -1704,7 +1718,7 @@ papers
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Experiments - 8.6.21} \label{sec:experiment}
+\section{*Experiments - 8.6.21} \label{sec:experiment}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %\begin{table*}
@@ -1833,7 +1847,7 @@ Another possible parameter is the teacher curriculum, that can be one of:
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Formalizing curricula for a simple task - 6.6.21} \label{sec:pendulum-dreams}
+\section{*Formalizing curricula for a simple task - 6.6.21} \label{sec:pendulum-dreams}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In order to consider what curricula are valid, let us first define a simple task for reference.
@@ -1887,7 +1901,7 @@ To test this, we compared several simple gradual curricula. So far, this does no
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Ensemble agent ideas - 26.4.21} \label{sec:ensemble}
+\section{*Ensemble agent ideas - 26.4.21} \label{sec:ensemble}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{table}
