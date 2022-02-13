@@ -1038,7 +1038,7 @@ $$\mathcal{L}(\mathcal{Q}_0, D_t|S_t) \leq E_{P\sim \mathcal{Q}_0}\hat{\mathcal{
 
 \textcolor{red}{An interesting direction is to take general gibbs with param $\beta$ and choose optimal $\beta$ wrt a specific stable prior $P$ (also interesting but much harder - optimize wrt $P$)}
 
-\subsection{Task adaptation and PB - 9.2.22} \label{subsec:pb-adapt}
+\subsection{Task adaptation and PB - 14.2.22} \label{subsec:pb-adapt}
 
 \subsubsection{Option 1 - take DA bound and apply PB on source}
 From CoM on the domains we know that:
@@ -1101,7 +1101,26 @@ In other words,
 
 $$\int (Q_0-Q)log\frac{Q_0}{P}dh<0$$
 
-\textcolor{red}{What does this mean? It seems like unless $Q_0$ is a poor predictor of $T$ this won't happen.}
+$$\int \left (Q_0-Q_0\frac{e^{-\beta\hat{\mathcal{L}}(h,T)}}{Z_{\beta}(Q_0,T)}\right )log\frac{Q_0}{P}dh<0$$
+
+Since $Z_{\beta}(Q_0,T)>0$,
+
+$$\int \left (Z_{\beta}(Q_0,T)-e^{-\beta\hat{\mathcal{L}}(h,T)}\right )Q_0log\frac{Q_0}{P}dh<0$$
+
+If we also choose $Q_0\propto P e^{-\beta' \hat{\mathcal{L}}(h,S)}$, we get
+
+$$\int \left (Z_{\beta}(Q_0,T)-e^{-\beta\hat{\mathcal{L}}(h,T)}\right )Q_0\left (-\beta'\hat{\mathcal{L}}(h,S)-logZ_{\beta}(P,S)\right )dh<0$$
+
+$$\int \left (Z_{\beta}(Q_0,T)-e^{-\beta\hat{\mathcal{L}}(h,T)}\right )Q_0\left (\beta'\hat{\mathcal{L}}(h,S)+logZ_{\beta}(P,S)\right )dh>0$$
+
+$$\int \left (Z_{\beta}(Q_0,T)-e^{-\beta\hat{\mathcal{L}}(h,T)}\right )Q_0 \beta'\hat{\mathcal{L}}(h,S)dh+logZ_{\beta}(P,S)\int \left (Z_{\beta}(Q_0,T)-e^{-\beta\hat{\mathcal{L}}(h,T)}\right )Q_0dh>0$$
+
+Since the second term is $E_{h\sim Q_0}[E_{h\sim Q_0}[e^{-\beta\hat{\mathcal{L}}(h,T)}]-e^{-\beta\hat{\mathcal{L}}(h,T)}]$, it is equal to zero, so we are left with
+
+$$E_{h\sim Q_0}\left [\left (Z_{\beta}(Q_0,T)-e^{-\beta\hat{\mathcal{L}}(h,T)}\right ) \hat{\mathcal{L}}(h,S)\right ]>0$$
+
+This condition on $Q_0$ roughly translates to a requirement that for $h$ such that $\hat{\mathcal{L}}(h,T)<\hat{\mathcal{L}}(Q_0,T)$, we also have low $\hat{\mathcal{L}}(h,S)$.
+In other words, if a given hypothesis does well on $T$ it should also do well on $S$.
 
 \subsection{Using the adaptation data - 10.2.22}
 
