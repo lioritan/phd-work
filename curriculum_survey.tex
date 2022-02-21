@@ -1122,7 +1122,7 @@ $$E_{h\sim Q_0}\left [\left (Z_{\beta}(Q_0,T)-e^{-\beta\hat{\mathcal{L}}(h,T)}\r
 This condition on $Q_0$ roughly translates to a requirement that for $h$ such that $\hat{\mathcal{L}}(h,T)<\hat{\mathcal{L}}(Q_0,T)$, we also have low $\hat{\mathcal{L}}(h,S)$.
 In other words, if a given hypothesis does well on $T$ it should also do well on $S$.
 
-\subsection{Using the adaptation data - 10.2.22}
+\subsection{Using the adaptation data - 21.2.22}
 
 \subsubsection{gibbs}
 
@@ -1149,17 +1149,18 @@ $$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\math
 
 We note that the second term is not quite the same as the third ($Z_\beta(S,P)=E_{h\sim P} \left [ e^{-\beta\hat{\mathcal{L}}(h,S)}\right ]$) as the order of expectations is different and the hyper-prior is also different. We can add adaptation in $\mathcal{Q}_{1:N,T}$ to simplify this expression to an extent. 
 
-Choosing $\lambda=\beta$ as well as simplifying the third term using Jensen's inequality gives us:
+By simplifying the third and fourth terms using Jensen's inequality (this is not optimal but sufficient for now) we get:
 
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq  -\frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + \frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)-\frac{1}{\beta}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\beta}ln\frac{\xi(\beta,\mathcal{Q}_{1:N})}{\delta_t}$$
+\begin{equation} \label{eq:pb-adapt-multi}
+\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq 
+(1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) +(\frac{\beta-\gamma}{\lambda})\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + \frac{\gamma}{\lambda}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T) +\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_t}
+\end{equation}
 
-We can also use Jensen's inequality on the third term here to get:
+Deriving by $\gamma$ gets us:
 
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq  -\frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + \frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)+\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T},S_T)+\frac{1}{\beta}ln\frac{\xi(\beta,\mathcal{Q}_{1:N})}{\delta_t}$$
+$$(1-\frac{\beta}{\lambda})\frac{d}{d\gamma}\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) -\frac{1}{\lambda}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + (\frac{\beta-\gamma}{\lambda})\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) +\frac{1}{\lambda}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T) =0$$
 
-Deriving by $\gamma$ we get:
-
-$$-\frac{1}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+ (1-\frac{\gamma}{\beta})\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) +  \frac{1}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)=0$$
+We must calculate the derivatives of the expected losses:
 
 $$\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)=\int \frac{d}{d\gamma}\mathcal{Q}_{1:N,T}(P)\hat{\mathcal{L}}(P, S_T)dP=\int \mathcal{Q}_{1:N}(P)\hat{\mathcal{L}}(P, S_T)\frac{d}{d\gamma}\frac{e^{-\gamma\hat{\mathcal{L}}(P,S_T)}}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}dP$$
 
@@ -1173,40 +1174,116 @@ $$\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)=-E_{P\sim \mathc
 
 Marking $R(\gamma)=\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}$, we get
 
-$$-\frac{1}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+ (1-\frac{\gamma}{\beta})\left (-E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]-R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )  +  \frac{1}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)=0$$
+\begin{align*} 
+\begin{split}
+&-(\lambda-\beta)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)\right]+R(\gamma)\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\right )\\& - (\beta-\gamma)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )\\& =\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)
+\end{split}
+\end{align*}
 
-Cleaning up a bit, we have:
+\begin{align*} 
+\begin{split}
+ -(\beta-\gamma) = \frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)+(\lambda-\beta)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)\right]+R(\gamma)\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\right )}{E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}
+\end{split}
+\end{align*}
 
-$$\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+ (\beta-\gamma)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )  -  \hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)=0$$
+\begin{align} 
+\begin{split}
+\gamma = \beta+\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)+(\lambda-\beta)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)\right]+R(\gamma)\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\right )}{E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}
+\end{split}
+\end{align}
 
-Using the definition of variance, we get:
+We note that if $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$ is low, unless $\lambda < \beta$ we must have $\gamma > \beta$. If $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$ is high, unless $\lambda \gg \beta$ we have $\gamma < \beta$.
 
-$$(\beta-\gamma)\left (Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T)^2 +R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )  =  \hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)$$
+Deriving Equation \ref{eq:pb-adapt-multi} by $\beta$ gives us:
 
-Extracting $\gamma$ as an implicit function gets us:
+$$-\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)+(\lambda-\beta)\frac{d}{d\beta}\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+\frac{d}{d\beta}ln\xi(\mathcal{Q}_{1:N},\lambda)=0 $$
 
-$$\gamma=\beta+\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}{Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T)^2 +R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}  $$
+In a similar manner to before, we get
 
-Interestingly, we can expect the numerator to be negative (the denominator can be negative since $R(\gamma)\leq 0$), and if $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\approx 0$ we have $$\gamma\approx \beta-\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}{ Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))} $$
+$$-(\lambda-\beta)E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)+R'(\beta)\hat{\mathcal{L}}(Q(P,S_T), S_T) \right ] +\frac{d}{d\beta}ln\xi(\mathcal{Q}_{1:N},\lambda)=\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) $$
 
-The left-hand side is monotonically increasing, whereas the right-hand side is monotonically decreasing, leading to some equilibrium.
+Where $R'(\beta)=\frac{E_{h\sim P}\left[-\hat{\mathcal{L}}(h,S_T)e^{-\beta\hat{\mathcal{L}}(h,S_T)} \right]}{E_{h\sim P}\left[e^{-\beta\hat{\mathcal{L}}(h,S_T)} \right]}$
 
-If we consider how $\gamma$ correlates to $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$,
-if $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)\approx 0$, we get:
+And so we get for $\beta$:
 
-$$\gamma\approx \beta + \frac{1}{\frac{Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))}{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+R(\gamma)}$$
+\begin{align} 
+\begin{split}
+\beta = \lambda+\frac{\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\frac{d}{d\beta}ln\xi(\mathcal{Q}_{1:N},\lambda)}{E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)+R'(\beta)\hat{\mathcal{L}}(Q(P,S_T), S_T) \right ]}
+\end{split}
+\end{align}
 
-Even knowing this, there is not enough information on $R$ except $R(\gamma)\leq 0$.
-Since \textcolor{red}{(check this)} $E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]\approx 1$, we can expect $R(\gamma)\approx 0$, meaning $\gamma^*\geq \beta$. In other words, we want the adaptation to be high.
+Finally, deriving Equation \ref{eq:pb-adapt-multi} by $\lambda$ gets us:
 
-If $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$ is very high, we would need the equilibrium to happen when the denominator and the numerator cancel each other in terms of scale. We know $\gamma=0$ is not a correct equilibrium (trivial).
-Under these conditions \textcolor{red}{(check this)}, $R(\gamma)\approx -\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$,
-so we have:
+$$\beta \hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-(\beta-\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\gamma\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T)-ln\xi(\mathcal{Q}_{1:N},\lambda)+\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=0$$
 
- $$\gamma\approx \beta + \frac{1}{\frac{Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))}{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}\approx \beta + \frac{1}{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}$$
- 
- From this expression, we get a monotonically increasing term on the LHS and a monotonically decreasing term on the RHS, meaning there is some equilibrium point $\gamma^*\geq \beta$.
+$$\beta(\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T))+\gamma(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T))-ln\xi(\mathcal{Q}_{1:N},\lambda)=\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=0$$
 
+Since $$\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=\frac{E_{P\sim \mathcal{Q}_{1:N}}\left [-(\hat{L}(Q(P,S_T), S_T)-E_S\hat{L}(Q(P,S), S))e^{-\lambda(\hat{L}(Q(P,S_T), S_T)-E_S\hat{L}(Q(P,S), S))} \right ]}{E_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\lambda(\hat{L}(Q(P,S_T), S_T)-E_S\hat{L}(Q(P,S), S))} \right ]}\triangleq R_\xi(\lambda)$$
+
+We have
+
+\begin{align} 
+\begin{split}
+\lambda = \frac{\beta(\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T))+\gamma(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T))-ln\xi(\mathcal{Q}_{1:N},\lambda)}{R_\xi(\lambda)}
+\end{split}
+\end{align}
+
+This is a rather interesting expression, as we can see that if the transfer from $\mathcal{Q}_{1:N}$ to $\mathcal{Q}_{1:N,T}$ is beneficial, we increase $\lambda$ in proportion to $\gamma$ times the relative gain, and similarly for $\beta$ and the gain from the base learner. The moment term acts as a counter-balance, as increasing $\lambda$ too much will cause the moment to diverge.
+
+%We can also use Jensen's inequality on the third term here to get:
+%
+%$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq  -\frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + \frac{\gamma}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)+\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T},S_T)+\frac{1}{\beta}ln\frac{\xi(\beta,\mathcal{Q}_{1:N})}{\delta_t}$$
+%
+%Deriving by $\gamma$ we get:
+%
+%$$-\frac{1}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+ (1-\frac{\gamma}{\beta})\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) +  \frac{1}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)=0$$
+%
+%$$\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)=\int \frac{d}{d\gamma}\mathcal{Q}_{1:N,T}(P)\hat{\mathcal{L}}(P, S_T)dP=\int \mathcal{Q}_{1:N}(P)\hat{\mathcal{L}}(P, S_T)\frac{d}{d\gamma}\frac{e^{-\gamma\hat{\mathcal{L}}(P,S_T)}}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}dP$$
+%
+%$$=\int \mathcal{Q}_{1:N}(P)\hat{\mathcal{L}}(P, S_T)\frac{-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)}E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]-e^{-\gamma\hat{\mathcal{L}}(P,S_T)}E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]^2}dP$$
+%
+%$$=\int \mathcal{Q}_{1:N,T}(P)\hat{\mathcal{L}}(P, S_T)\left (-\hat{\mathcal{L}}(P,S_T)-\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}\right)dP$$
+%
+%To conclude,
+%
+%$$\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)=-E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]-\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) $$
+%
+%Marking $R(\gamma)=\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}$, we get
+%
+%$$-\frac{1}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+ (1-\frac{\gamma}{\beta})\left (-E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]-R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )  +  \frac{1}{\beta}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)=0$$
+%
+%Cleaning up a bit, we have:
+%
+%$$\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+ (\beta-\gamma)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )  -  \hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)=0$$
+%
+%Using the definition of variance, we get:
+%
+%$$(\beta-\gamma)\left (Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T)^2 +R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )  =  \hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)$$
+%
+%Extracting $\gamma$ as an implicit function gets us:
+%
+%$$\gamma=\beta+\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}{Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T)^2 +R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}  $$
+%
+%Interestingly, we can expect the numerator to be negative (the denominator can be negative since $R(\gamma)\leq 0$), and if $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\approx 0$ we have $$\gamma\approx \beta-\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}{ Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))} $$
+%
+%The left-hand side is monotonically increasing, whereas the right-hand side is monotonically decreasing, leading to some equilibrium.
+%
+%If we consider how $\gamma$ correlates to $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$,
+%if $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)\approx 0$, we get:
+%
+%$$\gamma\approx \beta + \frac{1}{\frac{Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))}{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+R(\gamma)}$$
+%
+%Even knowing this, there is not enough information on $R$ except $R(\gamma)\leq 0$.
+%Since \textcolor{red}{(check this)} $E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]\approx 1$, we can expect $R(\gamma)\approx 0$, meaning $\gamma^*\geq \beta$. In other words, we want the adaptation to be high.
+%
+%If $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$ is very high, we would need the equilibrium to happen when the denominator and the numerator cancel each other in terms of scale. We know $\gamma=0$ is not a correct equilibrium (trivial).
+%Under these conditions \textcolor{red}{(check this)}, $R(\gamma)\approx -\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$,
+%so we have:
+%
+% $$\gamma\approx \beta + \frac{1}{\frac{Var(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T},S_T))}{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}\approx \beta + \frac{1}{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}$$
+% 
+% From this expression, we get a monotonically increasing term on the LHS and a monotonically decreasing term on the RHS, meaning there is some equilibrium point $\gamma^*\geq \beta$.
+%
 
 
 
