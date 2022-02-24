@@ -1038,14 +1038,14 @@ $$\mathcal{L}(\mathcal{Q}_0, D_t|S_t) \leq E_{P\sim \mathcal{Q}_0}\hat{\mathcal{
 
 \textcolor{red}{An interesting direction is to take general gibbs with param $\beta$ and choose optimal $\beta$ wrt a specific stable prior $P$ (also interesting but much harder - optimize wrt $P$)}
 
-\subsection{Task adaptation and PB - 14.2.22} \label{subsec:pb-adapt}
+\subsection{Task adaptation and PB - 24.2.22} \label{subsec:pb-adapt}
 
 \subsubsection{Option 1 - take DA bound and apply PB on source}
-From CoM on the domains we know that:
+Using lemma 1 from \cite{Shui2020} (CoM on the domains) we know that if $\mathcal{T}, \mathcal{S}$ have a shared (feature and label) space $Z$ and $\mathcal{T}$ is absolutely continuous w.r.t $\mathcal{S}$, we have:
 
 $$\forall h\in \mathcal{H}: E_{z\sim \mathcal{T}}L(h, z) \leq E_{z\sim \mathcal{S}}L(h, z) + \frac{1}{\lambda}KL(\mathcal{T}||\mathcal{S})+\frac{1}{\lambda}ln E_{z\sim \mathcal{S}}\left [e^{\lambda \Delta L(h)}\right ]  $$
 
-By taking the expectation over $h$ and using a classic PB bound, we get:
+By taking the expectation over $h$ and using a classic PB bound on the first term on the RHS, we get:
 
 $$E_{h\sim Q}L(h, \mathcal{T}) \leq E_{h\sim Q}\hat{L}(h, S) + \frac{1}{\beta}KL(Q||P)+\frac{1}{\beta}lnE_{h\sim P}\left [e^{\beta \Delta L(h)}\right ] + +\frac{ln\frac{1}{\delta}}{\beta}+ \frac{1}{\lambda}KL(\mathcal{T}||\mathcal{S})+\frac{1}{\lambda}E_{h\sim Q}lnE_{z\sim \mathcal{S}}\left [e^{\lambda \Delta L(h)}\right ]  $$
 
@@ -1053,43 +1053,44 @@ And if $L$ is bounded/subG and $\beta=O(\sqrt{m_S})$:
 
 $$E_{h\sim Q}L(h, \mathcal{T}) \leq E_{h\sim Q}\hat{L}(h, S) + \frac{1}{\beta}KL(Q||P)+\frac{1}{\beta}C_1 +\frac{ln\frac{1}{\delta}}{\beta} + C_2\sqrt{KL(\mathcal{T}||\mathcal{S})}$$
 
-We can also use the Jensen-Shannon divergence instead of KL for the last term (and this may be a good idea since JS is bounded)
+We can also use the Jensen-Shannon divergence instead of KL for the last term (and this may be a good idea since JS is bounded).
 
-\textcolor{red}{Taking two+ datasets as source would increase $m_S$, hurt the training loss, and the KL/JS will be better than the worst but not as good as picking the best dataset. For JS this would be the middle point. This would suggest that meta-learning with task weight proportional to JS would be the best (lower all terms that depend on $m_S$ and get low JS penalty. The only part of the bound that may suffer is the train loss on source)}
-
-\textcolor{red}{In short, this suggests we can use unsupervised data KL to pick the closest task, and we can expect it to be the best single task estimator (but it's not easy to say how it compares to multiple tasks)}
+It is unclear how this result can be used for meta-learning (if at all), though a work by \cite{Ben-David2010} on multi-source domain adaptation with labeled data may shed some light. 
+This work would need to be extended to the more general case of KL-divergence and losses other than 01-loss.
 
 \subsubsection{Option 2 - take PB bound and use it on a DA expression}
 
+\textcolor{red}{TODO: add explanation figure to this part}
 
-We can choose a pair hypothesis $Q=(Q,Q_0), P=(Q_0, P_0)$ and $$F=\lambda_1 \left (\mathcal{L}(Q, \mathcal{T})-\hat{\mathcal{L}}(Q,T)\right )-\lambda_2 \left (\hat{\mathcal{L}}(Q_0,S)-\mathcal{L}(Q_0,\mathcal{S}) \right )$$
+Let us consider the bound of \cite{Rivasplata2020} on PB generalization, with a pair hypothesis $Q=(Q,Q_0), P=(Q_0, P_0)$ (notably both sides are distributions over $H$) and $$F=\lambda_1 \left (\mathcal{L}(Q, \mathcal{T})-\hat{\mathcal{L}}(Q,T)\right )+\lambda_2 \left (\mathcal{L}(Q_0,\mathcal{S})-\hat{\mathcal{L}}(Q_0,S) \right )$$
 
-and get
+This would mean we would like to have a bound on the weighted generalization gap for the source and target tasks. We get a bound of the form: $$\lambda_1 \left (\mathcal{L}(Q, \mathcal{T})-\hat{\mathcal{L}}(Q,T)\right )+\lambda_2 \left (\mathcal{L}(Q_0,\mathcal{S})-\hat{\mathcal{L}}(Q_0,S) \right )\leq KL((Q, Q_0)||(Q_0,P)) + log\frac{\xi}{\delta}$$
 
-Take a bound of form $$\lambda_1 \left (\mathcal{L}(Q, \mathcal{T})-\hat{\mathcal{L}}(Q,T)\right )-\lambda_2 \left (\hat{\mathcal{L}}(Q_0,S)-\mathcal{L}(Q_0,\mathcal{S}) \right )\leq KL((Q, Q_0)||(Q_0,P)) + log\frac{\xi}{\delta}$$
-
-If we divide by $\delta_1$ and move terms, we get:
+If we divide by $\lambda_1$ and move terms, we get:
 
 $$ \mathcal{L}(Q, \mathcal{T}) \leq \hat{\mathcal{L}}(Q,T) +\frac{\lambda_2}{\lambda_1} \left (\hat{\mathcal{L}}(Q_0,S)-\mathcal{L}(Q_0,\mathcal{S}) \right ) + \frac{1}{\lambda_1}KL(Q||Q_0)+\frac{1}{\lambda_1}KL(Q_0||P)+ \frac{1}{\lambda_1}log\frac{\xi}{\delta}$$
 
 Assuming that $\mathcal{L}$ is bounded/subG and $\lambda_1=O(\sqrt{m_T}), \lambda_2=O(\sqrt{m_S})$, we get:
 
-$$ \mathcal{L}(Q, \mathcal{T}) \leq \hat{\mathcal{L}}(Q,T) +\frac{\lambda_2}{\lambda_1} \left (\hat{\mathcal{L}}(Q_0,S)-\mathcal{L}(Q_0,\mathcal{S}) \right ) + \frac{1}{\lambda_1}KL(Q||Q_0)+\frac{1}{\lambda_1}KL(Q_0||P)+ \frac{1}{\lambda_1}log\frac{C}{\delta}$$
+\begin{equation} \label{eq:transfer-base-bound}
+\mathcal{L}(Q, \mathcal{T}) \leq \hat{\mathcal{L}}(Q,T) +\frac{\lambda_2}{\lambda_1} \left (\hat{\mathcal{L}}(Q_0,S)-\mathcal{L}(Q_0,\mathcal{S}) \right ) + \frac{1}{\lambda_1}KL(Q||Q_0)+\frac{1}{\lambda_1}KL(Q_0||P)+ \frac{1}{\lambda_1}log\frac{C}{\delta}
+\end{equation}
 
-On one extreme end, we can choose $Q_0=P, \lambda_2$ and get a classic PB bound
+On one extreme end, we can choose $Q_0=P, \lambda_2=0$ and get a classic PB bound
 
 $$ \mathcal{L}(Q, \mathcal{T}) \leq \hat{\mathcal{L}}(Q,T) +\frac{1}{\lambda_1}KL(Q||P)+ \frac{1}{\lambda_1}log\frac{C}{\delta}$$
 
-For any other choice of $Q_0$, we therefore have a relative loss of
+By subtracting the RHS of this classic bound from Equation \ref{eq:transfer-base-bound}, we get (up to the constant moment term)
 
 $$\underbrace{\frac{\lambda_2}{\lambda_1} \left (\hat{\mathcal{L}}(Q_0,S)-\mathcal{L}(Q_0,\mathcal{S}) \right )}_{(1)} + \underbrace{\frac{1}{\lambda_1}KL(Q||Q_0)+\frac{1}{\lambda_1}KL(Q_0||P)-\frac{1}{\lambda_1}KL(Q||P)}_{(2)}$$
 
-Where it is likely that $(1)<0$, and it is possible to find $Q_0$ such that $(2)<0$ since  KL-divergence does not obey the triangle inequality.
+We would like this term to be negative, as that would mean that Equation \ref{eq:transfer-base-bound} gives us a tighter generalization bound when $Q_0\neq P$. It is likely that $(1)<0$, and it is possible to find $Q_0$ such that $(2)<0$ since KL-divergence does not obey the triangle inequality.
 
-If $Q\propto Q_0 e^{-\beta \hat{\mathcal{L}}(h,T)}$ (and assuming we have the same $Q$ on both sides), we have $(2)<0$ if:
+$(2)<0$ if:
 $$ KL(Q||Q_0)+KL(Q_0||P)-KL(Q||P) < 0$$
 
-Opening this gets us 
+To give us a better understanding of when this happens, we will consider $Q\propto Q_0 e^{-\beta \hat{\mathcal{L}}(h,T)}$ and get:
+
 $$ -\beta \hat{\mathcal{L}}(Q,T)-logZ_{\beta}(P,T)+KL(Q_0||P)-\int Qlog\left (\frac{Q_0}{P}\frac{e^{-\beta \hat{\mathcal{L}}(h,T)}}{Z_\beta(Q_0,T)}\right )dh<0$$
 
 $$ -\beta \hat{\mathcal{L}}(Q,T)-logZ_{\beta}(P,T)+KL(Q_0||P)-\int Qlog\frac{Q_0}{P}dh-\int Qlog\frac{e^{-\beta \hat{\mathcal{L}}(h,T)}}{Z_\beta(Q_0,T)}dh<0$$
@@ -1122,7 +1123,7 @@ $$E_{h\sim Q_0}\left [\left (Z_{\beta}(Q_0,T)-e^{-\beta\hat{\mathcal{L}}(h,T)}\r
 This condition on $Q_0$ roughly translates to a requirement that for $h$ such that $\hat{\mathcal{L}}(h,T)<\hat{\mathcal{L}}(Q_0,T)$, we also have low $\hat{\mathcal{L}}(h,S)$.
 In other words, if a given hypothesis does well on $T$ it should also do well on $S$.
 
-\subsection{Using the adaptation data - 21.2.22}
+\subsection{Using the adaptation data - 24.2.22}
 
 \subsubsection{gibbs}
 
@@ -1132,7 +1133,7 @@ Let $\mathcal{Q}_{1:N}$ be a hyper-posterior learned on the training data, and l
 
 %$$\mathcal{L}(\mathcal{Q}_{1:N}, D_T) \leq \mathcal{L}(\mathcal{Q}_{1:N}, \mathcal{T}) + C(\delta_T,m) \leq (\frac{1}{\sqrt{n}}+\frac{1}{n\sqrt{m}})KL(\mathcal{Q}_{1:N}||\mathcal{P})-\frac{1}{n\sqrt{m}}\sum_{i}E_{P\sim \mathcal{Q}_{1:N}}\left [lnZ_{\beta}(S_i,P)\right ]+C(\delta,m, n)$$
 
-Using \cite{Rivasplata2020}, with $\mathcal{P}=\mathcal{Q}_{1:N}$, we get 
+Using \cite{Rivasplata2020} on a 2-level hypothesis $(\mathcal{Q},Q), (\mathcal{P}, P)$, with $\mathcal{P}=\mathcal{Q}_{1:N}$, we get 
 
 $$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq \hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\lambda}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})+\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [KL(Q(P,S_T)||P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_t}$$
 
@@ -1192,15 +1193,15 @@ Marking $R(\gamma)=\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S
 \end{split}
 \end{align}
 
-We note that if $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$ is low, unless $\lambda < \beta$ we must have $\gamma > \beta$. If $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$ is high, unless $\lambda \gg \beta$ we have $\gamma < \beta$.
+We note that if $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$ is low, we should have $\lambda < \beta$ (and we will later see this seems likely) to ensure $\gamma < \beta$. If $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$ is high or the gain from using $S_T$ for the hyper-posterior is high, unless $\lambda \gg \beta$ (unlikely) we have $\gamma < \beta$. This means that the implicit function encourages a stable equilibrium (lower $\gamma$) if there is a benefit to using $S_T$ in the hyper-posterior, and encourages increasing $\gamma$ if the base hyper-posterior is already good.
 
-Deriving Equation \ref{eq:pb-adapt-multi} by $\beta$ gives us:
+Deriving Equation \ref{eq:pb-adapt-multi} by $\beta$ gives us (since $\hat{\mathcal{L}}'$ does not depend on $\beta$, and the moment is on $P$):
 
-$$-\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)+(\lambda-\beta)\frac{d}{d\beta}\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)+\frac{d}{d\beta}ln\xi(\mathcal{Q}_{1:N},\lambda)=0 $$
+$$-\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)+(\lambda-\beta)\frac{d}{d\beta}\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)=0 $$
 
 In a similar manner to before, we get
 
-$$-(\lambda-\beta)E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)+R'(\beta)\hat{\mathcal{L}}(Q(P,S_T), S_T) \right ] +\frac{d}{d\beta}ln\xi(\mathcal{Q}_{1:N},\lambda)=\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) $$
+$$-(\lambda-\beta)E_{P\sim \mathcal{Q}_{1:N,T}}E_{h\sim Q(P,S_T)}\left [\hat{\mathcal{L}}(h,S_T)^2+R'(\beta)\hat{\mathcal{L}}(h, S_T) \right ] =\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) $$
 
 Where $R'(\beta)=\frac{E_{h\sim P}\left[-\hat{\mathcal{L}}(h,S_T)e^{-\beta\hat{\mathcal{L}}(h,S_T)} \right]}{E_{h\sim P}\left[e^{-\beta\hat{\mathcal{L}}(h,S_T)} \right]}$
 
@@ -1208,27 +1209,40 @@ And so we get for $\beta$:
 
 \begin{align} 
 \begin{split}
-\beta = \lambda+\frac{\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\frac{d}{d\beta}ln\xi(\mathcal{Q}_{1:N},\lambda)}{E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)+R'(\beta)\hat{\mathcal{L}}(Q(P,S_T), S_T) \right ]}
+\beta = \lambda+\frac{\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}{E_{P\sim \mathcal{Q}_{1:N,T}}E_{h\sim Q(P,S_T)}\left [\hat{\mathcal{L}}(h,S_T)^2+R'(\beta)\hat{\mathcal{L}}(h, S_T) \right ]}
 \end{split}
 \end{align}
 
+We note that the denominator is positive, so we have a simple implicit function of $\beta$ where we decrease $\beta$ proportionally to the prediction gain for the base learner compared to the new posterior. This seems counter-intuitive, as we would expect that positive gain would mean higher $\beta$, but it encourages a stable equilibrium point. 
+
+Plugging this value into our equation for $\gamma$, if we assume all of the gibbs derivative terms are equal to some constant $C$ (this is not a reasonable assumption, but it makes the calculation much easier) gives us:
+
+\begin{align} 
+\begin{split}
+\gamma &= \lambda+\frac{\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}{C}+\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)+(-\frac{\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}{C})C}{C}\\
+&=\lambda+\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}{C}
+\end{split}
+\end{align}
+
+This expression is similar to the relationship between $\beta$ and $\lambda$: if the prediction gain from using $\mathcal{Q}_{1:N,T}$ is positive, we decrease $\gamma$ (and vice versa), giving us some equilibrium point.
+
 Finally, deriving Equation \ref{eq:pb-adapt-multi} by $\lambda$ gets us:
 
-$$\beta \hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-(\beta-\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\gamma\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T)-ln\xi(\mathcal{Q}_{1:N},\lambda)+\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=0$$
+$$\beta \hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-(\beta-\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\gamma\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T)-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_t}+\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=0$$
 
-$$\beta(\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T))+\gamma(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T))-ln\xi(\mathcal{Q}_{1:N},\lambda)=\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=0$$
+$$\beta(\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T))+\gamma(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T))-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_t}=\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=0$$
 
-Since $$\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=\frac{E_{P\sim \mathcal{Q}_{1:N}}\left [-(\hat{L}(Q(P,S_T), S_T)-E_S\hat{L}(Q(P,S), S))e^{-\lambda(\hat{L}(Q(P,S_T), S_T)-E_S\hat{L}(Q(P,S), S))} \right ]}{E_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\lambda(\hat{L}(Q(P,S_T), S_T)-E_S\hat{L}(Q(P,S), S))} \right ]}\triangleq R_\xi(\lambda)$$
+Since $$\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=\frac{E_{P\sim \mathcal{Q}_{1:N},S\sim D}E_{h\sim P}\left [-(E_S\hat{L}(h, S)-\hat{L}(h, S))e^{-\lambda(E_S\hat{L}(h, S)-\hat{L}(h, S))} \right ]}{E_{P\sim \mathcal{Q}_{1:N},S\sim D}E_{h\sim P}\left [e^{-\lambda(E_S\hat{L}(h, S)-\hat{L}(h, S)} \right ]}\triangleq R_\xi(\lambda)$$
 
 We have
 
 \begin{align} 
 \begin{split}
-\lambda = \frac{\beta(\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T))+\gamma(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T))-ln\xi(\mathcal{Q}_{1:N},\lambda)}{R_\xi(\lambda)}
+\lambda = \frac{\beta(\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T))+\gamma(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T))-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_t}}{R_\xi(\lambda)}
 \end{split}
 \end{align}
 
-This is a rather interesting expression, as we can see that if the transfer from $\mathcal{Q}_{1:N}$ to $\mathcal{Q}_{1:N,T}$ is beneficial, we increase $\lambda$ in proportion to $\gamma$ times the relative gain, and similarly for $\beta$ and the gain from the base learner. The moment term acts as a counter-balance, as increasing $\lambda$ too much will cause the moment to diverge.
+This is a rather interesting expression, as we can see that if the transfer from $\mathcal{Q}_{1:N}$ to $\mathcal{Q}_{1:N,T}$ is beneficial, we increase $\lambda$ in proportion to $\gamma$ times the relative gain, and similarly for $\beta$ and the gain from the base learner. The moment term acts as a counter-balance, as increasing $\lambda$ too much will cause the moment to diverge. This means that the more we gain from a specific type of adaptation via $S_T$, the more weight we should give to the empirical loss part of the bound (compared to the complexity part). One odd thing about this equation is that we can expect $R_\xi(\lambda)<0$, making these observations strange.
 
 %We can also use Jensen's inequality on the third term here to get:
 %
