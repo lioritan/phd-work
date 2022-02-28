@@ -1745,6 +1745,42 @@ If $m$ is large enough, this is tighter than the bound for using $\mathcal{Q}_0$
 %For this new bound, we can change the ratios depending on the prior, giving us a prior that can potentially create a better mixture of the models. This is offset by the $\alpha(P)(1-\alpha(P))$ term, encouraging one of $\alpha(P), 1-\alpha(P)$ to be low in expectation over the better meta-prior. This can be seen as an approximate sparsity term.
 
 
+\subsection{On the connections between MI, stability and PB - 28.2.22}
+\begin{defn}
+	The mutual information of to RVs is defined as $$I(X; Y)\triangleq D_{KL}(P_{X,Y}|| P_{X\bigotimes Y})$$ Meaning the KL-divergence of the joint probability from the product of both probabilities. If $X,Y$ are independent $I(X; Y)=0$.
+\end{defn}
+
+\begin{defn}
+	 A deterministic algorithm $A$ is called $\beta-$\emph{uniformly stable} with respect to loss $\mathcal{L}$ if for any dataset $S\in \mathcal{Z}^m$ and example $z\in \mathcal{Z}$, we have for all $i\in\{1,...,m\}$ that $$E_{\theta\sim P_\theta} \left |\mathcal{L}(h_{A(\theta,S)}, z) - \mathcal{L}(h_{A(\theta,S^i)}, z)\right | \leq \beta $$
+	 where $S^i$ is identical to $S$ except that the i-th example is replaced with some $z_i'\in \mathcal{Z}$. (A similar high-probability definition exists for non-deterministic algorithms)
+\end{defn}
+
+It is well-known (find a citation, probably Catoni) that Gibbs is a uniformly stable non-deterministic algorithm.
+
+(Tighter PAC-Bayes bounds with distribution dependent priors, 2013) Examines the optimal prior $\arg\min_P E_S\left [D_{KL}(Q_S||P)\right ]=E_S\left [Q_S\right ]$. For this optimal prior, we have $E_S\left [D_{KL}(Q_S||P)\right ]=I(h; D) $. This means if we knew the distribution we could pick the optimal P and minimize MI (a tighter bound).
+
+From (Information-theoretic generalization bounds for SGLD via data-dependent estimates, 2019) we know that for a data-dependent prior $P$, $$E_F\left [D_{KL}(Q||P)\right ]\geq I^F(\theta;S)$$
+Where $F=M(H)$ and $I^F$ is the MI given $F$. We have equality if $P=P_F(\theta)$, meaning the data dependent prior is the probability of the parameters and does not depend on $S$, so $F$ and $S$ are foreign and thus $S$ can be used for an unbiased estimate of $\theta$.
+
+(Catoni 2007) showed that for mean approximately correct (MAC) - like PAC with expectation over $S$, the prior that minimizes the MAC bound turns the $D_{KL}(Q||P)$ into $I(\theta;S)$.
+
+(How Tight Can PAC-Bayes be in the Small Data Regime?, 2021) shows that if $S$ is known in advance, the optimal PB bound (in terms of trade-off on KL and loss term weights) with $P=Q$ (meaning MI is zero) is equivalent to a Chernoff test set bound on the training data. 
+
+(An Exact Characterization of the Generalization Error for the Gibbs Algorithm, 2021) shows that the generalization gap \emph{equals} the symmetric version of the MI divided by the Gibbs parameter. This also implies that for the Gibbs classifier, the generalization gap is concave and therefore training a model on multiple independent training sets would lead to poor generalization.
+
+(A Closer Look at the Training Strategy for Modern Meta-Learning, 2020) has a strong generalization guarantee on uniformly stable algorithms with a slightly stronger condition (if loss is smooth and bounded this is reasonable). The support/query method of meta-learning leads to generalization bounds that don't depend on $m$. This as recently improved using an MI bound.
+
+(An Information-Theoretic Analysis of the Impact of Task Similarity on Meta-Learning) uses a much harder definition of generalization gap (the average absolute value of the difference) and show an MI bound for sufficiently similar task distributions (in terms of KL divergence of the data) that decomposes nicely to meta-level (MI+KL) and per-task KL, and when they are similar it's in terms of average $I(U;S_i)$ where $U$ are the meta-parameters.
+
+(Exploring generalization in deep learning, 2017) examines several ways to define complexity (as norm) and the effect of sharpness. Expected sharpness (=how much the loss is affected by random noise in parameter space) combined with complexity leads to a useful PB bound on generalization with a clear trade-off between sharpness and complexity. Most real nets converge to a low sharpness solution, so they can generalize well but have high complexity.
+
+(Generalization bounds via convex analysis, 2022) explores MI based bounds on the generalization gap (note that we also need the train error to be low or these bounds are meaningless), known to be tighter than KL bounds. It seems that low MI by itself is not enough without some assumptions on the loss (similar to moment assumptions in standard PB), but if e have such assumptions we can have tighter MI bounds.
+
+(Generalization bounds for deep learning, 2020) Goes over much of the literature of generalization bounds and examines them. It highlights NTK bounds as a promising direction with problematic assumptions, expected sharpness PB bounds as good, stability bounds as problematic as they diverge with training time and sample size, and suggest a new bound based on marginal likelihood PB. This is essentially PB with functional KL. They show that $D_{KL}(Q||P)\leq D_{KL}(Q_{par}||P_{par})$, so functional KL is always better than parametric (weight) KL. Their new bound is expensive to calculate and does not have theoretical justification. The marginal PB bound measures flatness and compares the prior and posterior in the region with zero training error.
+
+(PB information bottleneck, 2022) shows that the MI can be estimated via the Fisher information matrix (for Gaussians), suggesting a connection between MI minimization and Natural Gradient Descent.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{*Model-Based RL - 1.3.21} \label{sec:mbrl}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
