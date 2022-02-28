@@ -1123,34 +1123,69 @@ $$E_{h\sim Q_0}\left [\left (Z_{\beta}(Q_0,T)-e^{-\beta\hat{\mathcal{L}}(h,T)}\r
 This condition on $Q_0$ roughly translates to a requirement that for $h$ such that $\hat{\mathcal{L}}(h,T)<\hat{\mathcal{L}}(Q_0,T)$, we also have low $\hat{\mathcal{L}}(h,S)$.
 In other words, if a given hypothesis does well on $T$ it should also do well on $S$.
 
-\subsection{Using the adaptation data - 24.2.22}
+\subsection{Using the adaptation data - 28.2.22}
+
+\begin{tabular} {|c | c|}
+	\hline
+	Symbol & Meaning \\
+	\hline
+	$S\subset \mathcal{Z}$ & A set of examples \\
+	D & A task distribution\\
+	N & Number of training tasks \\
+	m & Size of each task sample ($|S|=m$)\\
+	T & Test set index \\
+	H & Hypothesis space \\
+	$P\in M(H)$ & Prior hypothesis distribution \\
+	$Q\in M(H)$ & posterior hypothesis distribution \\
+	$\mathcal{P} \in M(M(H))$ & Hyper-prior \\
+	$\mathcal{Q} \in M(M(H))$ & Hyper-posterior \\
+	$l:Z\rightarrow [a,b] $ & Loss function, assumed bounded (sub-gamma is also an option) \\
+	KL & KL-Divergence distance\\
+	\hline
+\end{tabular}
 
 \subsubsection{gibbs}
 
-Let $\mathcal{Q}_{1:N}$ be a hyper-posterior learned on the training data, and let $\mathcal{Q}_{1:N,T}\propto \mathcal{Q}_{1:N}e^{-\gamma\hat{\mathcal{L}}(P,S_T)}$
+\begin{defn}
+	$$\mathcal{L}(h, D)\triangleq E_{z\sim D}\left [l(h,z)\right ]$$
+\end{defn}
+
+\begin{defn}
+	$$\mathcal{L}(\mathcal{Q}, D)\triangleq E_{P\sim \mathcal{Q}}E_{S\sim D^m}E_{h\sim Q(S,P)} \left [\mathcal{L}(h, D)\right ]$$
+\end{defn}
+
+Let $\mathcal{Q}_{1:N}$ be a hyper-posterior learned on the training data $\{S_1,...,S_N\}$, and let $\mathcal{Q}_{1:N,T}\propto \mathcal{Q}_{1:N}e^{-\gamma\hat{\mathcal{L}}(P,S_T)}$
 
 %From \cite{Rothfuss2020}, with Hoeffding on the test task (and $Q$ being gibbs with parameter $\beta=O(\sqrt{m})$ we know:
 
 %$$\mathcal{L}(\mathcal{Q}_{1:N}, D_T) \leq \mathcal{L}(\mathcal{Q}_{1:N}, \mathcal{T}) + C(\delta_T,m) \leq (\frac{1}{\sqrt{n}}+\frac{1}{n\sqrt{m}})KL(\mathcal{Q}_{1:N}||\mathcal{P})-\frac{1}{n\sqrt{m}}\sum_{i}E_{P\sim \mathcal{Q}_{1:N}}\left [lnZ_{\beta}(S_i,P)\right ]+C(\delta,m, n)$$
 
-Using \cite{Rivasplata2020} on a 2-level hypothesis $(\mathcal{Q},Q), (\mathcal{P}, P)$, with $\mathcal{P}=\mathcal{Q}_{1:N}$, we get 
+Using \cite{Rivasplata2020} (Theorem 2) on a 2-level hypothesis $(\mathcal{Q},Q), (\mathcal{P}, P)$, with $\mathcal{P}=\mathcal{Q}_{1:N}$ and $F=\lambda\left (\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T)-\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\right )$ we get with probability at least $1-\delta_t$ over the draw of $S_T$ that: \textcolor{red}{Is this also over the draw of $D_T$?}
 
 $$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq \hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\lambda}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})+\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [KL(Q(P,S_T)||P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_t}$$
 
-Since the base learner $Q$ is gibbs with parameter $\beta$:
+where $$\xi(\lambda,\mathcal{Q}_{1:N})=E_{S\sim D_T, P\sim \mathcal{Q}_{1:N}, h\sim P}\left [e^{\lambda\left (\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T)-\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\right )} \right]$$
+
+If we choose the base learner $Q$ to be the Gibbs learner with parameter $\beta$:
+
+$$KL(Q(P,S_T)||P)=-\beta\hat{\mathcal{L}}(Q(P,S_T), S_T)-lnZ_\beta(S_T,P)$$
+
+Where $$Z_\beta(S,P)=E_{h\sim P} \left [ e^{-\beta\hat{\mathcal{L}}(h,S)}\right ]$$
+
+And therefore,
 
 $$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\lambda}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_t}$$
 
-And we also have 
+Since our hyper-posterior is also Gibbs, we have 
 $$KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})=-\gamma\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]$$ 
 
-Where $\hat{\mathcal{L}}'$ is without task adaptation.
+Where $\hat{\mathcal{L}}'(\mathcal{Q},S)=E_{P\sim \mathcal{Q}}E_{h\sim P}\left [\hat{\mathcal{L}}(h, S)\right ]$ is the average empirical loss without prior adaptation.
 So,
 $$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) -\frac{\gamma}{\lambda}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) - \frac{1}{\lambda}lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_t}$$
 
-We note that the second term is not quite the same as the third ($Z_\beta(S,P)=E_{h\sim P} \left [ e^{-\beta\hat{\mathcal{L}}(h,S)}\right ]$) as the order of expectations is different and the hyper-prior is also different. We can add adaptation in $\mathcal{Q}_{1:N,T}$ to simplify this expression to an extent. 
+We note that the second term is not quite the same as the third ($Z_\beta(S,P)=E_{h\sim P} \left [ e^{-\beta\hat{\mathcal{L}}(h,S)}\right ]$) as the order of expectations is different and the hyper-prior is also different. 
 
-By simplifying the third and fourth terms using Jensen's inequality (this is not optimal but sufficient for now) we get:
+By simplifying the third and fourth terms using Jensen's inequality (this is not tight but gives us a useful bound) we get:
 
 \begin{equation} \label{eq:pb-adapt-multi}
 \mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq 
@@ -1215,7 +1250,7 @@ And so we get for $\beta$:
 
 We note that the denominator is positive, so we have a simple implicit function of $\beta$ where we decrease $\beta$ proportionally to the prediction gain for the base learner compared to the new posterior. This seems counter-intuitive, as we would expect that positive gain would mean higher $\beta$, but it encourages a stable equilibrium point. 
 
-Plugging this value into our equation for $\gamma$, if we assume all of the gibbs derivative terms are equal to some constant $C$ (this is not a reasonable assumption, but it makes the calculation much easier) gives us:
+Plugging this value into our equation for $\gamma$, if we assume all of the gibbs derivative terms are equal to some constant $C$ (this is not always reasonable assumption, but it provides us some useful insights) gives us:
 
 \begin{align} 
 \begin{split}
@@ -1232,7 +1267,7 @@ $$\beta \hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-(\beta-\gamma)\hat{\mathcal{
 
 $$\beta(\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T))+\gamma(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T))-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_t}=\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=0$$
 
-Since $$\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=\frac{E_{P\sim \mathcal{Q}_{1:N},S\sim D}E_{h\sim P}\left [-(E_S\hat{L}(h, S)-\hat{L}(h, S))e^{-\lambda(E_S\hat{L}(h, S)-\hat{L}(h, S))} \right ]}{E_{P\sim \mathcal{Q}_{1:N},S\sim D}E_{h\sim P}\left [e^{-\lambda(E_S\hat{L}(h, S)-\hat{L}(h, S)} \right ]}\triangleq R_\xi(\lambda)$$
+Since $$\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=\frac{E_{P\sim \mathcal{Q}_{1:N},S\sim D}E_{h\sim P}\left [(E_S\hat{L}(h, S)-\hat{L}(h, S))e^{\lambda(E_S\hat{L}(h, S)-\hat{L}(h, S))} \right ]}{E_{P\sim \mathcal{Q}_{1:N},S\sim D}E_{h\sim P}\left [e^{\lambda(E_S\hat{L}(h, S)-\hat{L}(h, S)} \right ]}\triangleq R_\xi(\lambda)$$
 
 We have
 
