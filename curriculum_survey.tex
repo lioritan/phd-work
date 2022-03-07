@@ -1123,7 +1123,7 @@ $$E_{h\sim Q_0}\left [\left (Z_{\beta}(Q_0,T)-e^{-\beta\hat{\mathcal{L}}(h,T)}\r
 This condition on $Q_0$ roughly translates to a requirement that for $h$ such that $\hat{\mathcal{L}}(h,T)<\hat{\mathcal{L}}(Q_0,T)$, we also have low $\hat{\mathcal{L}}(h,S)$.
 In other words, if a given hypothesis does well on $T$ it should also do well on $S$.
 
-\subsection{Using the adaptation data - 28.2.22}
+\subsection{Using the adaptation data - 6.3.22}
 
 \begin{tabular} {|c | c|}
 	\hline
@@ -1160,13 +1160,18 @@ Let $\mathcal{Q}_{1:N}$ be a hyper-posterior learned on the training data $\{S_1
 
 %$$\mathcal{L}(\mathcal{Q}_{1:N}, D_T) \leq \mathcal{L}(\mathcal{Q}_{1:N}, \mathcal{T}) + C(\delta_T,m) \leq (\frac{1}{\sqrt{n}}+\frac{1}{n\sqrt{m}})KL(\mathcal{Q}_{1:N}||\mathcal{P})-\frac{1}{n\sqrt{m}}\sum_{i}E_{P\sim \mathcal{Q}_{1:N}}\left [lnZ_{\beta}(S_i,P)\right ]+C(\delta,m, n)$$
 
-Using \cite{Rivasplata2020} (Theorem 2) on a 2-level hypothesis $(\mathcal{Q},Q), (\mathcal{P}, P)$, with $\mathcal{P}=\mathcal{Q}_{1:N}$ and $F=\lambda\left (\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T)-\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\right )$ we get with probability at least $1-\delta_t$ over the draw of $S_T$ that: \textcolor{red}{Is this also over the draw of $D_T$?}
+Using \cite{Rivasplata2020} (Theorem 2) on a 2-level hypothesis $(\mathcal{Q},Q), (\mathcal{P}, P)$, with $\mathcal{P}=\mathcal{Q}_{1:N}$ and $F=\lambda\left (\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T)-\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\right )$ we get with probability at least $1-\delta_T$ over the draw of $S_T$ that: \textcolor{red}{Is this also over the draw of $D_T$?}
 
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq \hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\lambda}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})+\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [KL(Q(P,S_T)||P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_t}$$
+$$E_{P\sim \mathcal{Q}_{1:N,T},h\sim Q(P,S_T)}\left [\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S_T)\right )\right ]\leq KL \Big (((\mathcal{Q}_{1:N,T}, Q(P,S_T))||(\mathcal{Q}_{1:N}, P) \Big )+ ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}$$
 
 where $$\xi(\lambda,\mathcal{Q}_{1:N})=E_{S\sim D_T, P\sim \mathcal{Q}_{1:N}, h\sim P}\left [e^{\lambda\left (\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T)-\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\right )} \right]$$
 
-If we choose the base learner $Q$ to be the Gibbs learner with parameter $\beta$:
+By applying the definitions and using well-known techniques in meta-PAC-Bayes bounds, we can write this equation more simply as:
+
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq \hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\lambda}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})+\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [KL(Q(P,S_T)||P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}$$
+
+
+If we choose the base learner $Q$ to be the Gibbs learner with parameter $\beta$, we have:
 
 $$KL(Q(P,S_T)||P)=-\beta\hat{\mathcal{L}}(Q(P,S_T), S_T)-lnZ_\beta(S_T,P)$$
 
@@ -1174,14 +1179,28 @@ Where $$Z_\beta(S,P)=E_{h\sim P} \left [ e^{-\beta\hat{\mathcal{L}}(h,S)}\right 
 
 And therefore,
 
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\lambda}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_t}$$
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) + \frac{1}{\lambda}KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}$$
 
 Since our hyper-posterior is also Gibbs, we have 
 $$KL(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})=-\gamma\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]$$ 
 
 Where $\hat{\mathcal{L}}'(\mathcal{Q},S)=E_{P\sim \mathcal{Q}}E_{h\sim P}\left [\hat{\mathcal{L}}(h, S)\right ]$ is the average empirical loss without prior adaptation.
 So,
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) -\frac{\gamma}{\lambda}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) - \frac{1}{\lambda}lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_t}$$
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) -\frac{\gamma}{\lambda}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) - \frac{1}{\lambda}lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}$$
+
+In order to clarify this expression, we will use more intuitive definitions for our empirical losses:
+
+\begin{defn}
+	We define $\hat{\mathcal{L}}_{full}\triangleq \hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)=E_{P\sim \mathcal{Q}_{1:N,T}}E_{h\sim Q(P,S_T)}\left [\hat{\mathcal{L}}(h, S_T)\right ]$ as the fully adapted loss, meaning $S_T$ is used to adapt both the hyper-prior ($\mathcal{Q}_{1:N}$) and the sampled prior. $\hat{\mathcal{L}}_{full}$ is a function of both $\gamma$ and $\beta$.
+	
+	We define $\hat{\mathcal{L}}_{meta}\triangleq \hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)=E_{P\sim \mathcal{Q}_{1:N,T}}E_{h\sim P}\left [\hat{\mathcal{L}}(h, S_T)\right ]$ as the meta adapted loss, meaning $S_T$ is used only on the hyper-prior level. $\hat{\mathcal{L}}_{meta}$ is a function of $\gamma$.
+	
+	We define $\hat{\mathcal{L}}_{base}\triangleq \hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T)=E_{P\sim \mathcal{Q}_{1:N}}E_{h\sim P}\left [\hat{\mathcal{L}}(h, S_T)\right ]$ as the base loss on the hyper-prior. $\hat{\mathcal{L}}_{base}$ does not depend on $\gamma$ and $\beta$.
+\end{defn}
+
+Using these definitions, we get:
+
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\beta}{\lambda})\hat{\mathcal{L}}_{full} -\frac{\gamma}{\lambda}\hat{\mathcal{L}}_{meta} - \frac{1}{\lambda}lnE_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(P,S_T)}\right ]-\frac{1}{\lambda}E_{P\sim \mathcal{Q}_{1:N,T}}\left [lnZ_{\beta}(S_T,P)\right ]+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}$$
 
 We note that the second term is not quite the same as the third ($Z_\beta(S,P)=E_{h\sim P} \left [ e^{-\beta\hat{\mathcal{L}}(h,S)}\right ]$) as the order of expectations is different and the hyper-prior is also different. 
 
@@ -1189,54 +1208,54 @@ By simplifying the third and fourth terms using Jensen's inequality (this is not
 
 \begin{equation} \label{eq:pb-adapt-multi}
 \mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq 
-(1-\frac{\beta}{\lambda})\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) +(\frac{\beta-\gamma}{\lambda})\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + \frac{\gamma}{\lambda}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T) +\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_t}
+(1-\frac{\beta}{\lambda})\hat{\mathcal{L}}_{full} +(\frac{\beta-\gamma}{\lambda})\hat{\mathcal{L}}_{meta} + \frac{\gamma}{\lambda}\hat{\mathcal{L}}_{base} +\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}
 \end{equation}
 
 Deriving by $\gamma$ gets us:
 
-$$(1-\frac{\beta}{\lambda})\frac{d}{d\gamma}\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T) -\frac{1}{\lambda}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) + (\frac{\beta-\gamma}{\lambda})\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) +\frac{1}{\lambda}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T) =0$$
+$$(1-\frac{\beta}{\lambda})\frac{d}{d\gamma}\hat{\mathcal{L}}_{full} -\frac{1}{\lambda}\hat{\mathcal{L}}_{meta} + (\frac{\beta-\gamma}{\lambda})\frac{d}{d\gamma}\hat{\mathcal{L}}_{meta} +\frac{1}{\lambda}\hat{\mathcal{L}}_{base} =0$$
 
 We must calculate the derivatives of the expected losses:
 
-$$\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)=\int \frac{d}{d\gamma}\mathcal{Q}_{1:N,T}(P)\hat{\mathcal{L}}(P, S_T)dP=\int \mathcal{Q}_{1:N}(P)\hat{\mathcal{L}}(P, S_T)\frac{d}{d\gamma}\frac{e^{-\gamma\hat{\mathcal{L}}(P,S_T)}}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}dP$$
+$$\frac{d}{d\gamma}\hat{\mathcal{L}}_{meta}=\int \frac{d}{d\gamma}\mathcal{Q}_{1:N,T}(P)\hat{\mathcal{L}}(P, S_T)dP=\int \mathcal{Q}_{1:N}(P)\hat{\mathcal{L}}(P, S_T)\frac{d}{d\gamma}\frac{e^{-\gamma\hat{\mathcal{L}}(P,S_T)}}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}dP$$
 
 $$=\int \mathcal{Q}_{1:N}(P)\hat{\mathcal{L}}(P, S_T)\frac{-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)}E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]-e^{-\gamma\hat{\mathcal{L}}(P,S_T)}E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]^2}dP$$
 
 $$=\int \mathcal{Q}_{1:N,T}(P)\hat{\mathcal{L}}(P, S_T)\left (-\hat{\mathcal{L}}(P,S_T)-\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}\right)dP$$
 
-To conclude,
+To conclude our calculation of the derivative, we get:
 
-$$\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)=-E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]-\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) $$
+$$\frac{d}{d\gamma}\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)=-E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]-\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}\hat{\mathcal{L}}_{meta} $$
 
-Marking $R(\gamma)=\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}$, we get
+Marking $R(\gamma)=\frac{E_{P\sim \mathcal{Q}_{1:N}}\left[-\hat{\mathcal{L}}(P,S_T)e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}{E_{P\sim \mathcal{Q}_{1:N}}\left[e^{-\gamma\hat{\mathcal{L}}(P,S_T)} \right]}$ for convenience, we can return to the original equation and replace the derivative with this expression to find the optimal value of $\gamma$:
 
 \begin{align*} 
 \begin{split}
-&-(\lambda-\beta)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)\right]+R(\gamma)\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\right )\\& - (\beta-\gamma)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)\right )\\& =\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)
+&-(\lambda-\beta)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)\right]+R(\gamma)\hat{\mathcal{L}}_{full}\right )\\& - (\beta-\gamma)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}_{meta}\right )\\& =\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{base}
 \end{split}
 \end{align*}
 
 \begin{align*} 
 \begin{split}
- -(\beta-\gamma) = \frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)+(\lambda-\beta)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)\right]+R(\gamma)\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\right )}{E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}
+ -(\beta-\gamma) = \frac{\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{base}+(\lambda-\beta)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)\right]+R(\gamma)\hat{\mathcal{L}}_{full}\right )}{E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}_{meta}}
 \end{split}
 \end{align*}
 
 \begin{align} 
 \begin{split}
-\gamma = \beta+\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)+(\lambda-\beta)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)\right]+R(\gamma)\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\right )}{E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}
+\gamma = \beta+\frac{\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{base}+(\lambda-\beta)\left (E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)\hat{\mathcal{L}}(Q(P,S_T),S_T)\right]+R(\gamma)\hat{\mathcal{L}}_{full}\right )}{E_{P\sim \mathcal{Q}_{1:N,T}}\left [\hat{\mathcal{L}}(P,S_T)^2\right]+R(\gamma)\hat{\mathcal{L}}_{meta}}
 \end{split}
 \end{align}
 
-We note that if $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$ is low, we should have $\lambda < \beta$ (and we will later see this seems likely) to ensure $\gamma < \beta$. If $\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)$ is high or the gain from using $S_T$ for the hyper-posterior is high, unless $\lambda \gg \beta$ (unlikely) we have $\gamma < \beta$. This means that the implicit function encourages a stable equilibrium (lower $\gamma$) if there is a benefit to using $S_T$ in the hyper-posterior, and encourages increasing $\gamma$ if the base hyper-posterior is already good.
+We note that if $\hat{\mathcal{L}}_{base}$ is low, we should have $\lambda < \beta$ (and we will later see this seems likely) to ensure $\gamma < \beta$. If $\hat{\mathcal{L}}_{base}$ is high or the gain from using $S_T$ for the hyper-posterior is high, unless $\lambda \gg \beta$ (unlikely) we have $\gamma < \beta$. This means that the implicit function encourages a stable equilibrium (lower $\gamma$) if there is a benefit to using $S_T$ in the hyper-posterior, and encourages increasing $\gamma$ if the base hyper-posterior is already good.
 
-Deriving Equation \ref{eq:pb-adapt-multi} by $\beta$ gives us (since $\hat{\mathcal{L}}'$ does not depend on $\beta$, and the moment is on $P$):
+Deriving Equation \ref{eq:pb-adapt-multi} by $\beta$ gives us (since $\hat{\mathcal{L}}_{meta}$ does not depend on $\beta$, and the moment is on $P$):
 
-$$-\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)+(\lambda-\beta)\frac{d}{d\beta}\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)+\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)=0 $$
+$$-\hat{\mathcal{L}}_{full}+(\lambda-\beta)\frac{d}{d\beta}\hat{\mathcal{L}}_{full}+\hat{\mathcal{L}}_{meta}=0 $$
 
 In a similar manner to before, we get
 
-$$-(\lambda-\beta)E_{P\sim \mathcal{Q}_{1:N,T}}E_{h\sim Q(P,S_T)}\left [\hat{\mathcal{L}}(h,S_T)^2+R'(\beta)\hat{\mathcal{L}}(h, S_T) \right ] =\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T) $$
+$$-(\lambda-\beta)E_{P\sim \mathcal{Q}_{1:N,T}}E_{h\sim Q(P,S_T)}\left [\hat{\mathcal{L}}(h,S_T)^2+R'(\beta)\hat{\mathcal{L}}(h, S_T) \right ] =\hat{\mathcal{L}}_{full}-\hat{\mathcal{L}}_{meta} $$
 
 Where $R'(\beta)=\frac{E_{h\sim P}\left[-\hat{\mathcal{L}}(h,S_T)e^{-\beta\hat{\mathcal{L}}(h,S_T)} \right]}{E_{h\sim P}\left[e^{-\beta\hat{\mathcal{L}}(h,S_T)} \right]}$
 
@@ -1244,7 +1263,7 @@ And so we get for $\beta$:
 
 \begin{align} 
 \begin{split}
-\beta = \lambda+\frac{\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}{E_{P\sim \mathcal{Q}_{1:N,T}}E_{h\sim Q(P,S_T)}\left [\hat{\mathcal{L}}(h,S_T)^2+R'(\beta)\hat{\mathcal{L}}(h, S_T) \right ]}
+\beta = \lambda+\frac{\hat{\mathcal{L}}_{full}-\hat{\mathcal{L}}_{meta}}{E_{P\sim \mathcal{Q}_{1:N,T}}E_{h\sim Q(P,S_T)}\left [\hat{\mathcal{L}}(h,S_T)^2+R'(\beta)\hat{\mathcal{L}}(h, S_T) \right ]}
 \end{split}
 \end{align}
 
@@ -1254,8 +1273,8 @@ Plugging this value into our equation for $\gamma$, if we assume all of the gibb
 
 \begin{align} 
 \begin{split}
-\gamma &= \lambda+\frac{\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}{C}+\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)+(-\frac{\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)}{C})C}{C}\\
-&=\lambda+\frac{\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N},S_T)}{C}
+\gamma &= \lambda+\frac{\hat{\mathcal{L}}_{full}-\hat{\mathcal{L}}_{meta} }{C}+\frac{\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{base}+(-\frac{\hat{\mathcal{L}}_{full}-\hat{\mathcal{L}}_{meta}}{C})C}{C}\\
+&=\lambda+\frac{\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{base}}{C}
 \end{split}
 \end{align}
 
@@ -1263,21 +1282,21 @@ This expression is similar to the relationship between $\beta$ and $\lambda$: if
 
 Finally, deriving Equation \ref{eq:pb-adapt-multi} by $\lambda$ gets us:
 
-$$\beta \hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-(\beta-\gamma)\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\gamma\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T)-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_t}+\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=0$$
+$$\beta \hat{\mathcal{L}}_{full}-(\beta-\gamma)\hat{\mathcal{L}}_{meta}-\gamma\hat{\mathcal{L}}_{base}-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_T}+\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N},\lambda)=0$$
 
-$$\beta(\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T))+\gamma(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T))-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_t}=\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=0$$
+$$\beta(\hat{\mathcal{L}}_{full}-\hat{\mathcal{L}}_{meta})+\gamma(\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{base})-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_T}=\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N},\lambda)=0$$
 
-Since $$\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N}\lambda)=\frac{E_{P\sim \mathcal{Q}_{1:N},S\sim D}E_{h\sim P}\left [(E_S\hat{L}(h, S)-\hat{L}(h, S))e^{\lambda(E_S\hat{L}(h, S)-\hat{L}(h, S))} \right ]}{E_{P\sim \mathcal{Q}_{1:N},S\sim D}E_{h\sim P}\left [e^{\lambda(E_S\hat{L}(h, S)-\hat{L}(h, S)} \right ]}\triangleq R_\xi(\lambda)$$
+Since $$\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N},\lambda)=\frac{E_{P\sim \mathcal{Q}_{1:N},S\sim D}E_{h\sim P}\left [(E_S\hat{L}(h, S)-\hat{L}(h, S))e^{\lambda(E_S\hat{L}(h, S)-\hat{L}(h, S))} \right ]}{E_{P\sim \mathcal{Q}_{1:N},S\sim D}E_{h\sim P}\left [e^{\lambda(E_S\hat{L}(h, S)-\hat{L}(h, S)} \right ]}\triangleq R_\xi(\lambda)$$
 
 We have
 
 \begin{align} 
 \begin{split}
-\lambda = \frac{\beta(\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T))+\gamma(\hat{\mathcal{L}}'(\mathcal{Q}_{1:N,T}, S_T)-\hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T))-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_t}}{R_\xi(\lambda)}
+\lambda = \frac{\beta(\hat{\mathcal{L}}_{full}-\hat{\mathcal{L}}_{meta})+\gamma(\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{base})-ln\frac{\xi(\mathcal{Q}_{1:N},\lambda)}{\delta_T}}{R_\xi(\lambda)}
 \end{split}
 \end{align}
 
-This is a rather interesting expression, as we can see that if the transfer from $\mathcal{Q}_{1:N}$ to $\mathcal{Q}_{1:N,T}$ is beneficial, we increase $\lambda$ in proportion to $\gamma$ times the relative gain, and similarly for $\beta$ and the gain from the base learner. The moment term acts as a counter-balance, as increasing $\lambda$ too much will cause the moment to diverge. This means that the more we gain from a specific type of adaptation via $S_T$, the more weight we should give to the empirical loss part of the bound (compared to the complexity part). One odd thing about this equation is that we can expect $R_\xi(\lambda)<0$, making these observations strange.
+This is a rather interesting expression, as we can see that if the transfer from $\mathcal{Q}_{1:N}$ to $\mathcal{Q}_{1:N,T}$ is beneficial, we increase $\lambda$ in proportion to $\gamma$ times the relative gain, and similarly for $\beta$ and the gain from the base learner. The moment term $\xi$ acts as a counter-balance, as increasing $\lambda$ too much will cause the moment to diverge. This makes intuitive sense, as it means that the more we gain from a specific type of adaptation via $S_T$, the more weight we should give to the empirical loss part of the bound (compared to the complexity part). 
 
 %We can also use Jensen's inequality on the third term here to get:
 %
