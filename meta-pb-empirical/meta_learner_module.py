@@ -1,6 +1,9 @@
 import torch
 import numpy as np
 import learn2learn as l2l
+from learn2learn.utils import clone_module
+
+from optimizers.sgld_variant_optim import SimpleSGLD
 
 
 def accuracy(predictions, targets):
@@ -19,7 +22,11 @@ class MetaLearner(object):
             nn_model,
             f_loss,
             device,
-            seed):
+            seed,
+            n_ways,
+            gamma,
+            reset_clf_on_meta_loop,
+    ):
 
         self.meta_batch_size = meta_batch_size
         self.train_adapt_steps = train_adapt_steps
@@ -27,8 +34,11 @@ class MetaLearner(object):
         self.device = device
         self.maml = l2l.algorithms.MAML(nn_model, lr=per_task_lr, first_order=False).to(device)
         self.loss = f_loss
-        self.opt = torch.optim.Adam(self.maml.parameters(), meta_lr)
+        self.train_opt = torch.optim.Adam(self.maml.parameters(), meta_lr)
+        self.test_opt = SimpleSGLD(self.maml.parameters(), meta_lr, beta=gamma)
         self.seed = seed
+        self.n_ways = n_ways
+        self.reset_clf_on_meta_loop = reset_clf_on_meta_loop
 
     def calculate_meta_loss(self, task_batch, learner, adapt_steps):
         D_task_xs, D_task_ys = task_batch
@@ -63,14 +73,19 @@ class MetaLearner(object):
 
         return evaluation_error, evaluation_accuracy, predictions, features
 
-    def meta_train(self, n_epochs, train_taskset):
+    def meta_train(self, n_epochs, train_taskset, testing_mode=False):
+
+        opt = self.test_opt if testing_mode else self.train_opt
 
         meta_train_errors = []
         meta_train_accs = []
 
         for epoch in range(n_epochs):
 
-            self.opt.zero_grad()
+            opt.zero_grad()
+            if self.reset_clf_on_meta_loop:
+                self.maml.module.classifier.weight.data.normal_()
+                self.maml.module.classifier.bias.data.mul_(0.0)
             meta_train_error = 0.0
             meta_train_accuracy = 0.0
 
@@ -82,14 +97,14 @@ class MetaLearner(object):
                 evaluation_error, evaluation_accuracy, prediction, features = \
                     self.calculate_meta_loss(batch, learner, self.train_adapt_steps)
 
-                evaluation_error.backward() # TODO: SGLD
+                evaluation_error.backward()  # TODO: SGLD - internal optimizer! needs a lot of changes
                 meta_train_error += evaluation_error.item()
                 meta_train_accuracy += evaluation_accuracy.item()
 
             # Average the accumulated task gradients and optimize
             for p in self.maml.parameters():  # Note: this is somewhat bad practice
                 p.grad.data.mul_(1.0 / self.meta_batch_size)
-            self.opt.step()
+            opt.step()
             # Logging
             norm_meta_train_error = meta_train_error / self.meta_batch_size
             norm_meta_train_accuracy = meta_train_accuracy / self.meta_batch_size
@@ -101,7 +116,9 @@ class MetaLearner(object):
 
         return meta_train_errors, meta_train_accs
 
-    def meta_test(self, test_taskset):
+    def meta_test(self, test_meta_epochs, test_taskset):
+
+        self.meta_train(test_meta_epochs, test_taskset, testing_mode=True)
 
         # calculate test error
 

@@ -1,10 +1,12 @@
+import math
+
 import torch
 from torch.optim import Optimizer
 
 
 # Pytorch Port of a previous tensorflow implementation in `tensorflow_probability`:
 # https://github.com/tensorflow/probability/blob/master/tensorflow_probability/g3doc/api_docs/python/tfp/optimizer/StochasticGradientLangevinDynamics.md
-class SGLD(Optimizer):
+class SimpleSGLD(Optimizer):
     """ Stochastic Gradient Langevin Dynamics Sampler with preconditioning.
         Optimization variable is viewed as a posterior sample under Stochastic
         Gradient Langevin Dynamics with noise rescaled in each dimension
@@ -79,10 +81,15 @@ class SGLD(Optimizer):
                 scaled_noise = (
                     torch.normal(
                         mean=torch.zeros_like(gradient),
-                        std=torch.ones_like(gradient)
-                    ) * sigma * torch.sqrt(2*lr*(1./beta))
-                )
+                        std=torch.ones_like(gradient) * math.sqrt(lr/beta)
+                    ) * sigma
+                )  # Noise is N(0, sqrt(lr/beta))
 
-                parameter.data.add_(-lr * gradient - scaled_noise)
+                # Note: noise is scaled to gradient to make it less random
+                scale_noise_to_grad = True
+                if scale_noise_to_grad:
+                    scaled_noise = scaled_noise/torch.norm(gradient)
+                parameter.data.add_(-lr * gradient + scaled_noise)
+                # Note: can also just add noise to the grad and do adam
 
         return loss
