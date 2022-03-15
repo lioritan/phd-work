@@ -62,14 +62,14 @@ def run_meta_learner(
 
     if load_trained:
         print(f"load trained model")
-        model.load_state_dict(torch.load("artifacts/model.pkl"))
+        model.load_state_dict(torch.load(f"artifacts/{dataset}/model.pkl"))
     else:
         print(f"meta learner train")
         set_random_seed(seed)
         meta_learner.meta_train(n_epochs, task_sets.train)
 
-    os.makedirs("artifacts", exist_ok=True)
-    torch.save(model.state_dict(), "artifacts/model.pkl")
+    os.makedirs(f"artifacts/{dataset}", exist_ok=True)
+    torch.save(model.state_dict(), f"artifacts/{dataset}/model.pkl")
 
     print(f"meta learner test")
     set_random_seed(seed)

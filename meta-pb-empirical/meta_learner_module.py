@@ -65,13 +65,12 @@ class MetaLearner(object):
 
         # Evaluate the adapted model
         predictions = learner(D_task_xs_error_eval)
-        features = learner.module.features(D_task_xs_error_eval)
         evaluation_error = self.loss(predictions, D_task_ys_error_eval)
         evaluation_accuracy = accuracy(predictions, D_task_ys_error_eval)
 
         del D_task_xs_error_eval, D_task_xs_adapt
 
-        return evaluation_error, evaluation_accuracy, predictions, features
+        return evaluation_error, evaluation_accuracy
 
     def meta_train(self, n_epochs, train_taskset, testing_mode=False):
 
@@ -92,9 +91,9 @@ class MetaLearner(object):
             for task in range(self.meta_batch_size):
                 # Compute meta-training loss
                 learner = self.maml.clone().to(self.device)
-                # get task from schedule
+                # sample
                 batch = train_taskset.sample()
-                evaluation_error, evaluation_accuracy, prediction, features = \
+                evaluation_error, evaluation_accuracy = \
                     self.calculate_meta_loss(batch, learner, self.train_adapt_steps)
 
                 evaluation_error.backward()  # TODO: SGLD - internal optimizer! needs a lot of changes
@@ -129,7 +128,7 @@ class MetaLearner(object):
             learner = self.maml.clone()
             # Random sampling
             D_test_batch = test_taskset.sample()
-            evaluation_error, evaluation_accuracy, _, _ = \
+            evaluation_error, evaluation_accuracy = \
                 self.calculate_meta_loss(D_test_batch, learner, self.test_adapt_steps)
             meta_test_error += evaluation_error.item()
             meta_test_accuracy += evaluation_accuracy.item()
