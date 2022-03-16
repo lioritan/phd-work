@@ -1123,7 +1123,7 @@ $$E_{h\sim Q_0}\left [\left (Z_{\beta}(Q_0,T)-e^{-\beta\hat{\mathcal{L}}(h,T)}\r
 This condition on $Q_0$ roughly translates to a requirement that for $h$ such that $\hat{\mathcal{L}}(h,T)<\hat{\mathcal{L}}(Q_0,T)$, we also have low $\hat{\mathcal{L}}(h,S)$.
 In other words, if a given hypothesis does well on $T$ it should also do well on $S$.
 
-\subsection{Using the adaptation data - 6.3.22}
+\subsection{Using the adaptation data - 16.3.22}
 
 \begin{tabular} {|c | c|}
 	\hline
@@ -1284,19 +1284,23 @@ Finally, deriving Equation \ref{eq:pb-adapt-multi} by $\lambda$ gets us:
 
 $$\beta \hat{\mathcal{L}}_{full}-(\beta-\gamma)\hat{\mathcal{L}}_{meta}-\gamma\hat{\mathcal{L}}_{base}-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_T}+\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N},\lambda)=0$$
 
-$$\beta(\hat{\mathcal{L}}_{full}-\hat{\mathcal{L}}_{meta})+\gamma(\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{base})-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_T}=\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N},\lambda)=0$$
+$$\beta(\hat{\mathcal{L}}_{full}-\hat{\mathcal{L}}_{meta})+\gamma(\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{base})-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_T}+\lambda\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N},\lambda)=0$$
 
 Since $$\frac{d}{d\lambda}ln\xi(\mathcal{Q}_{1:N},\lambda)=\frac{E_{P\sim \mathcal{Q}_{1:N},S\sim D}E_{h\sim P}\left [(E_S\hat{L}(h, S)-\hat{L}(h, S))e^{\lambda(E_S\hat{L}(h, S)-\hat{L}(h, S))} \right ]}{E_{P\sim \mathcal{Q}_{1:N},S\sim D}E_{h\sim P}\left [e^{\lambda(E_S\hat{L}(h, S)-\hat{L}(h, S)} \right ]}\triangleq R_\xi(\lambda)$$
 
 We have
 
+$$\beta(\hat{\mathcal{L}}_{full}-\hat{\mathcal{L}}_{meta})+\gamma(\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{base})-ln\frac{\xi(\mathcal{Q}_{1:N}\lambda)}{\delta_T}=-\lambda R_\xi(\lambda)$$
+
+meaning,
+
 \begin{align} 
 \begin{split}
-\lambda = \frac{\beta(\hat{\mathcal{L}}_{full}-\hat{\mathcal{L}}_{meta})+\gamma(\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{base})-ln\frac{\xi(\mathcal{Q}_{1:N},\lambda)}{\delta_T}}{R_\xi(\lambda)}
+\lambda = \frac{\beta(\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{full})+\gamma(\hat{\mathcal{L}}_{base}-\hat{\mathcal{L}}_{meta})+ln\frac{\xi(\mathcal{Q}_{1:N},\lambda)}{\delta_T}}{R_\xi(\lambda)}
 \end{split}
 \end{align}
 
-This is a rather interesting expression, as we can see that if the transfer from $\mathcal{Q}_{1:N}$ to $\mathcal{Q}_{1:N,T}$ is beneficial, we increase $\lambda$ in proportion to $\gamma$ times the relative gain, and similarly for $\beta$ and the gain from the base learner. The moment term $\xi$ acts as a counter-balance, as increasing $\lambda$ too much will cause the moment to diverge. This makes intuitive sense, as it means that the more we gain from a specific type of adaptation via $S_T$, the more weight we should give to the empirical loss part of the bound (compared to the complexity part). 
+This is a rather interesting expression, as we can see that if the transfer from $\mathcal{Q}_{1:N}$ to $\mathcal{Q}_{1:N,T}$ is beneficial, we increase $\lambda$ in proportion to $\gamma$ times the relative gain, and similarly for $\beta$ and the gain from the base learner. This makes intuitive sense, as it means that the more we gain from a specific type of adaptation via $S_T$, the more weight we should give to the empirical loss part of the bound (compared to the complexity part). The moment term $\xi$ behaves strangely, as it increases with $\lambda$, forming a positive feedback loop that may cause the moment to diverge. 
 
 %We can also use Jensen's inequality on the third term here to get:
 %
