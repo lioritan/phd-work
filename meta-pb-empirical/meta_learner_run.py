@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 
 from Utils.common import set_random_seed
+from data_gen_mnist import MnistDataset
 from meta_learner_module import MetaLearner
 
 
@@ -23,22 +24,34 @@ def run_meta_learner(
         n_test_epochs,
         gamma,
         load_trained,
+        mnist_pixels_to_permute_train=0,
+        mnist_pixels_to_permute_test=0,
         seed=1):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     print("get tasks")
-    task_sets = l2l.vision.benchmarks.get_tasksets(
-        dataset,
-        train_samples=train_sample_size,
-        train_ways=n_ways,
-        test_samples=2 * n_shots,
-        test_ways=n_ways,
-        root='~/data')
+    if dataset == "mnist":
+        task_sets = MnistDataset(data_path='~/data', train_shots=train_sample_size,
+                                 train_ways=n_ways,
+                                 test_shots=2 * n_shots,
+                                 test_ways=n_ways,
+                                 shuffle_pixels=True, permute_labels=False, n_pixels_to_change_train=mnist_pixels_to_permute_train,
+                                 n_pixels_to_change_test=mnist_pixels_to_permute_test) #-1 shuffles all
+    else:
+        task_sets = l2l.vision.benchmarks.get_tasksets(
+            dataset,
+            train_samples=train_sample_size,
+            train_ways=n_ways,
+            test_samples=2 * n_shots,
+            test_ways=n_ways,
+            root='~/data')
 
     # TODO: change this, consider the stochastic network case
     print(f"load model (dataset is {dataset})")
     if dataset == "mini-imagenet":
         model = l2l.vision.models.MiniImagenetCNN(n_ways)
+    elif dataset == "omniglot":
+        model = l2l.vision.models.OmniglotCNN(n_ways)
     else:
         model = l2l.vision.models.OmniglotCNN(n_ways)
     model.to(device)
@@ -73,4 +86,4 @@ def run_meta_learner(
 
     print(f"meta learner test")
     set_random_seed(seed)
-    meta_learner.meta_test(n_test_epochs, task_sets.test)
+    return meta_learner.meta_test(n_test_epochs, task_sets.test)

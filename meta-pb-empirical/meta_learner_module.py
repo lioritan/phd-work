@@ -3,7 +3,7 @@ import numpy as np
 import learn2learn as l2l
 from learn2learn.utils import clone_module
 
-from optimizers.sgld_variant_optim import SimpleSGLD
+from optimizers.sgld_variant_optim import SimpleSGLDPriorSampling
 
 
 def accuracy(predictions, targets):
@@ -35,7 +35,7 @@ class MetaLearner(object):
         self.maml = l2l.algorithms.MAML(nn_model, lr=per_task_lr, first_order=False).to(device)
         self.loss = f_loss
         self.train_opt = torch.optim.Adam(self.maml.parameters(), meta_lr)
-        self.test_opt = SimpleSGLD(self.maml.parameters(), meta_lr, beta=gamma)
+        self.test_opt = SimpleSGLDPriorSampling(self.maml.parameters(), meta_lr, beta=gamma)
         self.seed = seed
         self.n_ways = n_ways
         self.reset_clf_on_meta_loop = reset_clf_on_meta_loop

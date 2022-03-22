@@ -6,12 +6,12 @@ from torch.optim import Optimizer
 
 # Pytorch Port of a previous tensorflow implementation in `tensorflow_probability`:
 # https://github.com/tensorflow/probability/blob/master/tensorflow_probability/g3doc/api_docs/python/tfp/optimizer/StochasticGradientLangevinDynamics.md
-class SimpleSGLD(Optimizer):
+class SimpleSGLDPriorSampling(Optimizer):
     """ Stochastic Gradient Langevin Dynamics Sampler with preconditioning.
         Optimization variable is viewed as a posterior sample under Stochastic
-        Gradient Langevin Dynamics with noise rescaled in each dimension
-        according to RMSProp.
+        Gradient Langevin Dynamics for low temperature and prior sampling for high temperatures
     """
+
     def __init__(self,
                  params,
                  lr=1e-2,
@@ -78,18 +78,24 @@ class SimpleSGLD(Optimizer):
                 else:
                     sigma = torch.zeros_like(parameter)
 
+                # if beta is high, we want posterior sampling, if it's lo we want prior sampling
+                noise_variance = math.sqrt(lr / beta) if beta >= 1.0 else math.sqrt(beta)
+
                 scaled_noise = (
-                    torch.normal(
-                        mean=torch.zeros_like(gradient),
-                        std=torch.ones_like(gradient) * math.sqrt(lr/beta)
-                    ) * sigma
+                        torch.normal(
+                            mean=torch.zeros_like(gradient),
+                            std=torch.ones_like(gradient) * noise_variance
+                        ) * sigma
                 )  # Noise is N(0, sqrt(lr/beta))
 
                 # Note: noise is scaled to gradient to make it less random
-                scale_noise_to_grad = True
+                scale_noise_to_grad = False
                 if scale_noise_to_grad:
-                    scaled_noise = scaled_noise/torch.norm(gradient)
-                parameter.data.add_(-lr * gradient + scaled_noise)
-                # Note: can also just add noise to the grad and do adam
+                    scaled_noise = scaled_noise / torch.norm(gradient)
+
+                if beta >= 1.0:
+                    parameter.data.add_(-lr * gradient + scaled_noise)
+                else:
+                    parameter.data.add_(scaled_noise)
 
         return loss
