@@ -94,7 +94,7 @@ class MetaLearner(object):
                 # sample
                 batch = train_taskset.sample()
                 evaluation_error, evaluation_accuracy = \
-                    self.calculate_meta_loss(batch, learner, self.train_adapt_steps)
+                    self.calculate_meta_loss(batch, learner, self.train_adapt_steps if not testing_mode else self.test_adapt_steps)
 
                 evaluation_error.backward()  # TODO: SGLD - internal optimizer! needs a lot of changes
                 meta_train_error += evaluation_error.item()
