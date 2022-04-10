@@ -20,7 +20,7 @@ def get_parser():
                         help="Meta LR")
     parser.add_argument('--train_adapt_steps', default=5, type=int,
                         help="Number of gradient steps to take during train adaptation")
-    parser.add_argument('--test_adapt_steps', default=1, type=int,
+    parser.add_argument('--test_adapt_steps', default=10, type=int,
                         help="Number of gradient steps to take during test adaptation")
     parser.add_argument('--meta_batch_size', default=8, type=int,
                         help="Number of task gradients to average for meta-gradient step")
@@ -28,13 +28,13 @@ def get_parser():
                         help="Meta epochs for training")
     parser.add_argument('--reset_clf_on_meta', default=False, type=bool,
                         help="Should the clf layer be reset each meta loop (should make adaptation faster)")
-    parser.add_argument('--n_test_epochs', default=2, type=int,
+    parser.add_argument('--n_test_epochs', default=0, type=int,
                         help="Meta epochs for test meta-adaptation")
     parser.add_argument('--gamma', default=1.0, type=float,
                         help="Hyper-posterior gibbs parameter")
     parser.add_argument('--beta', default=1.0, type=float,
                         help="Base-posterior gibbs parameter")
-    parser.add_argument('--load_trained_model', default=False, type=bool,
+    parser.add_argument('--load_trained_model', default=True, type=bool,
                         help="Load pretrained model")
     parser.add_argument('--mnist_pixels_to_permute_train', default=1000, type=int,
                         help="permutes for mnist")
@@ -69,7 +69,7 @@ def run_experiment(args):
 
 if __name__ == "__main__":
     args = get_parser().parse_args()
-    wandb.init(project="meta-pb-simple12")
+    wandb.init(project="meta-pb-simple15")
     wandb.config.update(args)
 
     if not args.load_trained_model:
@@ -85,3 +85,4 @@ if __name__ == "__main__":
         accuracies.append(meta_accuracy)
 
     wandb.log({"test_loss": np.mean(errors), "test_accuracy": np.mean(accuracies)})
+    #print(np.mean(accuracies))

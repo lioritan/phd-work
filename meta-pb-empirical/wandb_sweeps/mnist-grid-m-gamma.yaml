@@ -1,7 +1,7 @@
 program: ./main.py
 method: grid
 name: averaged-sweep
-project: meta-pb-simple12
+project: meta-pb-simple15
 parameters:
   dataset:
     value: "mnist"
@@ -13,7 +13,7 @@ parameters:
     value: 5
 
   n_shots:
-    values: [1, 5, 10, 15, 20, 30, 40, 50]
+    values: [2, 5, 10, 15, 20, 30, 40, 50]
 
   per_task_lr:
     value: 0.1
@@ -28,13 +28,13 @@ parameters:
     value: 5
 
   test_adapt_steps:
-    value: 1
+    value: 10
 
   n_epochs:
     value: 100
 
   n_test_epochs:
-    value: 1
+    value: 10
 
   beta:
     value: 1.0

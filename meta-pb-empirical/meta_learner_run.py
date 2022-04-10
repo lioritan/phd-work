@@ -7,6 +7,7 @@ import torch.nn as nn
 from Utils.common import set_random_seed
 from data_gen_mnist import MnistDataset
 from meta_learner_module import MetaLearner
+from meta_learner_module_for_fairer_meta_adapt import MetaLearnerFair
 
 
 def run_meta_learner(
@@ -59,7 +60,7 @@ def run_meta_learner(
     f_loss = nn.CrossEntropyLoss(reduction='mean')
 
     print(f"create meta learner")
-    meta_learner = MetaLearner(
+    meta_learner = MetaLearnerFair(
         per_task_lr,
         meta_lr,
         train_adapt_steps,
