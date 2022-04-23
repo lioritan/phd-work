@@ -1,7 +1,7 @@
 program: ./main.py
 method: grid
 name: averaged-sweep
-project: meta-pb-simple15
+project: meta-pb-simple16
 parameters:
   dataset:
     value: "mnist"

@@ -1,7 +1,8 @@
 import argparse
-from meta_learner_run import run_meta_learner
 import wandb
 import numpy as np
+
+from meta_learner_run_pb import run_meta_learnerPB
 
 
 def get_parser():
@@ -28,7 +29,7 @@ def get_parser():
                         help="Meta epochs for training")
     parser.add_argument('--reset_clf_on_meta', default=False, type=bool,
                         help="Should the clf layer be reset each meta loop (should make adaptation faster)")
-    parser.add_argument('--n_test_epochs', default=0, type=int,
+    parser.add_argument('--n_test_epochs', default=10, type=int,
                         help="Meta epochs for test meta-adaptation")
     parser.add_argument('--gamma', default=1.0, type=float,
                         help="Hyper-posterior gibbs parameter")
@@ -45,7 +46,7 @@ def get_parser():
 
 
 def run_experiment(args):
-    experiment_result = run_meta_learner(
+    experiment_result = run_meta_learnerPB(
         dataset=args.dataset,
         train_sample_size=args.train_sample_size,
         n_ways=args.n_ways,
@@ -69,7 +70,7 @@ def run_experiment(args):
 
 if __name__ == "__main__":
     args = get_parser().parse_args()
-    wandb.init(project="meta-pb-simple16")
+    wandb.init(project="meta-pb-simple17")
     wandb.config.update(args)
 
     if not args.load_trained_model:
@@ -84,5 +85,5 @@ if __name__ == "__main__":
         errors.append(meta_error)
         accuracies.append(meta_accuracy)
 
-    wandb.log({"test_loss": np.mean(errors), "test_accuracy": np.mean(accuracies)})
-    #print(np.mean(accuracies))
+    #wandb.log({"test_loss": np.mean(errors), "test_accuracy": np.mean(accuracies)})
+    print(np.mean(accuracies))

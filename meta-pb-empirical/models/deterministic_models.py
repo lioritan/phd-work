@@ -7,7 +7,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from Models.layer_inits import init_layers
+from models.layer_inits import init_layers
 from Utils.common import list_mult
 # -------------------------------------------------------------------------------------------
 # Main function

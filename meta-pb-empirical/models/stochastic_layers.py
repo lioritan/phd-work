@@ -3,8 +3,9 @@ from __future__ import absolute_import, division, print_function
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from Models.stochastic_inits import init_stochastic_conv2d, init_stochastic_linear
-from Utils.common import list_mult
+from models.stochastic_inits import init_stochastic_conv2d, init_stochastic_linear
+from utils.common import list_mult
+
 
 # -------------------------------------------------------------------------------------------
 #  Stochastic linear layer
@@ -13,7 +14,7 @@ class StochasticLayer(nn.Module):
     # base class of stochastic layers with re-parametrization
     # self.init  and self.operation should be filled by derived classes
 
-    def create_stochastic_layer(self, weights_shape, bias_size, prm):
+    def create_stochastic_layer(self, weights_shape, bias_size, log_var_init):
         # create the layer parameters
         # values initialization is done later
         self.weights_shape = weights_shape
@@ -27,8 +28,6 @@ class StochasticLayer(nn.Module):
             self.b_mu = get_param(bias_size)
             self.b_log_var = get_param(bias_size)
             self.b = {'mean': self.b_mu, 'log_var': self.b_log_var}
-
-
 
     def forward(self, x):
 
@@ -67,13 +66,13 @@ class StochasticLayer(nn.Module):
         self.eps_std = eps_std
         return old_eps_std
 
+
 # -------------------------------------------------------------------------------------------
 #  Stochastic linear layer
 # -------------------------------------------------------------------------------------------
 class StochasticLinear(StochasticLayer):
 
-
-    def __init__(self, in_dim, out_dim, prm, use_bias=True):
+    def __init__(self, in_dim, out_dim, log_var_init, use_bias=True):
         super(StochasticLinear, self).__init__()
 
         self.in_dim = in_dim
@@ -84,10 +83,9 @@ class StochasticLinear(StochasticLayer):
             bias_size = out_dim
         else:
             bias_size = None
-        self.create_stochastic_layer(weights_size, bias_size, prm)
-        init_stochastic_linear(self, prm.log_var_init)
+        self.create_stochastic_layer(weights_size, bias_size, log_var_init)
+        init_stochastic_linear(self, log_var_init)
         self.eps_std = 1.0
-
 
     def __str__(self):
         return 'StochasticLinear({0} -> {1})'.format(self.in_dim, self.out_dim)
@@ -95,13 +93,15 @@ class StochasticLinear(StochasticLayer):
     def operation(self, x, weight, bias):
         return F.linear(x, weight, bias)
 
+
 # -------------------------------------------------------------------------------------------
 #  Stochastic conv2d layer
 # -------------------------------------------------------------------------------------------
 
 class StochasticConv2d(StochasticLayer):
 
-    def __init__(self, in_channels, out_channels, kernel_size, prm, use_bias=False, stride=1, padding=0, dilation=1):
+    def __init__(self, in_channels, out_channels, kernel_size, log_var_init, use_bias=True, stride=(1, 1), padding=1,
+                 dilation=1):
         super(StochasticConv2d, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -116,13 +116,13 @@ class StochasticConv2d(StochasticLayer):
             bias_size = (out_channels)
         else:
             bias_size = None
-        self.create_stochastic_layer(weights_shape, bias_size, prm)
-        init_stochastic_conv2d(self, prm.log_var_init)
+        self.create_stochastic_layer(weights_shape, bias_size, log_var_init)
+        init_stochastic_conv2d(self, log_var_init)
         self.eps_std = 1.0
 
-
     def __str__(self):
-        return 'StochasticConv2d({} -> {}, kernel_size={})'.format(self.in_channels, self.out_channels, self.kernel_size)
+        return 'StochasticConv2d({} -> {}, kernel_size={})'.format(self.in_channels, self.out_channels,
+                                                                   self.kernel_size)
 
     def operation(self, x, weight, bias):
         return F.conv2d(x, weight, bias, self.stride, self.padding, self.dilation)
@@ -136,6 +136,7 @@ def make_pair(x):
         return (x, x)
     else:
         return x
+
 
 # def get_randn_param(shape, mean, std):
 #     return nn.Parameter(randn_gpu(shape, mean, std))

@@ -124,8 +124,8 @@ class MetaLearnerFair(object):
                 # Compute meta-training loss
                 learner = self.maml.clone().to(self.device)
                 # shuffle and meta-adapt (divide half-half)
-                shuffled_indices = torch.randperm(len(D_task_ys_error_eval))
-                batch = (D_task_xs_adapt[shuffled_indices], D_task_ys_error_eval[shuffled_indices])
+                shuffled_indices = torch.randperm(len(D_task_ys_adapt))
+                batch = (D_task_xs_adapt[shuffled_indices], D_task_ys_adapt[shuffled_indices])
                 evaluation_error, evaluation_accuracy = \
                     self.calculate_meta_loss(batch, learner, self.test_adapt_steps)
                 evaluation_error.backward()

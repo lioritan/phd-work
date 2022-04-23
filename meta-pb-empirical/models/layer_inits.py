@@ -5,8 +5,8 @@ import math
 
 
 import torch.nn as nn
-from Models.stochastic_inits import init_stochastic_conv2d, init_stochastic_linear
-from Models.stochastic_layers import StochasticLinear, StochasticConv2d, StochasticLayer
+from models.stochastic_inits import init_stochastic_conv2d, init_stochastic_linear
+from models.stochastic_layers import StochasticLinear, StochasticConv2d, StochasticLayer
 
 '''   Xavier initialization
 Like in PyTorch's default initializer'''

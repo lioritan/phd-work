@@ -6,10 +6,10 @@ import torch.nn as nn
 
 from utils.common import set_random_seed
 from data_gen_mnist import MnistDataset
-from meta_learner_module_for_fairer_meta_adapt import MetaLearnerFair
+from meta_learner_module_pb import MetaLearnerFairPB
+import models.stochastic_models
 
-
-def run_meta_learner(
+def run_meta_learnerPB(
         dataset,
         train_sample_size,
         n_ways,
@@ -48,18 +48,28 @@ def run_meta_learner(
 
     # TODO: change this, consider the stochastic network case
     print(f"load model (dataset is {dataset})")
+    log_var_init = {"mean": -10, "std": 0.1}
     if dataset == "mini-imagenet":
         model = l2l.vision.models.MiniImagenetCNN(n_ways)
+        stochastic_model = models.stochastic_models.get_model(dataset, log_var_init, input_shape=(3, 84, 84), output_dim=n_ways)
+        stochastic_ctor = lambda x: models.stochastic_models.get_model(dataset, log_var_init, input_shape=(3, 84, 84), output_dim=n_ways)
     elif dataset == "omniglot":
         model = l2l.vision.models.OmniglotCNN(n_ways)
+        stochastic_model = models.stochastic_models.get_model(dataset, log_var_init, input_shape=(1, 28, 28), output_dim=n_ways)
+        stochastic_ctor = lambda x: models.stochastic_models.get_model(dataset, log_var_init, input_shape=(1, 28, 28),
+                                                                       output_dim=n_ways)
     else:
         model = l2l.vision.models.OmniglotCNN(n_ways)
+        stochastic_model = models.stochastic_models.get_model(dataset, log_var_init, input_shape=(1, 28, 28), output_dim=n_ways)
+        stochastic_ctor = lambda x: models.stochastic_models.get_model(dataset, log_var_init, input_shape=(1, 28, 28),
+                                                                       output_dim=n_ways)
     model.to(device)
+    stochastic_model.to(device)
 
     f_loss = nn.CrossEntropyLoss(reduction='mean')
 
     print(f"create meta learner")
-    meta_learner = MetaLearnerFair(
+    meta_learner = MetaLearnerFairPB(
         per_task_lr,
         meta_lr,
         train_adapt_steps,
@@ -71,7 +81,7 @@ def run_meta_learner(
         seed,
         n_ways,
         gamma,
-        reset_clf_on_meta_loop)
+        reset_clf_on_meta_loop, stochastic_model, stochastic_ctor)
 
     model_name = f"artifacts/{dataset}/model.pkl"
 
