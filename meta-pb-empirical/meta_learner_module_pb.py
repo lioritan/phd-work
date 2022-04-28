@@ -66,7 +66,7 @@ class MetaLearnerFairPB(object):
         # self.test_opt = SimpleSGLDPriorSampling(self.maml.parameters(), meta_lr, beta=gamma)
         #self.test_opt = torch.optim.Adam(self.maml.parameters(), meta_lr)
         self.test_opt = torch.optim.Adam
-        self.test_opt_params = {"lr": meta_lr}
+        self.test_opt_params = {"lr": per_task_lr}
         self.seed = seed
         self.n_ways = n_ways
         self.reset_clf_on_meta_loop = reset_clf_on_meta_loop
@@ -166,6 +166,7 @@ class MetaLearnerFairPB(object):
                         self.stochastic_model.bns[i] = copy.deepcopy(block.normalize)
             self.stochastic_model.fc_out.w["mean"] = self.maml.classifier.weight.clone()
             self.stochastic_model.fc_out.b["mean"] = self.maml.classifier.bias.clone()
+        self.stochastic_model.train()
 
         for epoch in range(test_meta_epochs):
             # make posterior models
