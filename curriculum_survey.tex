@@ -28,6 +28,7 @@
 
 \usepackage{multirow}
 \usepackage{ctable}
+\usepackage{tabularx}
 \usepackage{color}
 \usepackage{natbib}
 \usepackage[normalem]{ulem}
@@ -943,6 +944,7 @@ We note that as $m\rightarrow\infty$, the additional error term goes to zero, ev
 For $n\rightarrow\infty$ and finite $m$, however, this term does not converge. Since $P(\hat{k}\neq k_1)\leq 1$ as a probability, we note that the error term for this case is at most $4(b-a)$ as we saw before.
 This means that a wrong choice of meta-learner would lead to a penalty in the bound that is proportional to the difference between empirical losses for each meta learner.
 
+\textcolor{red}{If the test risk is close to any training distribution $D_i$ (e.g. $|L(\mathcal{Q},T)-L(\mathcal{Q},D_i)|\leq \epsilon$) we can do the same thing and suffer the difference as a penalty, but this may be a poor strategy as now the decision strategy has expected error $\epsilon$. Since the gap is expected to be at least that for other tasks, this may still work for larger $m$ where the estimation error is less important.}
 
 \subsection{*Task dependencies with multiple tasks, alternative - 30.8.21}
 
@@ -1143,7 +1145,7 @@ In other words, if a given hypothesis does well on $T$ it should also do well on
 	\hline
 \end{tabular}
 
-\subsubsection{gibbs}
+\subsubsection{gibbs} \label{section:result-gibbs}
 
 \begin{defn}
 	$$\mathcal{L}(h, D)\triangleq E_{z\sim D}\left [l(h,z)\right ]$$
@@ -1337,21 +1339,45 @@ meaning,
 
 This is a rather interesting expression, as we can see that if the transfer from $\mathcal{Q}_{1:N}$ to $\mathcal{Q}_{1:N,T}$ is beneficial, we increase $\lambda$ in proportion to $\gamma$ times the relative gain, and similarly for $\beta$ and the gain from the base learner \RM{Didn't you switch $\gamma$ and $\beta$ in this sentence?}. This makes intuitive sense, as it means that the more we gain from a specific type of adaptation via $S_T$, the more weight we should give to the empirical loss part of the bound (compared to the complexity part). The moment term $\xi$ behaves strangely, as it increases with $\lambda$, forming a positive feedback loop that may cause the moment to diverge. 
 
-\subsubsection{Empirical examination}
+%\subsubsection{Empirical examination}
+%
+%We consider an empirical examination of this derivation. The parameter space includes the three hyper parameters $\beta,\gamma,\lambda$, the size of the test set $m_T\triangleq |S_T|$ and the quality of the hyper-prior $\mathcal{Q}_{1:N}$, which we can estimate using $\hat{\mathcal{L}}_{base}$.
+%
+%For our initial experiment, we consider the relationship between $\gamma, m_T, \hat{\mathcal{L}}_{base}$.
+%
+%We can expect that if $m_T$ is high, we do not require a good prior, and thus $\gamma$ would be high. Similarly, if $\hat{\mathcal{L}}_{base}$ is very low, there is no need to adapt the hyper-prior to the new task and thus $\gamma$ would be low. For medium positions, there would likely be some optimal value for $\gamma$ that balances these two parameters. Equation \ref{eq:meta-pb-gamma} does not suggest such a relationship, at least not explicitly.
 
-We consider an empirical examination of this derivation. The parameter space includes the three hyper parameters $\beta,\gamma,\lambda$, the size of the test set $m_T\triangleq |S_T|$ and the quality of the hyper-prior $\mathcal{Q}_{1:N}$, which we can estimate using $\hat{\mathcal{L}}_{base}$.
+\subsubsection{Empirical experiments - 2.5.22}
 
-For our initial experiment, we consider the relationship between $\gamma, m_T, \hat{\mathcal{L}}_{base}$.
+\emph{Experiment 1 - Deterministic networks}
 
-We can expect that if $m_T$ is high, we do not require a good prior, and thus $\gamma$ would be high. Similarly, if $\hat{\mathcal{L}}_{base}$ is very low, there is no need to adapt the hyper-prior to the new task and thus $\gamma$ would be low. For medium positions, there would likely be some optimal value for $\gamma$ that balances these two parameters. Equation \ref{eq:meta-pb-gamma} does not suggest such a relationship, at least not explicitly.
+For this experiment, we examined the setup defined in Section \ref{section:result-gibbs} of using the Gibbs posterior to adapt both the hyper-prior and the sampled prior.
+We used SGLD \LF{Need to add citation to Welling and Teh 2011} to approximate the optimal empirical Gibbs posterior.
+In order to get unbiased loss estimates, we used subsampling and query/evaluate sets for meta-adaptation \LF{If this is not done, is there any true difference between meta-adaptation and base adaptation?}
 
+\begin{tabularx}{\textwidth}{|X|X | X | X|}
+    \hline
+     Experiment name & Short description & Status & Main findings \\
+     \hline \hline
+     Meta v base & Compare meta-adapting with SGLD and base adaptation with SGD & \textcolor{orange}{MNIST dataset done} & For few-shot, there is an optimum that is not $\gamma \rightarrow \infty$, for many-shot the hyper-prior does not matter  \\
+     \hline
+     Full v base & Compare meta-adapting and base adaptation with SGLD & \textcolor{red}{Not done} & NA \\
+     \hline
+\end{tabularx}
 
-\subsubsection{*mix}
+\emph{Experiment 2 - Stochastic networks}
 
-For $\alpha$-mix, using $ln(1+x)\leq x$, we get 
-$$KL(\mathcal{Q}_{mix}||\mathcal{Q}_{1:N})\leq \alpha\int \frac{\mathcal{Q}_{T}}{\mathcal{Q}_{1:N}}d\mathcal{Q}_{mix} $$
+For this experiment, we examined the setup defined in Section \ref{section:result-gibbs} from the more perspective of PB bounds and optimization. We followed the work of \cite{Amit2018} and used stochastic networks to define the hyper-prior and prior distributions, and used PB optimization. For meta-adaptation on the test set, we examined both SGLD and meta-PB bound optimization.
 
-This means we can pick $\alpha$ accordingly
+\begin{tabularx}{\textwidth}{|X|X | X | X|}
+    \hline
+     Experiment name & Short description & Status & Main findings \\
+     \hline \hline
+     PB-bound & Compare meta-adapting with PB bound to prior. Base learner adapted via PB bound & \textcolor{orange}{MNIST dataset done} & No gain/loss from meta-adapting. Interestingly, this setup is different from before in that both training and testing are 10-way (so all the labels are available and correct), and this causes the base learner to be poor (zero base adaptation steps yield the best test accuracy). \\
+     \hline
+     SGLD & Compare meta-adapting with SGLD to prior. Base learner adapted via PB bound  & \textcolor{red}{Not done} & NA \\
+     \hline
+\end{tabularx}
 
 
 \subsection{*Task similarities with multiple tasks - 21.9.21}
