@@ -84,19 +84,24 @@ def run_meta_learnerPB(
         reset_clf_on_meta_loop, stochastic_model, stochastic_ctor)
 
     model_name = f"artifacts/{dataset}/model.pkl"
+    stochastic_model_name = f"artifacts/{dataset}/stochastic_model.pkl"
 
     if load_trained:
         print(f"load trained model")
         model.load_state_dict(torch.load(model_name))
+        stochastic_model.load_state_dict(torch.load(stochastic_model_name))
     else:
         print(f"meta learner train")
         set_random_seed(seed)
-        meta_learner.meta_train(n_epochs, task_sets.train)
+        #meta_learner.meta_train(n_epochs, task_sets.train)
+        meta_learner.meta_train_pb_bound(n_epochs, task_sets.train)
 
     os.makedirs(f"artifacts/{dataset}", exist_ok=True)
     torch.save(model.state_dict(), model_name)
+    torch.save(stochastic_model.state_dict(), stochastic_model_name)
     import wandb
     wandb.log_artifact(model_name, name='prior-model', type='model')
+    wandb.log_artifact(stochastic_model_name, name='prior-stochastic-model', type='model')
 
     print(f"meta learner test")
     set_random_seed(seed)

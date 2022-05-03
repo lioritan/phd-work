@@ -147,9 +147,32 @@ class MetaLearnerFairPB(object):
 
         return meta_train_errors, meta_train_accs
 
-    def optimize_inner_loop(self, batch, n_MC, ):
-        # post = prior, do inner opt on
-        pass
+    def meta_train_pb_bound(self, n_epochs, train_taskset):
+        for epoch in range(n_epochs):
+            # make posterior models
+            posterior_models = [clone_model(self.stochastic_model, self.stochastic_ctor, self.device)
+                                for i in range(self.meta_batch_size)]
+            all_post_param = sum([list(posterior_model.parameters()) for posterior_model in posterior_models], [])
+            prior_params = list(self.stochastic_model.parameters())
+            all_params = all_post_param + prior_params
+            optimizer = self.test_opt(all_params, **self.test_opt_params) # TODO: clean code
+            for step in range(self.train_adapt_steps):
+                hyper_dvrg = get_hyper_divergnce(var_prior=1e2, var_posterior=1e-3, prior_model=self.stochastic_model,
+                                                 device=self.device)
+                meta_complex_term = get_meta_complexity_term(hyper_dvrg, delta=0.1, n_train_tasks=self.meta_batch_size)
+                losses = torch.zeros(self.meta_batch_size, device=self.device)
+                complexities = torch.zeros(self.meta_batch_size, device=self.device)
+                for i, task in enumerate(range(self.meta_batch_size)):
+                    batch = train_taskset.sample()
+                    losses[i], complexities[i] = self.get_pb_terms_single_task(
+                        batch[0].to(self.device), batch[1].to(self.device),
+                        self.stochastic_model, posterior_models[i],
+                        hyper_dvrg=hyper_dvrg, n_tasks=self.meta_batch_size)
+                pb_objective = losses.mean() + complexities.mean() + meta_complex_term
+                optimizer.zero_grad()
+                pb_objective.backward()
+                optimizer.step()
+            print(f"epoch={epoch + 1}/{n_epochs}")
 
     def meta_test(self, test_meta_epochs, test_taskset):
         D_test_batch = test_taskset.sample()
@@ -157,15 +180,15 @@ class MetaLearnerFairPB(object):
             D_test_batch)
 
         # Init stochastic model based on self.maml prior
-        with torch.no_grad():
-            for elem in self.maml.features:
-                if isinstance(elem, ConvBase):
-                    for i, block in enumerate(elem):
-                        self.stochastic_model.convs[i].w["mean"] = block.conv.weight.clone()
-                        self.stochastic_model.convs[i].b["mean"] = block.conv.bias.clone()
-                        self.stochastic_model.bns[i] = copy.deepcopy(block.normalize)
-            self.stochastic_model.fc_out.w["mean"] = self.maml.classifier.weight.clone()
-            self.stochastic_model.fc_out.b["mean"] = self.maml.classifier.bias.clone()
+        # with torch.no_grad():
+        #     for elem in self.maml.features:
+        #         if isinstance(elem, ConvBase):
+        #             for i, block in enumerate(elem):
+        #                 self.stochastic_model.convs[i].w["mean"] = block.conv.weight.clone()
+        #                 self.stochastic_model.convs[i].b["mean"] = block.conv.bias.clone()
+        #                 self.stochastic_model.bns[i] = copy.deepcopy(block.normalize)
+        #     self.stochastic_model.fc_out.w["mean"] = self.maml.classifier.weight.clone()
+        #     self.stochastic_model.fc_out.b["mean"] = self.maml.classifier.bias.clone()
         self.stochastic_model.train()
 
         for epoch in range(test_meta_epochs):
