@@ -1,0 +1,53 @@
+program: ./main_double_sgld.py
+method: grid
+name: averaged-sweep
+project: meta-pb-simple19
+parameters:
+  dataset:
+    value: "mnist"
+
+  train_sample_size:
+    value: 10
+
+  n_ways:
+    value: 5
+
+  n_shots:
+    values: [2, 5, 10, 15, 20, 30, 40, 50]
+
+  per_task_lr:
+    value: 0.1
+
+  meta_lr:
+    value: 0.01
+
+  meta_batch_size:
+    value: 8
+
+  train_adapt_steps:
+    value: 5
+
+  test_adapt_steps:
+    value: 10
+
+  n_epochs:
+    value: 100
+
+  n_test_epochs:
+    value: 10
+
+  beta:
+    values: [0.001, 1.0, 10.0, 100.0, 1000.0, 10000.0, 5.0, 25.0, 50.0, 75.0, 5000.0]
+
+  gamma:
+    values: [0.001, 10.0, 100.0, 1000.0, 10000.0, 5.0, 25.0, 50.0, 75.0, 5000.0]
+    #values: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0]
+
+  load_trained_model:
+    value: True
+
+  mnist_pixels_to_permute_test:
+    value: 100
+
+  #seed:
+  #  values: [42, 1337, 7]
