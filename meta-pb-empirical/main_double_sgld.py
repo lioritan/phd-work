@@ -35,7 +35,7 @@ def get_parser():
                         help="Hyper-posterior gibbs parameter")
     parser.add_argument('--beta', default=10.0, type=float,
                         help="Base-posterior gibbs parameter")
-    parser.add_argument('--load_trained_model', default=False, type=bool,
+    parser.add_argument('--load_trained_model', default=True, type=bool,
                         help="Load pretrained model")
     parser.add_argument('--mnist_pixels_to_permute_train', default=1000, type=int,
                         help="permutes for mnist")
@@ -80,7 +80,7 @@ if __name__ == "__main__":
 
     errors = []
     accuracies = []
-    for seed in [42, 1337, 7, 13, 999]:
+    for seed in [42, 1337, 7, 13, 999, 752, 56789, 145790, 11, 306050]:
         args.seed = seed
         meta_error, meta_accuracy = run_experiment(args)
         errors.append(meta_error)

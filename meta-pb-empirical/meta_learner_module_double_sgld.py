@@ -1,9 +1,12 @@
+import math
+
 import torch
 import copy
 import numpy as np
 import learn2learn as l2l
-from learn2learn.utils import clone_module
+from learn2learn.utils import clone_module, update_module
 from learn2learn.vision.models import ConvBase
+from torch.autograd import grad
 
 import models.stochastic_models
 
@@ -58,9 +61,46 @@ class MetaLearnerDoubleSGLD(object):
         split_data = self.split_adapt_eval(task_batch)
         return self.adapt_model(split_data, learner, adapt_steps, training_mode)
 
+    def manual_grad_sgld(self, learner, error):
+        diff_params = [p for p in learner.module.parameters() if p.requires_grad]
+        grad_params = grad(error,
+                           diff_params,
+                           retain_graph=True,
+                           create_graph=True,
+                           allow_unused=False)
+        gradients = []
+        grad_counter = 0
+
+        # Handles gradients for non-differentiable parameters
+        for param in learner.module.parameters():
+            if param.requires_grad:
+                gradient = grad_params[grad_counter]
+                grad_counter += 1
+            else:
+                gradient = None
+            gradients.append(gradient)
+        params = list(learner.module.parameters())
+        if not len(gradients) == len(diff_params):
+            msg = 'WARNING:maml_update(): Parameters and gradients have different length. ('
+            msg += str(len(params)) + ' vs ' + str(len(gradients)) + ')'
+            print(msg)
+        pass
+        # if beta is high, we want posterior sampling, if it's low we want prior sampling
+        noise_variance = math.sqrt(self.maml.lr / self.test_beta) if self.test_beta >= 1.0 else math.sqrt(self.test_beta)
+        scaled_noise = torch.normal(
+                mean=torch.zeros(len(gradients)),
+                std=torch.ones(len(gradients)) * noise_variance
+            ).to(self.device)
+        for p, g, xi in zip(params, gradients, scaled_noise):
+            if g is not None:
+                if self.test_beta >= 1.0:
+                    p.update = - self.maml.lr * g + xi
+                else:
+                    p.update = xi
+        update_module(learner.module)
+
     def adapt_model(self, task_batch, learner, adapt_steps, training_mode=True):
         D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval = task_batch
-        opt = SimpleSGLDPriorSampling(learner.parameters(), self.maml.lr, beta=self.test_beta)
 
         # Adapt the model
         for step in range(adapt_steps):
@@ -68,9 +108,7 @@ class MetaLearnerDoubleSGLD(object):
             if training_mode:
                 learner.adapt(adaptation_error)
             else:
-                opt.zero_grad()
-                adaptation_error.backward()
-                opt.step()
+                self.manual_grad_sgld(learner, adaptation_error)
 
         # Evaluate the adapted model
         predictions = learner(D_task_xs_error_eval)
