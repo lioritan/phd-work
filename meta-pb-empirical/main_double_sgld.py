@@ -37,10 +37,14 @@ def get_parser():
                         help="Base-posterior gibbs parameter")
     parser.add_argument('--load_trained_model', default=True, type=bool,
                         help="Load pretrained model")
-    parser.add_argument('--mnist_pixels_to_permute_train', default=1000, type=int,
+    parser.add_argument('--model_num', default=19, type=int,
+                        help="number for model loading")
+    parser.add_argument('--mnist_pixels_to_permute_train', default=100, type=int,
                         help="permutes for mnist")
     parser.add_argument('--mnist_pixels_to_permute_test', default=100, type=int,
                         help="permutes for mnist")
+    parser.add_argument('--large_test_set', default=True, type=bool,
+                        help="Have a bigger test set to lower noise")
     parser.add_argument('--seed', type=int, default=1, help="Random seed")
     return parser
 
@@ -64,7 +68,9 @@ def run_experiment(args):
         load_trained=args.load_trained_model,
         mnist_pixels_to_permute_train=args.mnist_pixels_to_permute_train,
         mnist_pixels_to_permute_test=args.mnist_pixels_to_permute_test,
-        seed=args.seed)
+        seed=args.seed,
+        large_test_set=args.large_test_set,
+        model_num=args.model_num,)
     meta_error, meta_accuracy = experiment_result[0], experiment_result[1]
     return meta_error, meta_accuracy
 

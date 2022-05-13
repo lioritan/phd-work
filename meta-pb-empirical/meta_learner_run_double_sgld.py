@@ -26,14 +26,18 @@ def run_meta_learner_doubleSGLD(
         load_trained,
         mnist_pixels_to_permute_train=0,
         mnist_pixels_to_permute_test=0,
-        seed=1):
+        seed=1,
+        large_test_set=False,
+        model_num=0):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+    shots_mult = 2 if not large_test_set else 10
 
     print("get tasks")
     if dataset == "mnist":
         task_sets = MnistDataset(data_path='~/data', train_shots=train_sample_size,
                                  train_ways=n_ways,
-                                 test_shots=2 * n_shots,
+                                 test_shots=shots_mult * n_shots,
                                  test_ways=n_ways,
                                  shuffle_pixels=True, permute_labels=False, n_pixels_to_change_train=mnist_pixels_to_permute_train,
                                  n_pixels_to_change_test=mnist_pixels_to_permute_test) #-1 shuffles all
@@ -42,7 +46,7 @@ def run_meta_learner_doubleSGLD(
             dataset,
             train_samples=train_sample_size,
             train_ways=n_ways,
-            test_samples=2 * n_shots,
+            test_samples=shots_mult * n_shots,
             test_ways=n_ways,
             root='~/data')
 
@@ -72,9 +76,10 @@ def run_meta_learner_doubleSGLD(
         n_ways,
         gamma,
         beta,
-        reset_clf_on_meta_loop)
+        reset_clf_on_meta_loop,
+        shots_mult)
 
-    model_name = f"artifacts/{dataset}/model19.pkl"
+    model_name = f"artifacts/{dataset}/model{model_num}.pkl"
 
     if load_trained:
         print(f"load trained model")

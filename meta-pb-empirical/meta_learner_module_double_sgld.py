@@ -42,6 +42,7 @@ class MetaLearnerDoubleSGLD(object):
             gamma,
             beta,
             reset_clf_on_meta_loop,
+            shots_mult,
     ):
 
         self.meta_batch_size = meta_batch_size
@@ -56,6 +57,7 @@ class MetaLearnerDoubleSGLD(object):
         self.seed = seed
         self.n_ways = n_ways
         self.reset_clf_on_meta_loop = reset_clf_on_meta_loop
+        self.shots_mult = shots_mult
 
     def calculate_meta_loss(self, task_batch, learner, adapt_steps, training_mode=True):
         split_data = self.split_adapt_eval(task_batch)
@@ -119,12 +121,14 @@ class MetaLearnerDoubleSGLD(object):
 
     def split_adapt_eval(self, task_batch):
         D_task_xs, D_task_ys = task_batch
+        shuffled_indices = torch.randperm(len(D_task_ys))
+        D_task_xs, D_task_ys = (D_task_xs[shuffled_indices], D_task_ys[shuffled_indices])
         D_task_xs, D_task_ys = D_task_xs.to(self.device), D_task_ys.to(self.device)
         task_batch_size = D_task_xs.size(0)
-        # Separate data into adaptation / evaluation sets
+        # Separate data into adaptation / evaluation sets - works even if labels are ordered
         adapt_indices = np.zeros(task_batch_size, dtype=bool)
-        train_frac = round(task_batch_size / 2)
-        adapt_indices[np.arange(train_frac) * 2] = True
+        train_samples = round(task_batch_size / train_frac)
+        adapt_indices[np.arange(train_samples) * train_frac] = True
         error_eval_indices = ~adapt_indices
         # numpy -> torch
         adapt_indices = torch.from_numpy(adapt_indices)
@@ -177,7 +181,7 @@ class MetaLearnerDoubleSGLD(object):
     def meta_test(self, test_meta_epochs, test_taskset):
         D_test_batch = test_taskset.sample()
         D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval = self.split_adapt_eval(
-            D_test_batch)
+            D_test_batch, train_frac=self.shots_mult)
 
         # TODO: consider doing this without subsampling since both levels are already randomized - use adapt_model
         for epoch in range(test_meta_epochs):
@@ -188,6 +192,7 @@ class MetaLearnerDoubleSGLD(object):
                 # shuffle and meta-adapt (divide half-half)
                 shuffled_indices = torch.randperm(len(D_task_ys_adapt))
                 batch = (D_task_xs_adapt[shuffled_indices], D_task_ys_adapt[shuffled_indices])
+                #batch = (D_task_xs_adapt, D_task_ys_adapt)
                 evaluation_error, evaluation_accuracy = \
                     self.calculate_meta_loss(batch, learner, self.test_adapt_steps, training_mode=False)
                 evaluation_error.backward()
