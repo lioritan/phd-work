@@ -1352,8 +1352,8 @@ This is a rather interesting expression, as we can see that if the transfer from
 \emph{Experiment 1 - Deterministic networks}
 
 For this experiment, we examined the setup defined in Section \ref{section:result-gibbs} of using the Gibbs posterior to adapt both the hyper-prior and the sampled prior.
-We used SGLD \LF{Need to add citation to Welling and Teh 2011} to approximate the optimal empirical Gibbs posterior.
-In order to get unbiased loss estimates, we used subsampling and query/evaluate sets for meta-adaptation \LF{If this is not done, is there any true difference between meta-adaptation and base adaptation?}
+We used SGLD \citep{Welling2011} to approximate the optimal empirical Gibbs posterior.
+In order to get unbiased loss estimates, we used subsampling and query/evaluate sets for meta-adaptation \LF{Without subsampling, is there any true difference between meta-adaptation and base adaptation?}
 
 \begin{tabularx}{\textwidth}{|X|X | X | X|}
     \hline
