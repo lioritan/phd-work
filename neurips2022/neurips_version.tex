@@ -415,6 +415,75 @@ meaning,
 
 The first two terms of the numerator serve encourage an equilibrium for $\lambda$, since a positive prediction gain from the base learner $\hat{\mathcal{L}}_{full}-\hat{\mathcal{L}}_{meta}$ or a positive prediction gain from the meta-learner $\hat{\mathcal{L}}_{meta}-\hat{\mathcal{L}}_{base}$ both encourage a lower value for $\lambda$. The moment term $\xi(\mathcal{Q}_{1:N}, \lambda)$ increases with $\lambda$, so choosing a very large value for it may cause the moment to diverge and therefore violate the base conditions for the data-dependent (Theorem \ref{thm:rivasplata-pb}).
 
+\section{Optimal Meta-adaptation with stable base learners}
+
+The assumption that the base learner $Q$ is the Gibbs posterior allows us to use a more refined version of the result from the previous section.
+
+Let $\mathcal{Q}_{1:N}$ be a hyper-posterior learned on the training data $\{S_1,...,S_N\}$, and let $$\mathcal{Q}_{1:N,T}= \frac{\mathcal{Q}_{1:N}e^{-\gamma\hat{\mathcal{L}}(Q(P,S_T),S_T)}}{Z_\gamma(S_T, \mathcal{Q}_{1:N})}$$ be the Gibbs posterior for the meta-learned problem with meta-normalization term $$Z_\gamma(S_T, \mathcal{Q}_{1:N})=\Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\gamma\hat{\mathcal{L}}(Q(P,S_T),S_T)}}$$.
+
+Since the prior can be data-dependent, we can apply Theorem \ref{thm:rivasplata-pb} with a 2-level hypothesis $(\mathcal{Q},Q), (\mathcal{Q}_{1:N}, Q)$, where we denote $Q=Q(P, S_T)$ for brevity, by choosing $f(\mathcal{Q}, Q, S_T)\triangleq\lambda\left (\mathcal{L}(\mathcal{Q}, D_T)-\hat{\mathcal{L}}(\mathcal{Q}, S_T)\right )$, we get with probability at least $1-\delta_T$ over the draw of $S_T$ that:
+
+$$\Expect{P\sim \mathcal{Q}_{1:N,T},h\sim Q(P,S_T)}{\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S_T)\right )} \leq D_{KL} \Big (((\mathcal{Q}_{1:N,T}, Q(P,S_T))||(\mathcal{Q}_{1:N}, Q) \Big )+ ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}$$
+
+where $$\xi(\lambda,\mathcal{Q}_{1:N})=\Expect{S\sim D_T, P\sim \mathcal{Q}_{1:N}, h\sim Q}{e^{\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S_T)\right )}}$$
+
+Here $\xi(\lambda,\mathcal{Q}_{1:N})$ explicitly depends on $S_T$. 
+It is easy to show that $$D_{KL} \Big (((\mathcal{Q}_{1:N,T}, Q(P,S_T))||(\mathcal{Q}_{1:N}, Q) \Big )=D_{KL}(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})$$
+
+Which gives us a simple bound:
+
+\begin{align} \label{eq:data-dependent-base-bound}
+\begin{split}
+\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq \mathcal{L}_{full} + \frac{1}{\lambda}=D_{KL}(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N}) + \frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}
+\end{split}
+\end{align}
+
+As before, we have 
+$$D_{KL}(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N}) = -\gamma \mathcal{L}_{full} -ln\Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\gamma\hat{\mathcal{L}}(Q,S_T)}}\leq \gamma (\mathcal{L}_{full}-\mathcal{L}_{noadapt})$$
+
+Where $$\mathcal{L}_{noadapt}\triangleq \hat{\mathcal{L}}^{(\beta)}(\mathcal{Q}_{1:N}, S_T)=\mathbb{E}_{P\sim \mathcal{Q}_{1:N}}\mathbb{E}_{h\sim Q^{\beta}(P,S_T)}\left [\hat{\mathcal{L}}(h, S_T)\right ]$$
+
+Applying this to Equation \ref{eq:data-dependent-base-bound} gives us:
+
+\begin{align} \label{eq:data-dependent-clear-bound}
+\begin{split}
+\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq (1-\frac{\gamma}{\lambda})\mathcal{L}_{full} + \frac{\gamma}{\lambda}\mathcal{L}_{noadapt} + \frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}
+\end{split}
+\end{align}
+
+% TODO: ref
+It is a known result (see \ref{???}) that the optimal value for $\gamma$ in Equation \ref{eq:data-dependent-base-bound} is $\gamma=\lambda$. This would give us a simple performance bound:
+
+$$\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq \mathcal{L}_{noadapt} + \frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}$$
+
+Additionally, it is easy to extend Lemma 3 (Appendix B) in \citet{Rivasplata2020} to our meta-learning setting and show that for a bounded loss function $l\in [0, b]$,
+$$ln\xi(\sqrt{m},\mathcal{Q}_{1:N}) \leq 2b^2(1+\frac{2\gamma}{\sqrt{m}})+log(1+e^{b^2/2})$$
+We note that this bound explicitly requires that $\lambda$ be of order $\sqrt{m}$ or lower in order to bound the log-moment term.
+\LF{The base learner is Gibbs and therefore the inner expectation can be bounded using Hoeffding style inequalities. Need to actually verify this but it seems reasonable from stability/DP properties of the Gibbs posterior}
+
+This gives us a theoretically interesting version of the bound:
+
+\begin{align} \label{eq:data-dependent-simplified-bound}
+\begin{split}
+\mathcal{L}(\mathcal{Q}_{1:N,T}, D_T) \leq \mathcal{L}_{noadapt} + \frac{1}{\sqrt{m}}\left (6b^2+ln\frac{1+e^{b^2/2}}{\delta_T}\right )
+\end{split}
+\end{align}
+
+This specific choice of parameters gives us an upper bound on the expected loss of our meta-adapted hyper-posterior in terms of the empirical loss of our given hyper-prior $\mathcal{Q}_{1:N}$ and the size of the adaptation set $m$. This result is unsurprising in a sense, and does not give us meaningful insights on constructing a good hyper-prior, as it essentially coincides with existing approaches to meta-learning in its advice: a hyper-prior with good expected performance on a sample from the new task $\mathcal{D}_T$ will have low expected loss for other samples in $\mathcal{D}_T$.
+
+Optimizing over a specific value of $\gamma$ (assuming that $\lambda$ is not too large) in Equation \ref{eq:data-dependent-clear-bound} gives us:
+
+\begin{align} \label{eq:gamma-data-depend}
+\begin{split}
+\gamma = \lambda + \frac{\hat{\mathcal{L}}_{noadapt}-\hat{\mathcal{L}}_{full}}{\frac{d}{d\gamma}\hat{\mathcal{L}}_{full}}
+\end{split}
+\end{align}
+
+And if we similarly mark $R'(\gamma)=\frac{\Expect{P\sim \mathcal{Q}_{1:N}}{-\hat{\mathcal{L}}(Q,S_T)e^{-\gamma\hat{\mathcal{L}}(Q,S_T)} }}{\Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\gamma\hat{\mathcal{L}}(Q,S_T)}} }$ we have
+
+$$\gamma = \lambda + \frac{\hat{\mathcal{L}}_{noadapt}-\hat{\mathcal{L}}_{full}}{-\Expect{P\sim \mathcal{Q}_{1:N,T}}{\hat{\mathcal{L}}(Q, S_T)^2}+R'(\gamma)\hat{\mathcal{L}}_{full}}
+$$
+
 \section{Practical implementation and empirical evaluation}
 
 As is usually the case with PAC-Bayes bounds, Theorem \ref{thm:main-result} provides us with a practical algorithm for meta-adaptation. In order to perform approximate posterior sampling for a Gibbs posterior, the SGLD (Stochastic Gradient Langevin Dynamics) algorithm \citep{Welling2011} can be used, assuming a sufficient number of iterations.
@@ -498,13 +567,13 @@ For standard meta-testing, we used SGD with the Adam optimizer \citep{Kingma2015
 		Method   & Hyper-prior \#permuted pixels  & Test accuracy   \\
 		\midrule
 		Meta-testing, 2-shot & 100   & $0.777\pm 0.023 $      \\
-		Adapted meta-testing, 2-shot & 100   & $0.672\pm ???$      \\
+		Adapted meta-testing, 2-shot & 100   & $0.747\pm 0.024$      \\
 		\midrule
 		Meta-testing, 2-shot & 1000   & $0.627\pm 0.025 $      \\
 		Adapted meta-testing, 2-shot & 1000   & $0.646\pm 0.023$      \\
 		\midrule
 		Meta-testing, 5-shot & 100   & $0.86\pm 0.018$      \\
-		Adapted meta-testing, 5-shot & 100   & $0.859\pm ???$      \\
+		Adapted meta-testing, 5-shot & 100   & $0.859\pm 0.016$      \\
 		\midrule
 		Meta-testing, 5-shot & 1000   & $0.73\pm 0.024$      \\
 		Adapted meta-testing, 5-shot & 1000   & $0.776\pm 0.026$      \\
@@ -516,7 +585,7 @@ For standard meta-testing, we used SGD with the Adam optimizer \citep{Kingma2015
 
 %TODO: explain findings
 
-As we can see from Figure \ref{fig:results-gamma}, there is a noticeable improvement in accuracy for 5-shot classification, with most sufficiently large $\gamma$ values performing similarly.
+As we can see from Figure \ref{fig:results-gamma}, there is a noticeable improvement in accuracy for 5-shot classification, with most sufficiently large $\gamma$ values performing similarly. For the harder 2-shot classification problem, the results suggest that a straightforward increase of $\gamma$ does not lead to better test accuracy, and that there is some optimal equilibrium point. We note that while there is little to no benefit to this meta-adaptation approach for cases where the learned hyper-prior is already effective, there is a notable improvement for cases where the test task is different and therefore adaptation is necessary.
 
 
 \LF{TODO: heatmap of beta/gamma vs accuracy. }
@@ -562,7 +631,7 @@ As we can see from Figure \ref{fig:results-gamma}, there is a noticeable improve
 		\item Did you specify all the training details (e.g., data splits, hyperparameters, how they were chosen)?
 		\answerYes{}
 		\item Did you report error bars (e.g., with respect to the random seed after running experiments multiple times)?
-		\answerTODO{}
+		\answerYes{}
 		\item Did you include the total amount of compute and the type of resources used (e.g., type of GPUs, internal cluster, or cloud provider)?
 		\answerTODO{}
 	\end{enumerate}
