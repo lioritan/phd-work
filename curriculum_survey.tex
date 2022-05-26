@@ -54,7 +54,7 @@
 \newtheorem{hypothesis}{Hypothesis}[section]
 \newtheorem{assumption}{Assumption}
 \newcommand{\RM}[1]{\textcolor{magenta}{\{RM: #1\}}}
-\newcommand{\RM2}[1]{\textcolor{green}{\{: #1\}}}
+\newcommand{\RMM}[1]{\textcolor{purple}{\{RM: #1\}}}
 \newcommand{\LF}[1]{\textcolor{blue}{\{LF: #1\}}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1215,7 +1215,7 @@ In order to clarify this expression, we will use more intuitive definitions for 
 	$$\hat{\mathcal{L}}_{meta}\triangleq \hat{\mathcal{L}}'^{(\gamma)}(\mathcal{Q}_{1:N,T}, S_T)=E_{P\sim \mathcal{Q}^{\gamma}_{1:N,T}}E_{h\sim P}\left [\hat{\mathcal{L}}(h, S_T)\right ]$$ 
 	as the meta adapted loss, meaning $S_T$ is used only on the hyper-prior level. $\hat{\mathcal{L}}_{meta}$ is a function of $\gamma$.
 	
-	\RMM{According to Figure \ref{fig:data_dependant_bound} meta-learning uses $P\sim {\cal Q}_{1:N},h\in Q^\beta(P,S_T)$ and not as written here.}
+	\RMM{According to Figure \ref{fig:data_dependant_bound} meta-learning uses $P\sim {\cal Q}_{1:N},h\sim Q^\beta(P,S_T)$ and not as written here.}
 	
 	We define $$\hat{\mathcal{L}}_{base}\triangleq \hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T)=E_{P\sim \mathcal{Q}_{1:N}}E_{h\sim P}\left [\hat{\mathcal{L}}(h, S_T)\right ]$$ as the base loss on the hyper-prior. $\hat{\mathcal{L}}_{base}$ does not depend on $\gamma$ and $\beta$.
 \end{defn}
