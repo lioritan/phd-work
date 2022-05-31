@@ -57,14 +57,14 @@ class MetaLearnerFair(object):
 
         return evaluation_error, evaluation_accuracy
 
-    def split_adapt_eval(self, task_batch):
+    def split_adapt_eval(self, task_batch, div=2):
         D_task_xs, D_task_ys = task_batch
         D_task_xs, D_task_ys = D_task_xs.to(self.device), D_task_ys.to(self.device)
         task_batch_size = D_task_xs.size(0)
         # Separate data into adaptation / evaluation sets
         adapt_indices = np.zeros(task_batch_size, dtype=bool)
-        train_frac = round(task_batch_size / 2)
-        adapt_indices[np.arange(train_frac) * 2] = True
+        train_frac = round(task_batch_size / div)
+        adapt_indices[np.arange(train_frac) * div] = True
         error_eval_indices = ~adapt_indices
         # numpy -> torch
         adapt_indices = torch.from_numpy(adapt_indices)
@@ -116,7 +116,7 @@ class MetaLearnerFair(object):
 
     def meta_test(self, test_meta_epochs, test_taskset):
         D_test_batch = test_taskset.sample()
-        D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval = self.split_adapt_eval(D_test_batch)
+        D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval = self.split_adapt_eval(D_test_batch, div=10)
 
         for epoch in range(test_meta_epochs):
             self.test_opt.zero_grad()

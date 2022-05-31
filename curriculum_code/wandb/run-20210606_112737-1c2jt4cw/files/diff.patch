@@ -1,0 +1,142 @@
+diff --git a/curriculum_code/environment/parametric_mujoco/parametric_pendulum_locomotion.py b/curriculum_code/environment/parametric_mujoco/parametric_pendulum_locomotion.py
+index 736ff2e..274d3a4 100644
+--- a/curriculum_code/environment/parametric_mujoco/parametric_pendulum_locomotion.py
++++ b/curriculum_code/environment/parametric_mujoco/parametric_pendulum_locomotion.py
+@@ -2,6 +2,7 @@ from typing import Any, Dict
+ 
+ import torch
+ import numpy as np
++from gym import spaces
+ from gym.envs.classic_control import PendulumEnv
+ from gym.envs.classic_control.pendulum import angle_normalize
+ 
+@@ -52,6 +53,12 @@ class AngledPendulumEnv(PendulumEnv):
+         """Get reward model."""
+         return PendRewardModel(self.angle)
+ 
++    def reset(self):
++        high = np.array([np.pi, 0])
++        self.state = high#self.np_random.uniform(low=-high, high=high)
++        self.last_u = None
++        return self._get_obs()
++
+ 
+ class MBPendulumAngleContinuousWrapper(EnvironmentWrapper):
+     def __init__(self):
+diff --git a/curriculum_code/task_difficulty_experiment_mujoco.py b/curriculum_code/task_difficulty_experiment_mujoco.py
+index 60f0080..cd2edc9 100644
+--- a/curriculum_code/task_difficulty_experiment_mujoco.py
++++ b/curriculum_code/task_difficulty_experiment_mujoco.py
+@@ -5,7 +5,7 @@ import os
+ import pickle
+ 
+ import gym
+-from stable_baselines3 import PPO
++from stable_baselines3 import PPO, A2C, TD3, SAC
+ 
+ import wandb
+ import numpy as np
+@@ -15,8 +15,8 @@ from tqdm import tqdm
+ from curriculum.eval.task_difficulty_estimate import estimate_task_difficulties
+ from curriculum.teachers.predefined_tasks_teacher import PredefinedTasksTeacher
+ from curriculum.teachers.random_teacher import RandomTeacher
+-from environment.parametric_mujoco.parametric_ant import AntWrapper
+-from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
++#from environment.parametric_mujoco.parametric_ant import AntWrapper
++#from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
+ from environment.parametric_mujoco.parametric_pendulum_locomotion import MBPendulumAngleContinuousWrapper
+ from student_algorithms.gp_model_ensemble.dpgpmm_algorithm import DPGPMMAlgorithm
+ from student_algorithms.gp_model_ensemble.dpgpmm_policy import DPGPMMPolicy
+@@ -27,12 +27,12 @@ from student_algorithms.nn_model_ensemble.nnmm_policy import NNMMPolicy
+ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="PPO"):
+     random_teacher = RandomTeacher(None, wrapper)
+ 
+-    random_teacher = PredefinedTasksTeacher({"tasks": [
+-        {"goal_angle": np.pi}
+-    ]*100}, wrapper)
++    random_teacher = PredefinedTasksTeacher({"tasks":
++        [{"goal_angle": np.pi}]*50 + [{"goal_angle": 0}]*50
++    }, wrapper)
+     #random_teacher = PredefinedTasksTeacher({"tasks": [easy_task]}, wrapper)
+ 
+-    wandb.init(project=f'mb_me_{wrapper.name}', entity='liorf', save_code=True)
++    wandb.init(project=f'sched_{wrapper.name}', entity='liorf', save_code=True)
+     config = wandb.config
+     config.task = wrapper.name
+     config.teacher = str(random_teacher)
+@@ -69,6 +69,21 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
+                       policy_kwargs={"net_arch": [dict(pi=[8, 8], vf=[8, 8])]},
+                       n_steps=steps_per_task // 4)
+ 
++        # student = SAC(policy='MlpPolicy', env=ref_env,
++        #               verbose=0,
++        #               policy_kwargs={"net_arch": [8, 8]},
++        #               )
++
++        # student = TD3(policy="MlpPolicy", env=ref_env,
++        #               verbose=0,
++        #               policy_kwargs={"net_arch": [8, 8]},
++        #               buffer_size=5000,
++        #               )
++
++        # student = A2C(policy='MlpPolicy', env=ref_env,
++        #               policy_kwargs={"net_arch": [8, 8]},
++        #                     verbose=0)
++
+     config.student = str(student)
+     config.student_params = student.__dict__
+ 
+@@ -106,12 +121,17 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
+     with open(f"./results/{date_string}/difficulty/{wrapper.name}/hist.pkl", "wb") as fptr:
+         pickle.dump(random_teacher.history.history, fptr)
+ 
++    difficulty_estimates, task_params = estimate_task_difficulties(student, wrapper, 60, 3, steps_per_task)
++    print(zip(difficulty_estimates.mean(axis=1).tolist(), task_params))
++
+     # eval and record video
+     wandb.gym.monitor()  # Any env used with gym wrapper monitor will now be recorded
+     evaluate(steps_per_task, wrapper.create_env(easy_task),
+              student, f"./results/{date_string}/difficulty/{wrapper.name}/")
+ 
+ 
++
++
+ def evaluate(action_limit, base_env, student, base_dir):
+     eval_env = gym.wrappers.Monitor(base_env, directory=base_dir)
+     student.set_env(eval_env)
+diff --git a/curriculum_survey.tex b/curriculum_survey.tex
+index daad099..cfd3535 100644
+--- a/curriculum_survey.tex
++++ b/curriculum_survey.tex
+@@ -43,6 +43,7 @@
+ \raggedbottom %nicer enumerate
+ \theoremstyle{definition}
+ \newtheorem{defn}{Definition}[section]
++\newtheorem{hypothesis}{Hypothesis}[section]
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \title{Curriculum learning in RL}
+ \begin{document}
+@@ -371,7 +372,22 @@ papers
+ \section{Formalizing curricula for a simple task - 1.6.21} \label{sec:pendulum-dreams}
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+-TODO
++In order to consider what curricula are valid, let us first define a simple task for reference.
++The inverted pendulum task consists of a pendulum of predefined mass and length.
++The goal of the parametric version of this task is to reach a chosen angle offset relative to the upright position, meaning a goal angle offset of 0 is the standard inverted pendulum formulation.
++As a reminder, the state consists of the sine of the angle, the cosine of the angle, and the current velocity.
++
++In order to discuss this parametric pendulum task, we must make two assumptions:
++\begin{enumerate}
++	\item The pendulum can be controlled to reach a steady state at any given angle - this assumption depends on the mass, length and gravity of the pendulum system. Violation of this assumption means that some tasks cannot be solved (and the optimal policy for them is either staying in the closest stable position or rotating at high velocity, depending on the cost function)
++	\item The cost function penalizes angle cost significantly more than action cost. Violation of this assumption may cause the controller to prioritize inaction over a correct policy.
++\end{enumerate}
++Under these assumptions, we can continue to make several hypotheses on the behavior of a student and teacher.
++
++\begin{hypothesis}
++	f
++\end{hypothesis}
++
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \section{Experiments - 1.6.21} \label{sec:experiment}

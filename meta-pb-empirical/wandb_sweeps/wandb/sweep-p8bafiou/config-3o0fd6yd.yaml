@@ -1,0 +1,34 @@
+wandb_version: 1
+
+beta:
+  value: 1
+dataset:
+  value: mnist
+gamma:
+  value: 0.001
+load_trained_model:
+  value: true
+meta_batch_size:
+  value: 8
+meta_lr:
+  value: 0.003
+mnist_pixels_to_permute_test:
+  value: 100
+n_epochs:
+  value: 100
+n_shots:
+  value: 1
+n_test_epochs:
+  value: 2
+n_ways:
+  value: 5
+per_task_lr:
+  value: 0.1
+seed:
+  value: 42
+test_adapt_steps:
+  value: 1
+train_adapt_steps:
+  value: 5
+train_sample_size:
+  value: 10

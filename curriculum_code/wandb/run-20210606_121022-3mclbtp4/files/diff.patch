@@ -1,0 +1,175 @@
+diff --git a/curriculum_code/environment/parametric_mujoco/parametric_pendulum_locomotion.py b/curriculum_code/environment/parametric_mujoco/parametric_pendulum_locomotion.py
+index 736ff2e..844c860 100644
+--- a/curriculum_code/environment/parametric_mujoco/parametric_pendulum_locomotion.py
++++ b/curriculum_code/environment/parametric_mujoco/parametric_pendulum_locomotion.py
+@@ -2,6 +2,7 @@ from typing import Any, Dict
+ 
+ import torch
+ import numpy as np
++from gym import spaces
+ from gym.envs.classic_control import PendulumEnv
+ from gym.envs.classic_control.pendulum import angle_normalize
+ 
+@@ -28,6 +29,13 @@ class AngledPendulumEnv(PendulumEnv):
+         self.angle = angle #angle_normalize(angle)
+         self.m = 0.1
+ 
++        # high = np.array([1., 1., self.max_speed, 1., 1.], dtype=np.float32)
++        # self.observation_space = spaces.Box(
++        #     low=-high,
++        #     high=high,
++        #     dtype=np.float32
++        # )
++
+     def step(self, u):
+         th, thdot = self.state  # th := theta
+ 
+@@ -39,7 +47,7 @@ class AngledPendulumEnv(PendulumEnv):
+         u = np.clip(u, -self.max_torque, self.max_torque)[0]
+         self.last_u = u  # for rendering
+         angle_cost = angle_normalize(self.angle - th) ** 2
+-        costs = angle_cost + .1 * thdot ** 2 + .001 * (u ** 2)
++        costs = angle_cost + .1 * thdot ** 2 #+ .001 * (u ** 2)
+ 
+         newthdot = thdot + (-3 * g / (2 * l) * np.sin(th + np.pi) + 3. / (m * l ** 2) * u) * dt
+         newth = th + newthdot * dt
+@@ -52,6 +60,16 @@ class AngledPendulumEnv(PendulumEnv):
+         """Get reward model."""
+         return PendRewardModel(self.angle)
+ 
++    def reset(self):
++        high = np.array([np.pi, 0])
++        self.state = high#self.np_random.uniform(low=-high, high=high)
++        self.last_u = None
++        return self._get_obs()
++
++    # def _get_obs(self):
++    #     theta, thetadot = self.state
++    #     return np.array([np.cos(theta), np.sin(theta), thetadot, np.cos(self.angle), np.sin(self.angle)])
++
+ 
+ class MBPendulumAngleContinuousWrapper(EnvironmentWrapper):
+     def __init__(self):
+diff --git a/curriculum_code/task_difficulty_experiment_mujoco.py b/curriculum_code/task_difficulty_experiment_mujoco.py
+index 60f0080..960db74 100644
+--- a/curriculum_code/task_difficulty_experiment_mujoco.py
++++ b/curriculum_code/task_difficulty_experiment_mujoco.py
+@@ -5,7 +5,7 @@ import os
+ import pickle
+ 
+ import gym
+-from stable_baselines3 import PPO
++from stable_baselines3 import PPO, A2C, TD3, SAC
+ 
+ import wandb
+ import numpy as np
+@@ -15,8 +15,8 @@ from tqdm import tqdm
+ from curriculum.eval.task_difficulty_estimate import estimate_task_difficulties
+ from curriculum.teachers.predefined_tasks_teacher import PredefinedTasksTeacher
+ from curriculum.teachers.random_teacher import RandomTeacher
+-from environment.parametric_mujoco.parametric_ant import AntWrapper
+-from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
++#from environment.parametric_mujoco.parametric_ant import AntWrapper
++#from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
+ from environment.parametric_mujoco.parametric_pendulum_locomotion import MBPendulumAngleContinuousWrapper
+ from student_algorithms.gp_model_ensemble.dpgpmm_algorithm import DPGPMMAlgorithm
+ from student_algorithms.gp_model_ensemble.dpgpmm_policy import DPGPMMPolicy
+@@ -27,12 +27,12 @@ from student_algorithms.nn_model_ensemble.nnmm_policy import NNMMPolicy
+ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="PPO"):
+     random_teacher = RandomTeacher(None, wrapper)
+ 
+-    random_teacher = PredefinedTasksTeacher({"tasks": [
+-        {"goal_angle": np.pi}
+-    ]*100}, wrapper)
++    random_teacher = PredefinedTasksTeacher({"tasks":
++        [{"goal_angle":np.pi/2}]*100 + [{"goal_angle": 0}]*80
++    }, wrapper)
+     #random_teacher = PredefinedTasksTeacher({"tasks": [easy_task]}, wrapper)
+ 
+-    wandb.init(project=f'mb_me_{wrapper.name}', entity='liorf', save_code=True)
++    wandb.init(project=f'sched_{wrapper.name}', entity='liorf', save_code=True)
+     config = wandb.config
+     config.task = wrapper.name
+     config.teacher = str(random_teacher)
+@@ -69,6 +69,21 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
+                       policy_kwargs={"net_arch": [dict(pi=[8, 8], vf=[8, 8])]},
+                       n_steps=steps_per_task // 4)
+ 
++        # student = SAC(policy='MlpPolicy', env=ref_env,
++        #               verbose=0,
++        #               policy_kwargs={"net_arch": [8, 8]},
++        #               )
++
++        # student = TD3(policy="MlpPolicy", env=ref_env,
++        #               verbose=0,
++        #               policy_kwargs={"net_arch": [8, 8]},
++        #               buffer_size=5000,
++        #               )
++
++        # student = A2C(policy='MlpPolicy', env=ref_env,
++        #               policy_kwargs={"net_arch": [8, 8]},
++        #                     verbose=0)
++
+     config.student = str(student)
+     config.student_params = student.__dict__
+ 
+@@ -106,12 +121,17 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
+     with open(f"./results/{date_string}/difficulty/{wrapper.name}/hist.pkl", "wb") as fptr:
+         pickle.dump(random_teacher.history.history, fptr)
+ 
++    difficulty_estimates, task_params = estimate_task_difficulties(student, wrapper, 60, 3, steps_per_task)
++    print(list(zip(difficulty_estimates.mean(axis=1).tolist(), task_params)))
++
+     # eval and record video
+     wandb.gym.monitor()  # Any env used with gym wrapper monitor will now be recorded
+     evaluate(steps_per_task, wrapper.create_env(easy_task),
+              student, f"./results/{date_string}/difficulty/{wrapper.name}/")
+ 
+ 
++
++
+ def evaluate(action_limit, base_env, student, base_dir):
+     eval_env = gym.wrappers.Monitor(base_env, directory=base_dir)
+     student.set_env(eval_env)
+diff --git a/curriculum_survey.tex b/curriculum_survey.tex
+index daad099..3371b00 100644
+--- a/curriculum_survey.tex
++++ b/curriculum_survey.tex
+@@ -43,6 +43,7 @@
+ \raggedbottom %nicer enumerate
+ \theoremstyle{definition}
+ \newtheorem{defn}{Definition}[section]
++\newtheorem{hypothesis}{Hypothesis}[section]
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \title{Curriculum learning in RL}
+ \begin{document}
+@@ -371,7 +372,28 @@ papers
+ \section{Formalizing curricula for a simple task - 1.6.21} \label{sec:pendulum-dreams}
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+-TODO
++In order to consider what curricula are valid, let us first define a simple task for reference.
++The inverted pendulum task consists of a pendulum of predefined mass and length.
++The goal of the parametric version of this task is to reach a chosen angle offset relative to the upright position, meaning a goal angle offset of 0 is the standard inverted pendulum formulation.
++As a reminder, the state consists of the sine of the angle, the cosine of the angle, and the current velocity.
++
++In order to discuss this parametric pendulum task, we must make two assumptions:
++\begin{enumerate}
++	\item The pendulum can be controlled to reach a steady state at any given angle - this assumption depends on the mass, length and gravity of the pendulum system. Violation of this assumption means that some tasks cannot be solved (and the optimal policy for them is either staying in the closest stable position or rotating at high velocity, depending on the cost function)
++	\item The cost function penalizes angle cost significantly more than action cost. Violation of this assumption may cause the controller to prioritize inaction over a correct policy.
++\end{enumerate}
++Under these assumptions, we can continue to make several hypotheses on the behavior of a student and teacher.
++
++\begin{hypothesis}
++	Tasks correlate with the angle offset - angles close to $\pi$ are easier, and angles close to $0$ or $2\pi$ are harder.
++\end{hypothesis}
++The intuition for this assumption is that since a longer trajectory is required to reach the goal state, these tasks are more difficult on average. This seems to hold in practice, as we can see most model-based agents have difficulty learning this task (mean reward increases with distance to $0$ offset). We can also see that model-free agents trained on this ``harder'' task perform better on average than those trained on an ``easier" task, suggesting that this is indeed the case. 
++
++\begin{hypothesis}
++	A schedule is relevant to task performance.
++\end{hypothesis}
++This seems to hold in practice - a constant schedule of the easiest task performs poorly, a constant schedule of a medium difficulty ($\frac{\pi}{2}$) converges faster (for PPO) but to a lower quality solution, and a constant hard schedule performs best (for PPO). A random schedule performed worse than both a hard schedule and a medium one.
++We note that the worse performance of a medium schedule may be due to the pendulum environment: the ``hard" task reaches an unstable equilibrium and thus requires no action cost to maintain, whereas the medium solution does incur an action cost.
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \section{Experiments - 1.6.21} \label{sec:experiment}

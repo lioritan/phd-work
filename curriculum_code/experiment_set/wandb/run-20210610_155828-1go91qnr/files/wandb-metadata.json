@@ -1,0 +1,22 @@
+{
+    "os": "Windows-10-10.0.19041-SP0",
+    "python": "3.8.5",
+    "heartbeatAt": "2021-06-10T12:58:33.764744",
+    "startedAt": "2021-06-10T12:58:28.797578",
+    "docker": null,
+    "cpu_count": 8,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "D:/GitHub/phd-work/curriculum_code/experiment_set/experiment1_baseline.py",
+    "codePath": "curriculum_code\\experiment_set\\experiment1_baseline.py",
+    "git": {
+        "remote": "https://github.com/lioritan/phd-work.git",
+        "commit": "919e702e70cf58774fdaafc27dedc561f97fd44c"
+    },
+    "email": "lioritan@users.noreply.github.com",
+    "root": "D:/GitHub/phd-work",
+    "host": "DESKTOP-147BP5M",
+    "username": "liori",
+    "executable": "C:\\ProgramData\\Anaconda3\\python.exe"
+}

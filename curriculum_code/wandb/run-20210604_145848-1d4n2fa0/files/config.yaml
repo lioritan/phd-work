@@ -1,0 +1,43 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.10.30
+    code_path: code/curriculum_code/task_difficulty_experiment_mujoco.py
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.8.5
+    t:
+      1:
+      - 1
+      - 5
+      2:
+      - 1
+      - 5
+      4: 3.8.5
+      5: 0.10.30
+      8:
+      - 3
+      - 5
+num_tasks:
+  desc: null
+  value: 100
+steps_per_task:
+  desc: null
+  value: 500
+task:
+  desc: null
+  value: MBPendulum-v2
+teacher:
+  desc: null
+  value: <curriculum.teachers.random_teacher.RandomTeacher object at 0x0000024B54ECA220>
+teacher_params:
+  desc: null
+  value:
+    env_wrapper: <environment.parametric_mujoco.parametric_pendulum_locomotion.MBPendulumAngleContinuousWrapper
+      object at 0x0000024B54ECA2B0>
+    eval_data: []
+    history: <curriculum.history.History object at 0x0000024B54ECA250>
+    seed: null

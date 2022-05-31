@@ -1,0 +1,81 @@
+diff --git a/curriculum_code/environment/parametric_mujoco/parametric_pendulum_locomotion.py b/curriculum_code/environment/parametric_mujoco/parametric_pendulum_locomotion.py
+index 7759f9d..736ff2e 100644
+--- a/curriculum_code/environment/parametric_mujoco/parametric_pendulum_locomotion.py
++++ b/curriculum_code/environment/parametric_mujoco/parametric_pendulum_locomotion.py
+@@ -19,13 +19,13 @@ class PendRewardModel(StateActionReward):
+ 
+     def state_reward(self, state, next_state=None):
+         angle_cost = -0.5 * (self.cos_angle - state[..., 0]) ** 2 - 0.5 * (self.sin_angle - state[..., 1]) ** 2
+-        return 100*angle_cost - 0.1 * state[..., 2] ** 2
++        return angle_cost - 0.1 * state[..., 2] ** 2
+ 
+ 
+ class AngledPendulumEnv(PendulumEnv):
+     def __init__(self, angle=0.0):
+         super(AngledPendulumEnv, self).__init__()
+-        self.angle = angle_normalize(angle)
++        self.angle = angle #angle_normalize(angle)
+         self.m = 0.1
+ 
+     def step(self, u):
+@@ -38,8 +38,8 @@ class AngledPendulumEnv(PendulumEnv):
+ 
+         u = np.clip(u, -self.max_torque, self.max_torque)[0]
+         self.last_u = u  # for rendering
+-        angle_cost = (self.angle - angle_normalize(th)) ** 2
+-        costs = 100*angle_cost + .1 * thdot ** 2 + .001 * (u ** 2)
++        angle_cost = angle_normalize(self.angle - th) ** 2
++        costs = angle_cost + .1 * thdot ** 2 + .001 * (u ** 2)
+ 
+         newthdot = thdot + (-3 * g / (2 * l) * np.sin(th + np.pi) + 3. / (m * l ** 2) * u) * dt
+         newth = th + newthdot * dt
+diff --git a/curriculum_code/task_difficulty_experiment_mujoco.py b/curriculum_code/task_difficulty_experiment_mujoco.py
+index 60f0080..17aab7d 100644
+--- a/curriculum_code/task_difficulty_experiment_mujoco.py
++++ b/curriculum_code/task_difficulty_experiment_mujoco.py
+@@ -15,8 +15,8 @@ from tqdm import tqdm
+ from curriculum.eval.task_difficulty_estimate import estimate_task_difficulties
+ from curriculum.teachers.predefined_tasks_teacher import PredefinedTasksTeacher
+ from curriculum.teachers.random_teacher import RandomTeacher
+-from environment.parametric_mujoco.parametric_ant import AntWrapper
+-from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
++#from environment.parametric_mujoco.parametric_ant import AntWrapper
++#from environment.parametric_mujoco.parametric_half_cheetah import HalfCheetahWrapper
+ from environment.parametric_mujoco.parametric_pendulum_locomotion import MBPendulumAngleContinuousWrapper
+ from student_algorithms.gp_model_ensemble.dpgpmm_algorithm import DPGPMMAlgorithm
+ from student_algorithms.gp_model_ensemble.dpgpmm_policy import DPGPMMPolicy
+@@ -27,12 +27,12 @@ from student_algorithms.nn_model_ensemble.nnmm_policy import NNMMPolicy
+ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="PPO"):
+     random_teacher = RandomTeacher(None, wrapper)
+ 
+-    random_teacher = PredefinedTasksTeacher({"tasks": [
+-        {"goal_angle": np.pi}
+-    ]*100}, wrapper)
++    # random_teacher = PredefinedTasksTeacher({"tasks": [
++    #     {"goal_angle": np.pi}
++    # ]*100}, wrapper)
+     #random_teacher = PredefinedTasksTeacher({"tasks": [easy_task]}, wrapper)
+ 
+-    wandb.init(project=f'mb_me_{wrapper.name}', entity='liorf', save_code=True)
++    wandb.init(project=f'sched_{wrapper.name}', entity='liorf', save_code=True)
+     config = wandb.config
+     config.task = wrapper.name
+     config.teacher = str(random_teacher)
+@@ -106,12 +106,17 @@ def measure_difficulty(steps_per_task, tasks, wrapper, easy_task, student_alg="P
+     with open(f"./results/{date_string}/difficulty/{wrapper.name}/hist.pkl", "wb") as fptr:
+         pickle.dump(random_teacher.history.history, fptr)
+ 
++    difficulty_estimates, task_params = estimate_task_difficulties(student, wrapper, 60, 3, steps_per_task)
++    print(zip(difficulty_estimates.mean(axis=1).tolist(), task_params))
++
+     # eval and record video
+     wandb.gym.monitor()  # Any env used with gym wrapper monitor will now be recorded
+     evaluate(steps_per_task, wrapper.create_env(easy_task),
+              student, f"./results/{date_string}/difficulty/{wrapper.name}/")
+ 
+ 
++
++
+ def evaluate(action_limit, base_env, student, base_dir):
+     eval_env = gym.wrappers.Monitor(base_env, directory=base_dir)
+     student.set_env(eval_env)

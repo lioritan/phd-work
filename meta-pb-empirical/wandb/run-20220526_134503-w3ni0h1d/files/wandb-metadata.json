@@ -1,0 +1,24 @@
+{
+    "os": "Windows-10-10.0.19041-SP0",
+    "python": "3.8.5",
+    "heartbeatAt": "2022-05-26T10:45:06.507039",
+    "startedAt": "2022-05-26T10:45:03.324039",
+    "docker": null,
+    "gpu": "NVIDIA GeForce GTX 1070",
+    "gpu_count": 1,
+    "cpu_count": 8,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "D:/GitHub/phd-work/meta-pb-empirical/main_pb.py",
+    "codePath": "meta-pb-empirical\\main_pb.py",
+    "git": {
+        "remote": "https://github.com/lioritan/phd-work.git",
+        "commit": "303feb024fda1467c6d53a0bf92d511e26f2ed87"
+    },
+    "email": "lioritan@users.noreply.github.com",
+    "root": "D:/GitHub/phd-work",
+    "host": "DESKTOP-147BP5M",
+    "username": "liori",
+    "executable": "C:\\ProgramData\\Anaconda3\\python.exe"
+}

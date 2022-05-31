@@ -1,0 +1,31 @@
+{
+    "os": "Windows-10-10.0.19041-SP0",
+    "python": "3.8.5",
+    "heartbeatAt": "2021-06-06T09:10:25.319230",
+    "startedAt": "2021-06-06T09:10:22.627230",
+    "docker": null,
+    "cpu_count": 8,
+    "cuda": null,
+    "args": [
+        "--student",
+        "PPO",
+        "--tasks",
+        "100",
+        "--steps",
+        "500",
+        "--env",
+        "pendulum"
+    ],
+    "state": "running",
+    "program": "D:/GitHub/phd-work/curriculum_code/task_difficulty_experiment_mujoco.py",
+    "codePath": "curriculum_code\\task_difficulty_experiment_mujoco.py",
+    "git": {
+        "remote": "https://github.com/lioritan/phd-work.git",
+        "commit": "516c8d8128f16ce9e4020b004310fdfb349f0984"
+    },
+    "email": "lioritan@users.noreply.github.com",
+    "root": "D:/GitHub/phd-work",
+    "host": "DESKTOP-147BP5M",
+    "username": "liori",
+    "executable": "C:\\ProgramData\\Anaconda3\\python.exe"
+}

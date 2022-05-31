@@ -1,0 +1,147 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.10.30
+    code_path: code/curriculum_code/task_difficulty_experiment_mujoco.py
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.8.5
+    t:
+      1:
+      - 1
+      - 5
+      2:
+      - 1
+      - 5
+      3:
+      - 1
+      4: 3.8.5
+      5: 0.10.30
+      8:
+      - 3
+      - 5
+num_tasks:
+  desc: null
+  value: 100
+steps_per_task:
+  desc: null
+  value: 500
+student:
+  desc: null
+  value: <stable_baselines3.sac.sac.SAC object at 0x0000025DDFFE9F10>
+student_params:
+  desc: null
+  value:
+    _current_progress_remaining: 1
+    _episode_num: 0
+    _last_dones: null
+    _last_obs: null
+    _last_original_obs: null
+    _n_updates: 0
+    _total_timesteps: 0
+    _vec_normalize_env: null
+    action_noise: null
+    action_space: Box(-2.0, 2.0, (1,), float32)
+    actor: "Actor(\n  (features_extractor): FlattenExtractor(\n    (flatten): Flatten(start_dim=1,\
+      \ end_dim=-1)\n  )\n  (latent_pi): Sequential(\n    (0): Linear(in_features=3,\
+      \ out_features=8, bias=True)\n    (1): ReLU()\n    (2): Linear(in_features=8,\
+      \ out_features=8, bias=True)\n    (3): ReLU()\n  )\n  (mu): Linear(in_features=8,\
+      \ out_features=1, bias=True)\n  (log_std): Linear(in_features=8, out_features=1,\
+      \ bias=True)\n)"
+    batch_size: 256
+    buffer_size: 1000000
+    critic: "ContinuousCritic(\n  (features_extractor): FlattenExtractor(\n    (flatten):\
+      \ Flatten(start_dim=1, end_dim=-1)\n  )\n  (qf0): Sequential(\n    (0): Linear(in_features=4,\
+      \ out_features=8, bias=True)\n    (1): ReLU()\n    (2): Linear(in_features=8,\
+      \ out_features=8, bias=True)\n    (3): ReLU()\n    (4): Linear(in_features=8,\
+      \ out_features=1, bias=True)\n  )\n  (qf1): Sequential(\n    (0): Linear(in_features=4,\
+      \ out_features=8, bias=True)\n    (1): ReLU()\n    (2): Linear(in_features=8,\
+      \ out_features=8, bias=True)\n    (3): ReLU()\n    (4): Linear(in_features=8,\
+      \ out_features=1, bias=True)\n  )\n)"
+    critic_target: "ContinuousCritic(\n  (features_extractor): FlattenExtractor(\n\
+      \    (flatten): Flatten(start_dim=1, end_dim=-1)\n  )\n  (qf0): Sequential(\n\
+      \    (0): Linear(in_features=4, out_features=8, bias=True)\n    (1): ReLU()\n\
+      \    (2): Linear(in_features=8, out_features=8, bias=True)\n    (3): ReLU()\n\
+      \    (4): Linear(in_features=8, out_features=1, bias=True)\n  )\n  (qf1): Sequential(\n\
+      \    (0): Linear(in_features=4, out_features=8, bias=True)\n    (1): ReLU()\n\
+      \    (2): Linear(in_features=8, out_features=8, bias=True)\n    (3): ReLU()\n\
+      \    (4): Linear(in_features=8, out_features=1, bias=True)\n  )\n)"
+    device: cuda
+    ent_coef: auto
+    ent_coef_optimizer: "Adam (\nParameter Group 0\n    amsgrad: False\n    betas:\
+      \ (0.9, 0.999)\n    eps: 1e-08\n    lr: 0.0003\n    weight_decay: 0\n)"
+    env: <stable_baselines3.common.vec_env.dummy_vec_env.DummyVecEnv object at 0x0000025DE00050A0>
+    ep_info_buffer: null
+    ep_success_buffer: null
+    eval_env: null
+    gamma: 0.99
+    gradient_steps: 1
+    learning_rate: 0.0003
+    learning_starts: 100
+    log_ent_coef: '0.0'
+    lr_schedule: stable_baselines3.common.utils.constant_fn.<locals>.func
+    n_envs: 1
+    num_timesteps: 0
+    observation_space: Box(-8.0, 8.0, (3,), float32)
+    optimize_memory_usage: false
+    policy: "SACPolicy(\n  (actor): Actor(\n    (features_extractor): FlattenExtractor(\n\
+      \      (flatten): Flatten(start_dim=1, end_dim=-1)\n    )\n    (latent_pi):\
+      \ Sequential(\n      (0): Linear(in_features=3, out_features=8, bias=True)\n\
+      \      (1): ReLU()\n      (2): Linear(in_features=8, out_features=8, bias=True)\n\
+      \      (3): ReLU()\n    )\n    (mu): Linear(in_features=8, out_features=1, bias=True)\n\
+      \    (log_std): Linear(in_features=8, out_features=1, bias=True)\n  )\n  (critic):\
+      \ ContinuousCritic(\n    (features_extractor): FlattenExtractor(\n      (flatten):\
+      \ Flatten(start_dim=1, end_dim=-1)\n    )\n    (qf0): Sequential(\n      (0):\
+      \ Linear(in_features=4, out_features=8, bias=True)\n      (1): ReLU()\n    \
+      \  (2): Linear(in_features=8, out_features=8, bias=True)\n      (3): ReLU()\n\
+      \      (4): Linear(in_features=8, out_features=1, bias=True)\n    )\n    (qf1):\
+      \ Sequential(\n      (0): Linear(in_features=4, out_features=8, bias=True)\n\
+      \      (1): ReLU()\n      (2): Linear(in_features=8, out_features=8, bias=True)\n\
+      \      (3): ReLU()\n      (4): Linear(in_features=8, out_features=1, bias=True)\n\
+      \    )\n  )\n  (critic_target): ContinuousCritic(\n    (features_extractor):\
+      \ FlattenExtractor(\n      (flatten): Flatten(start_dim=1, end_dim=-1)\n   \
+      \ )\n    (qf0): Sequential(\n      (0): Linear(in_features=4, out_features=8,\
+      \ bias=True)\n      (1): ReLU()\n      (2): Linear(in_features=8, out_features=8,\
+      \ bias=True)\n      (3): ReLU()\n      (4): Linear(in_features=8, out_features=1,\
+      \ bias=True)\n    )\n    (qf1): Sequential(\n      (0): Linear(in_features=4,\
+      \ out_features=8, bias=True)\n      (1): ReLU()\n      (2): Linear(in_features=8,\
+      \ out_features=8, bias=True)\n      (3): ReLU()\n      (4): Linear(in_features=8,\
+      \ out_features=1, bias=True)\n    )\n  )\n)"
+    policy_class: stable_baselines3.sac.policies.SACPolicy
+    policy_kwargs:
+      net_arch:
+      - 8
+      - 8
+      use_sde: false
+    remove_time_limit_termination: false
+    replay_buffer: <stable_baselines3.common.buffers.ReplayBuffer object at 0x0000025DE0005AC0>
+    sde_sample_freq: -1
+    seed: null
+    start_time: null
+    target_entropy: -1.0
+    target_update_interval: 1
+    tau: 0.005
+    tensorboard_log: null
+    train_freq:
+    - 1
+    - TrainFrequencyUnit.STEP
+    use_sde: false
+    use_sde_at_warmup: false
+    verbose: 0
+task:
+  desc: null
+  value: MBPendulum-v2
+teacher:
+  desc: null
+  value: <curriculum.teachers.random_teacher.RandomTeacher object at 0x0000025DDAFA9220>
+teacher_params:
+  desc: null
+  value:
+    env_wrapper: <environment.parametric_mujoco.parametric_pendulum_locomotion.MBPendulumAngleContinuousWrapper
+      object at 0x0000025DDAFA92B0>
+    eval_data: []
+    history: <curriculum.history.History object at 0x0000025DDAFA9250>
+    seed: null
