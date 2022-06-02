@@ -33,7 +33,7 @@ def run_meta_learner(
     if dataset == "mnist":
         task_sets = MnistDataset(data_path='~/data', train_shots=train_sample_size,
                                  train_ways=n_ways,
-                                 test_shots=10 * n_shots,
+                                 test_shots=2 * n_shots,
                                  test_ways=n_ways,
                                  shuffle_pixels=True, permute_labels=False, n_pixels_to_change_train=mnist_pixels_to_permute_train,
                                  n_pixels_to_change_test=mnist_pixels_to_permute_test) #-1 shuffles all
@@ -73,7 +73,7 @@ def run_meta_learner(
         gamma,
         reset_clf_on_meta_loop)
 
-    model_name = f"artifacts/{dataset}/model21.pkl"
+    model_name = f"artifacts/{dataset}/model.pkl"
 
     if load_trained:
         print(f"load trained model")

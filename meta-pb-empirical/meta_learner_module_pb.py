@@ -67,7 +67,6 @@ class MetaLearnerFairPB(object):
         #self.test_opt = torch.optim.Adam(self.maml.parameters(), meta_lr)
         self.test_opt = torch.optim.Adam
         self.test_opt_params = {"lr": per_task_lr}
-        self.test_opt_params = {"lr": meta_lr}
         self.seed = seed
         self.n_ways = n_ways
         self.reset_clf_on_meta_loop = reset_clf_on_meta_loop
@@ -246,7 +245,6 @@ class MetaLearnerFairPB(object):
                                                                        hyper_dvrg=hyper_dvrg,
                                                                        n_tasks=self.meta_batch_size)
         pb_objective = losses.mean() + complexities.mean() + meta_complex_term
-        pb_objective = losses.mean() # TODO
         return pb_objective
 
     def get_pb_terms_single_task(self, x, y, prior, posterior, hyper_dvrg=0, n_tasks=1):
