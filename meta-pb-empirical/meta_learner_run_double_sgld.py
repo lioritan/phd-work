@@ -96,6 +96,4 @@ def run_meta_learner_doubleSGLD(
 
     print(f"meta learner test")
     set_random_seed(seed)
-    result = meta_learner.meta_test(n_test_epochs, task_sets.test)
-    del model, task_sets
-    return result
+    return meta_learner.meta_test(n_test_epochs, task_sets.test)

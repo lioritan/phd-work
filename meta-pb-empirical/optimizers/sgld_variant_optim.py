@@ -15,7 +15,8 @@ class SimpleSGLDPriorSampling(Optimizer):
     def __init__(self,
                  params,
                  lr=1e-2,
-                 beta=1.0) -> None:
+                 beta=1.0,
+                 num_burn_in_steps=0) -> None:
         """ Set up a SGLD Optimizer.
 
         Parameters
@@ -29,12 +30,19 @@ class SimpleSGLDPriorSampling(Optimizer):
         beta : float, optional
             Exponential parameter of gibbs (should ideally be sqrt(num samples))
             Default: `1.0`
+        num_burn_in_steps : int, optional
+            Number of iterations to collect gradient statistics to update the
+            preconditioner before starting to draw noisy samples.
+            Default: `0`.
         """
         if lr < 0.0:
             raise ValueError("Invalid learning rate: {}".format(lr))
+        if num_burn_in_steps < 0:
+            raise ValueError("Invalid num_burn_in_steps: {}".format(num_burn_in_steps))
 
         defaults = dict(
             lr=lr, beta=beta,
+            num_burn_in_steps=num_burn_in_steps,
             diagonal_bias=1e-8,
         )
         super().__init__(params, defaults)
@@ -65,14 +73,19 @@ class SimpleSGLDPriorSampling(Optimizer):
 
                 state["iteration"] += 1
 
-                # if beta is high, we want posterior sampling, if it's low we want prior sampling
+                if state["iteration"] > group["num_burn_in_steps"]:
+                    sigma = torch.ones_like(parameter)
+                else:
+                    sigma = torch.zeros_like(parameter)
+
+                # if beta is high, we want posterior sampling, if it's lo we want prior sampling
                 noise_variance = math.sqrt(lr / beta) if beta >= 1.0 else math.sqrt(beta)
 
                 scaled_noise = (
                         torch.normal(
                             mean=torch.zeros_like(gradient),
-                            std=torch.ones_like(gradient)
-                        ) * noise_variance
+                            std=torch.ones_like(gradient) * noise_variance
+                        ) * sigma
                 )  # Noise is N(0, sqrt(lr/beta))
 
                 # Note: noise is scaled to gradient to make it less random
