@@ -303,7 +303,7 @@ These data-dependent bounds can be applied to the meta-learning setting, giving 
 	
 	
 	where 
-	$$\xi(\lambda,\mathcal{Q}_{1:N})\triangleq \Expect{S\sim D_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S_T)}{e^{\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S_T)\right )}}$$
+	$$\xi(\lambda,\mathcal{Q}_{1:N})\triangleq \Expect{S\sim D_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S)\right )}}$$
 \end{proposition}
 
 The full proof of Proposition \ref{thm:main-result} is in Appendix \ref{append:proof-main-result}, but it follows quite straightforwardly from Theorem \ref{thm:rivasplata-pb} using a two-level prior hypothesis $(\mathcal{Q}_{1:N}, Q)$, meaning the distribution where we first sample $P\sim \mathcal{Q}_{1:N}$ and then sample $h\sim Q(P, S_T)$ to arrive at a hypothesis. This two-level prior is compared to a two-level posterior $(\mathcal{Q}, Q)$. Since the bound allows for a data-dependent prior, it is possible to choose the same base learner $Q(P, S_T)$ for both prior and posterior, resulting in a bound with only an environment-level complexity term.
@@ -318,7 +318,7 @@ We note that this generic bound also provides us with an immediate bound on the 
 	+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}$$
 	
 	where 
-	$$\xi(\lambda,\mathcal{Q}_{1:N})\triangleq \Expect{S\sim D_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S_T)}{e^{\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S_T)\right )}}$$
+	$$\xi(\lambda,\mathcal{Q}_{1:N})\triangleq \Expect{S\sim D_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S)\right )}}$$
 \end{corollary}
 
 It is important to note that the log-moment term $log\xi(\lambda,\mathcal{Q}_{1:N})$ is a key term in both cases, and choosing a base learner $Q$ with algorithmic stability properties can be quite useful in providing an upper bound on this term.
@@ -453,9 +453,9 @@ An equivalent definition for stochastic kernels that is easier to understand for
 	Let $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{M}(\mathcal{H}))$ be a stochastic kernel.
 	$Q$ is $DP(\epsilon)$ if 
 	
-	$$\frac{Q(S, P)}{Q(S', P)} \leq e^\epsilon$$
+	$$\frac{Q(S, A)}{Q(S', A)} \leq e^\epsilon$$
 	
-	For all $P\in  \mathcal{M}(\mathcal{H})$
+	For all $A\in  \mathcal{M}(\mathcal{H})$
 \end{defn}
 
 It has been proven \citep{McSherry2007, Rivasplata2020} that the Gibbs posterior $Q(P, S)(h)\propto P(h)e^{-\beta\hat{\mathcal{L}}(h, S)}$ is $DP\left (\frac{2\beta}{m}\right )$.
@@ -669,6 +669,97 @@ As we can see from Figure \ref{fig:results-gamma}, there is a noticeable improve
 
 \subsection{Proof of the generic meta-adaptation bound} \label{append:proof-main-result}
 
+We restate the result for stochastic kernels:
+
+\begin{theorem} (PAC-Bayes for stochastic kernels - adapted from Theorem 2 in \citet{Rivasplata2020}) \label{thm:rivasplata-pb-appendix}
+	Let $P\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ be a stochastic kernel, let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
+	Define $f\triangleq F\circ A$, and let 
+	$$\xi(P_S, \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{f(S, h)}P_S(dh)\mathcal{D}(dS)$$
+	Such that $P_S$ is the distribution over $\mathcal{H}$ corresponding to the sampled $S$.\RM{Write the arguments of $\xi=\xi(P_S,{\cal D})$} \LF{Done}
+	
+	Assuming $\xi(P_S, \mathcal{D}, f)$ is finite, for any $\delta \in (0,1)$, the following inequality holds uniformly for all posteriors $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ with probability at least $1-\delta$ over the choice of $S\sim \mathcal{D}$:
+	
+	\begin{equation} \label{eq:ribasplata-pb-appendix}
+	\Expect{h\sim Q_S}{f(S, h)} \leq D_{KL}(Q_S||P_S)+log\left (\frac{\xi(P_S, \mathcal{D}, f)}{\delta}\right )
+	\end{equation}
+\end{theorem}
+
+\begin{proposition}
+	Let $\mathcal{Q}_{1:N}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ be a meta-learned hyper-posterior (e.g. the result of meta-training on $\{S_1,...,S_N\}$), and let $\mathcal{D}_T\sim \tau$ be a \emph{given} test task. Let $Q: \mathcal{Z}^m\times\mathcal{M}(\mathcal{H})\rightarrow \mathcal{M}(\mathcal{H})$ be a given base learner. Let $l: \mathcal{H}\times \mathcal{Z}\rightarrow [0, 1]$ be a bounded loss function.
+	For any $\delta_T \in (0,1)$, and for all $\lambda>0$, the following inequality holds uniformly for all hyper-posteriors $\mathcal{Q}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$:
+	
+	\begin{align}
+	\mathcal{L}(\mathcal{Q}, D_T) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_T) + \frac{1}{\lambda}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N})
+	+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}
+	\end{align}
+	
+	
+	where 
+	$$\xi(\lambda,\mathcal{Q}_{1:N})\triangleq \Expect{S\sim D_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S)\right )}}$$
+\end{proposition}
+
+\begin{proof}
+	First, we consider the setting of Theorem \ref{thm:rivasplata-pb-appendix} and extend it to meta-learning:
+	
+	We define a stochastic kernel for the 2-level hypothesis case as a pair $(\mathcal{P},P)\in \mathcal{K}(\mathcal{Z}^m, \mathcal{M}(\mathcal{H}\times \mathcal{H})), \mathcal{K}(\mathcal{Z}^m, \mathcal{H}))$ such that for a given sample $S\in \mathcal{Z}^m$,  $(\mathcal{P},P)(S)$ is the distribution over $\mathcal{H}$ corresponding to sampling from the hyper-prior $P\sim \mathcal{P}(S)$ corresponding to $S$ and then sampling from $h\sim P(S)$.
+	
+	Let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
+	Define $f\triangleq F\circ A$, and let 
+	$$\xi((\mathcal{P}_S,P_S), \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{f(S, h)}\mathcal{P}_S(dP)P_S(P)(dh)\mathcal{D}(dS)$$
+	
+	
+	Using Equation \ref{eq:ribasplata-pb-appendix} with $f(S,(P,h))=\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h,S))$, $Q_S=(\mathcal{Q}, Q)$ and $P_S=(\mathcal{Q}_{1:N}, Q)$,
+	we have that for any $\delta_T \in (0,1)$, the following inequality holds uniformly for all posteriors $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ with probability at least $1-\delta_T$ over the choice of $S_T\sim \mathcal{D}_T$:
+	
+	\begin{equation} \label{eq:appendix-proof-eq}
+	\Expect{h\sim (\mathcal{Q}, Q)}{\lambda(\mathcal{L}(h,\mathcal{D}_T)-\hat{\mathcal{L}}(h,S_T))} \leq D_{KL}((\mathcal{Q}, Q)||(\mathcal{Q}_{1:N}, Q))+log\left (\frac{\xi((\mathcal{Q}_{1:N}, Q), \mathcal{D}_T, f)}{\delta_T}\right )
+	\end{equation}
+	
+	A short look at the moment term shows us that: 
+	
+	\begin{align*}
+	\begin{split}
+		\xi((\mathcal{Q}_{1:N},Q),\mathcal{D}_T,f)
+		&=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S_T)\right )}\mathcal{Q}_{1:N,S}(dP)Q_S(P)(dh)\mathcal{D}_T(dS)\\
+		&=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S)\right )}\mathcal{Q}_{1:N}(dP)Q(P,S)(dh)\mathcal{D}_T(dS)\\
+		&=\Expect{S\sim D_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S)\right )}}\\
+		&=\xi(\lambda,\mathcal{Q}_{1:N})
+	\end{split}
+	\end{align*}
+	
+	Substituting this in Equation \ref{eq:appendix-proof-eq} and moving terms, we get:
+	
+	\begin{equation} 
+	\Expect{h\sim (\mathcal{Q}, Q)}{\mathcal{L}(h,\mathcal{D}_T)} \leq \Expect{h\sim (\mathcal{Q}, Q)}{\hat{\mathcal{L}}(h,S_T)} +\frac{1}{\lambda} D_{KL}((\mathcal{Q}, Q)||(\mathcal{Q}_{1:N}, Q))+\frac{1}{\lambda}log\left (\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}\right )
+	\end{equation}
+	
+	By definition, this is equivalent to writing:
+	
+	\begin{equation} \label{eq:appendix-proof-eq-2}
+	\mathcal{L}(\mathcal{Q},\mathcal{D}_T) \leq \hat{\mathcal{L}}(\mathcal{Q},S_T) +\frac{1}{\lambda} D_{KL}((\mathcal{Q}, Q)||(\mathcal{Q}_{1:N}, Q))+\frac{1}{\lambda}log\left (\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}\right )
+	\end{equation}
+	
+	For the KL-divergence expression, we apply a standard KL decomposition:
+	
+	\begin{align*}
+	\begin{split}
+	D_{KL}((\mathcal{Q}, Q)||(\mathcal{Q}_{1:N}, Q))&=\Expect{(P,h)\sim (\mathcal{Q},Q)}{log\frac{\mathcal{Q}(P)Q(P, S_T)(h)}{\mathcal{Q}_{1:N}(P)Q(P, S_T)(h)}}\\
+	&=\mathbb{E}_{P\sim \mathcal{Q}}\Expect{h\sim Q(P,S_T)}{log\frac{\mathcal{Q}(P)Q(P, S_T)(h)}{\mathcal{Q}_{1:N}(P)Q(P, S_T)(h)}}\\
+	&=\Expect{P\sim \mathcal{Q}}{log\frac{\mathcal{Q}(P)}{\mathcal{Q}_{1:N}(P)}}+\mathbb{E}_{P\sim \mathcal{Q}}\Expect{h\sim Q(P,S_T)}{log\frac{Q(P, S_T)(h)}{Q(P, S_T)(h)}}\\
+	&=\Expect{P\sim \mathcal{Q}}{log\frac{\mathcal{Q}(P)}{\mathcal{Q}_{1:N}(P)}}\\
+	&=D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N})
+	\end{split}
+	\end{align*}
+	
+	Finally, combining this result with Equation \ref{eq:appendix-proof-eq-2} gives us the final inequality:
+	
+	\begin{align*}
+	\mathcal{L}(\mathcal{Q}, D_T) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_T) + \frac{1}{\lambda}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N})
+	+\frac{1}{\lambda}ln\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}
+	\end{align*}
+
+\end{proof}
+
 \subsection{Optimal hyper-parameters for Gibbs meta-adaptation} \label{append:optimiziation}
 
 \subsubsection{Optimizing $\gamma$}
@@ -752,6 +843,30 @@ The first term of the numerator serve encourages a lower value for $\lambda$ if 
 %As we can see, this equation has no explicit dependence on $\beta$, and so extracting a meaningful implicit equation for $\beta$ that is not strongly linked to the base learner $Q$ is impossible.
 
 \subsection{Hyper-priors with Gibbs base learners are differentially-private} \label{append:proof-dp}
+
+\begin{proposition} \label{thm:pair-is-dp-appendix}
+	Let $\mathcal{P}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ be a hyper-prior.
+	Let $l:\mathcal{H}\times \mathcal{Z}\rightarrow [0,1]$ be a bounded loss function.
+	
+	If the base learner $Q\in \mathcal{M}(\mathcal{H})$ is the Gibbs posterior $Q(P, S)(h)\propto P(h)e^{-\beta\hat{\mathcal{L}}(h, S)}$, 
+	then the pair hypothesis $(\mathcal{P}, Q)$ satisfies $DP\left (\frac{2\beta}{m}\right )$.
+\end{proposition}
+
+\begin{proof}
+	From Theorem 6 in \citet{McSherry2007}, the Gibbs posterior $Q(P, S)(h)$ satisfies $DP\left (2\beta\Delta L\right )$, where $\Delta L$ is the the largest possible difference  $sup_{h\in\mathcal{H}}\hat{\mathcal{L}}(h,S)-\hat{\mathcal{L}}(h,S')$ for $S,S'$ that differ by one example. Since the loss is bounded in $[0,1]$ and $S,S'$ are of size $m$, we have $\Delta L\leq \frac{1}{m}$, and so the base learner $Q(P, S)(h)$ satisfies $DP\left (\frac{2\beta}{m}\right )$.
+	
+	
+	It remains to prove that for all $(A_1,A_2)\in (\mathcal{M}(\mathcal{M}(\mathcal{H})), \mathcal{M}(\mathcal{H}))$, 
+	$$ \frac{\mathcal{P}(S, A_1)Q(S,A_2)}{\mathcal{P}(S', A_1)Q(S',A_2)}\leq e^{\frac{2\beta}{m}}$$
+	
+	From the DP property, 
+	
+	$$ \frac{\mathcal{P}(S, A_1)Q(S,A_2)}{\mathcal{P}(S', A_1)Q(S',A_2)}\leq \frac{\mathcal{P}(S, A_1)}{\mathcal{P}(S', A_1)}e^{\frac{2\beta}{m}}$$
+	
+	Since $\mathcal{P}$ is a hyper-prior, we assume it is data-free with respect to $S$, and so 
+	$$\mathcal{P}(S, A_1)=\mathcal{P}(S', A_1)=\mathcal{P}(A_1)$$
+	
+\end{proof}
 
 
 \end{document}
