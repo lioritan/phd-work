@@ -3,18 +3,27 @@ import math
 import torch
 import copy
 import numpy as np
-from sklearn.model_selection import StratifiedShuffleSplit
 import learn2learn as l2l
-from learn2learn.utils import update_module
+from learn2learn.utils import clone_module, update_module
+from learn2learn.vision.models import ConvBase
 from torch.autograd import grad
 
+import models.stochastic_models
 
 from optimizers.sgld_variant_optim import SimpleSGLDPriorSampling
+from utils.complexity_terms import get_hyper_divergnce, get_meta_complexity_term, get_task_complexity
 
 
 def accuracy(predictions, targets):
     predictions = predictions.argmax(dim=1).view(targets.shape)
     return (predictions == targets).sum().float() / targets.size(0)
+
+
+
+def clone_model(base_model, ctor, device):
+    post_model = ctor(0).to(device)
+    post_model.load_state_dict(base_model.state_dict())
+    return post_model
 
 
 class MetaLearnerDoubleSGLD(object):
@@ -49,7 +58,6 @@ class MetaLearnerDoubleSGLD(object):
         self.n_ways = n_ways
         self.reset_clf_on_meta_loop = reset_clf_on_meta_loop
         self.shots_mult = shots_mult
-        self.adaptive_gamma = True
 
     def calculate_meta_loss(self, task_batch, learner, adapt_steps, training_mode=True):
         split_data = self.split_adapt_eval(task_batch)
@@ -80,12 +88,11 @@ class MetaLearnerDoubleSGLD(object):
             print(msg)
         pass
         # if beta is high, we want posterior sampling, if it's low we want prior sampling
-        noise_variance = math.sqrt(self.maml.lr / self.test_beta) if self.test_beta >= 1.0 else math.sqrt(
-            self.test_beta)
-        scaled_noise = (torch.normal(
-            mean=torch.zeros(len(gradients)),
-            std=torch.ones(len(gradients))
-        ) * noise_variance).to(self.device)
+        noise_variance = math.sqrt(self.maml.lr / self.test_beta) if self.test_beta >= 1.0 else math.sqrt(self.test_beta)
+        scaled_noise = torch.normal(
+                mean=torch.zeros(len(gradients)),
+                std=torch.ones(len(gradients)) * noise_variance
+            ).to(self.device)
         for p, g, xi in zip(params, gradients, scaled_noise):
             if g is not None:
                 if self.test_beta >= 1.0:
@@ -112,18 +119,10 @@ class MetaLearnerDoubleSGLD(object):
 
         return evaluation_error, evaluation_accuracy
 
-    def balanced_shuffle(self, task_batch):
+    def split_adapt_eval(self, task_batch):
         D_task_xs, D_task_ys = task_batch
-        D_task_xs = D_task_xs.cpu().numpy()
-        D_task_ys = D_task_ys.cpu().numpy()
-        sss = StratifiedShuffleSplit(n_splits=1, test_size=0.5, random_state=self.seed)
-        for train_index, test_index in sss.split(D_task_xs, D_task_ys):
-            D_task_xs = np.vstack((D_task_xs[train_index], D_task_xs[test_index]))
-            D_task_ys = np.stack(D_task_ys[train_index], D_task_ys[test_index])
-        return torch.from_numpy(D_task_xs).to(self.device), torch.from_numpy(D_task_ys).to(self.device)
-
-    def split_adapt_eval(self, task_batch, train_frac=2):
-        D_task_xs, D_task_ys = task_batch
+        shuffled_indices = torch.randperm(len(D_task_ys))
+        D_task_xs, D_task_ys = (D_task_xs[shuffled_indices], D_task_ys[shuffled_indices])
         D_task_xs, D_task_ys = D_task_xs.to(self.device), D_task_ys.to(self.device)
         task_batch_size = D_task_xs.size(0)
         # Separate data into adaptation / evaluation sets - works even if labels are ordered
@@ -184,13 +183,6 @@ class MetaLearnerDoubleSGLD(object):
         D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval = self.split_adapt_eval(
             D_test_batch, train_frac=self.shots_mult)
 
-        if self.adaptive_gamma:
-            non_adapt_loss = self.get_base_learner_loss(D_task_xs_adapt, D_task_xs_error_eval,
-                                       D_task_ys_adapt, D_task_ys_error_eval)
-            loss_diff = 0
-            last_adapt_loss = non_adapt_loss
-            old_gamma = self.test_opt.param_groups[0]["beta"]
-
         # TODO: consider doing this without subsampling since both levels are already randomized - use adapt_model
         for epoch in range(test_meta_epochs):
             self.test_opt.zero_grad()
@@ -200,6 +192,7 @@ class MetaLearnerDoubleSGLD(object):
                 # shuffle and meta-adapt (divide half-half)
                 shuffled_indices = torch.randperm(len(D_task_ys_adapt))
                 batch = (D_task_xs_adapt[shuffled_indices], D_task_ys_adapt[shuffled_indices])
+                #batch = (D_task_xs_adapt, D_task_ys_adapt)
                 evaluation_error, evaluation_accuracy = \
                     self.calculate_meta_loss(batch, learner, self.test_adapt_steps, training_mode=False)
                 evaluation_error.backward()
@@ -208,29 +201,6 @@ class MetaLearnerDoubleSGLD(object):
             for p in self.maml.parameters():  # Note: this is somewhat bad practice
                 p.grad.data.mul_(1.0 / self.meta_batch_size)
             self.test_opt.step()
-
-            if self.adaptive_gamma:
-                adapt_loss = self.get_base_learner_loss(D_task_xs_adapt, D_task_xs_error_eval,
-                                                        D_task_ys_adapt, D_task_ys_error_eval)
-                with torch.no_grad():
-                    new_loss_diff = adapt_loss - non_adapt_loss
-                    gamma_diff = self.test_opt.param_groups[0]["beta"] - old_gamma
-                    if gamma_diff == 0:
-                        gamma_diff = old_gamma
-                    estimated_dl = (adapt_loss - last_adapt_loss) / gamma_diff
-                    delta_gamma = new_loss_diff / estimated_dl
-                    old_gamma = self.test_opt.param_groups[0]["beta"]
-                    if delta_gamma > 0:
-                       self.test_opt.param_groups[0]["beta"] = delta_gamma
-                    else:
-                       self.test_opt.param_groups[0]["beta"] *= 0.9
-                    # if new_loss_diff > 0:  # increase gamma
-                    #     self.test_opt.param_groups[0]["beta"] *= 2
-                    # else:
-                    #     self.test_opt.param_groups[0]["beta"] /= 1.5
-                    loss_diff = new_loss_diff
-                    last_adapt_loss = adapt_loss
-
 
         learner = self.maml.clone()
         evaluation_error, evaluation_accuracy = self.adapt_model(
@@ -243,10 +213,3 @@ class MetaLearnerDoubleSGLD(object):
 
         return evaluation_error.item(), evaluation_accuracy.item()
 
-    def get_base_learner_loss(self, D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval):
-        learner = self.maml.clone()
-        evaluation_error, _ = self.adapt_model(
-            (D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval),
-            learner, self.test_adapt_steps, training_mode=False)
-        del learner
-        return evaluation_error
