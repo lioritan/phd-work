@@ -183,6 +183,14 @@ class MetaLearnerDoubleSGLD(object):
         D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval = self.split_adapt_eval(
             D_test_batch, train_frac=self.shots_mult)
 
+        if self.adaptive_gamma:
+            non_adapt_loss = self.get_base_learner_loss(D_task_xs_adapt, D_task_xs_error_eval,
+                                       D_task_ys_adapt, D_task_ys_error_eval)
+            loss_diff = 0
+            last_adapt_loss = non_adapt_loss
+            old_gamma = self.test_opt.param_groups[0]["beta"]
+            dw_dgamma = None
+
         # TODO: consider doing this without subsampling since both levels are already randomized - use adapt_model
         for epoch in range(test_meta_epochs):
             self.test_opt.zero_grad()
@@ -201,6 +209,31 @@ class MetaLearnerDoubleSGLD(object):
             for p in self.maml.parameters():  # Note: this is somewhat bad practice
                 p.grad.data.mul_(1.0 / self.meta_batch_size)
             self.test_opt.step()
+
+            if self.adaptive_gamma:
+                adapt_loss = self.get_base_learner_loss(D_task_xs_adapt, D_task_xs_error_eval,
+                                                        D_task_ys_adapt, D_task_ys_error_eval)
+                with torch.no_grad():
+                    new_loss_diff = adapt_loss - non_adapt_loss
+                    n_params = len(self.test_opt.last_noise)
+                    dl_dw = [param.grad.data for param in self.test_opt.param_groups[0]["params"] if
+                             param.requires_grad]
+                    dl_dgamma = 0
+                    if dw_dgamma is None:
+                        dw_dgamma = [0 for i in range(n_params)]
+                    for param_ind in range(n_params):
+                        dw_dgamma[param_ind] = dw_dgamma[param_ind] + self.test_opt.last_noise[param_ind] * (-0.5/old_gamma)
+                        dl_dgamma += torch.sum(dw_dgamma[param_ind] * dl_dw[param_ind])
+                    if dl_dgamma == 0:
+                        dl_dgamma = old_gamma
+                    new_gamma = new_loss_diff / dl_dgamma
+                    old_gamma = self.test_opt.param_groups[0]["beta"]
+                    if new_gamma > 1.0:
+                       self.test_opt.param_groups[0]["beta"] = 5.0 + new_gamma
+                    elif new_gamma < -1.0:
+                        self.test_opt.param_groups[0]["beta"] = 5.0 -new_gamma
+                    # else:
+                    #     self.test_opt.param_groups[0]["beta"] = new_gamma
 
         learner = self.maml.clone()
         evaluation_error, evaluation_accuracy = self.adapt_model(

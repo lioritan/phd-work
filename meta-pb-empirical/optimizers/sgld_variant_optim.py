@@ -46,12 +46,15 @@ class SimpleSGLDPriorSampling(Optimizer):
             diagonal_bias=1e-8,
         )
         super().__init__(params, defaults)
+        self.last_noise = []
 
     def step(self, closure=None):
         loss = None
 
         if closure is not None:
             loss = closure()
+
+        self.last_noise = []
 
         for group in self.param_groups:
             for parameter in group["params"]:
@@ -97,5 +100,6 @@ class SimpleSGLDPriorSampling(Optimizer):
                     parameter.data.add_(-lr * gradient + scaled_noise)
                 else:
                     parameter.data.add_(scaled_noise)
+                self.last_noise.append(scaled_noise)
 
         return loss
