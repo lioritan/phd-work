@@ -13,7 +13,7 @@ def get_parser():
                         help="Number of training examples in the inner loop at meta-train time")
     parser.add_argument('--n_ways', default=5, type=int,
                         help="Number of candidate labels (classes) at meta-test time")
-    parser.add_argument('--n_shots', default=5, type=int,
+    parser.add_argument('--n_shots', default=20, type=int,
                         help="Number of training examples in the inner loop at meta-test time")
     parser.add_argument('--per_task_lr', default=1e-1, type=float,
                         help="Per task LR for adaptation, should be high")
@@ -29,11 +29,11 @@ def get_parser():
                         help="Meta epochs for training")
     parser.add_argument('--reset_clf_on_meta', default=False, type=bool,
                         help="Should the clf layer be reset each meta loop (should make adaptation faster)")
-    parser.add_argument('--n_test_epochs', default=0, type=int,
+    parser.add_argument('--n_test_epochs', default=5, type=int,
                         help="Meta epochs for test meta-adaptation")
-    parser.add_argument('--gamma', default=1.0, type=float,
+    parser.add_argument('--gamma', default=1000.0, type=float,
                         help="Hyper-posterior gibbs parameter")
-    parser.add_argument('--beta', default=10.0, type=float,
+    parser.add_argument('--beta', default=10000.0, type=float,
                         help="Base-posterior gibbs parameter")
     parser.add_argument('--load_trained_model', default=True, type=bool,
                         help="Load pretrained model")

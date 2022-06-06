@@ -1,23 +1,17 @@
 import math
 
-import torch
-import copy
-import numpy as np
 import learn2learn as l2l
-from learn2learn.utils import clone_module, update_module
-from learn2learn.vision.models import ConvBase
+import numpy as np
+import torch
+from learn2learn.utils import update_module
 from torch.autograd import grad
 
-import models.stochastic_models
-
 from optimizers.sgld_variant_optim import SimpleSGLDPriorSampling
-from utils.complexity_terms import get_hyper_divergnce, get_meta_complexity_term, get_task_complexity
 
 
 def accuracy(predictions, targets):
     predictions = predictions.argmax(dim=1).view(targets.shape)
     return (predictions == targets).sum().float() / targets.size(0)
-
 
 
 def clone_model(base_model, ctor, device):
@@ -58,6 +52,7 @@ class MetaLearnerDoubleSGLD(object):
         self.n_ways = n_ways
         self.reset_clf_on_meta_loop = reset_clf_on_meta_loop
         self.shots_mult = shots_mult
+        self.adaptive_gamma = True
 
     def calculate_meta_loss(self, task_batch, learner, adapt_steps, training_mode=True):
         split_data = self.split_adapt_eval(task_batch)
@@ -88,11 +83,12 @@ class MetaLearnerDoubleSGLD(object):
             print(msg)
         pass
         # if beta is high, we want posterior sampling, if it's low we want prior sampling
-        noise_variance = math.sqrt(self.maml.lr / self.test_beta) if self.test_beta >= 1.0 else math.sqrt(self.test_beta)
+        noise_variance = math.sqrt(self.maml.lr / self.test_beta) if self.test_beta >= 1.0 else math.sqrt(
+            self.test_beta)
         scaled_noise = torch.normal(
-                mean=torch.zeros(len(gradients)),
-                std=torch.ones(len(gradients)) * noise_variance
-            ).to(self.device)
+            mean=torch.zeros(len(gradients)),
+            std=torch.ones(len(gradients)) * noise_variance
+        ).to(self.device)
         for p, g, xi in zip(params, gradients, scaled_noise):
             if g is not None:
                 if self.test_beta >= 1.0:
@@ -119,10 +115,8 @@ class MetaLearnerDoubleSGLD(object):
 
         return evaluation_error, evaluation_accuracy
 
-    def split_adapt_eval(self, task_batch):
+    def split_adapt_eval(self, task_batch, train_frac=2):
         D_task_xs, D_task_ys = task_batch
-        shuffled_indices = torch.randperm(len(D_task_ys))
-        D_task_xs, D_task_ys = (D_task_xs[shuffled_indices], D_task_ys[shuffled_indices])
         D_task_xs, D_task_ys = D_task_xs.to(self.device), D_task_ys.to(self.device)
         task_batch_size = D_task_xs.size(0)
         # Separate data into adaptation / evaluation sets - works even if labels are ordered
@@ -185,7 +179,7 @@ class MetaLearnerDoubleSGLD(object):
 
         if self.adaptive_gamma:
             non_adapt_loss = self.get_base_learner_loss(D_task_xs_adapt, D_task_xs_error_eval,
-                                       D_task_ys_adapt, D_task_ys_error_eval)
+                                                        D_task_ys_adapt, D_task_ys_error_eval)
             loss_diff = 0
             last_adapt_loss = non_adapt_loss
             old_gamma = self.test_opt.param_groups[0]["beta"]
@@ -200,7 +194,7 @@ class MetaLearnerDoubleSGLD(object):
                 # shuffle and meta-adapt (divide half-half)
                 shuffled_indices = torch.randperm(len(D_task_ys_adapt))
                 batch = (D_task_xs_adapt[shuffled_indices], D_task_ys_adapt[shuffled_indices])
-                #batch = (D_task_xs_adapt, D_task_ys_adapt)
+                # batch = (D_task_xs_adapt, D_task_ys_adapt)
                 evaluation_error, evaluation_accuracy = \
                     self.calculate_meta_loss(batch, learner, self.test_adapt_steps, training_mode=False)
                 evaluation_error.backward()
@@ -222,16 +216,17 @@ class MetaLearnerDoubleSGLD(object):
                     if dw_dgamma is None:
                         dw_dgamma = [0 for i in range(n_params)]
                     for param_ind in range(n_params):
-                        dw_dgamma[param_ind] = dw_dgamma[param_ind] + self.test_opt.last_noise[param_ind] * (-0.5/old_gamma)
+                        dw_dgamma[param_ind] = dw_dgamma[param_ind] + self.test_opt.last_noise[param_ind] * (
+                                    -0.5 / old_gamma)
                         dl_dgamma += torch.sum(dw_dgamma[param_ind] * dl_dw[param_ind])
                     if dl_dgamma == 0:
                         dl_dgamma = old_gamma
                     new_gamma = new_loss_diff / dl_dgamma
                     old_gamma = self.test_opt.param_groups[0]["beta"]
                     if new_gamma > 1.0:
-                       self.test_opt.param_groups[0]["beta"] = 5.0 + new_gamma
+                        self.test_opt.param_groups[0]["beta"] = 5.0 + new_gamma
                     elif new_gamma < -1.0:
-                        self.test_opt.param_groups[0]["beta"] = 5.0 -new_gamma
+                        self.test_opt.param_groups[0]["beta"] = 5.0 - new_gamma
                     # else:
                     #     self.test_opt.param_groups[0]["beta"] = new_gamma
 
@@ -246,3 +241,10 @@ class MetaLearnerDoubleSGLD(object):
 
         return evaluation_error.item(), evaluation_accuracy.item()
 
+    def get_base_learner_loss(self, D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval):
+        learner = self.maml.clone()
+        evaluation_error, _ = self.adapt_model(
+            (D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval),
+            learner, self.test_adapt_steps, training_mode=False)
+        del learner
+        return evaluation_error
