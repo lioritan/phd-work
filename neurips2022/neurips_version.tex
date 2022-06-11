@@ -278,7 +278,7 @@ As we have seen, the meta-learning framework provides us with an informative hyp
 	Let $P\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ be a stochastic kernel, let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
 	Define $f\triangleq F\circ A$, and let 
 	$$\xi(P_S, \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{f(S, h)}P_S(dh)\mathcal{D}(dS)$$
-	Such that $P_S$ is the distribution over $\mathcal{H}$ corresponding to the sampled $S$.\RM{Write the arguments of $\xi=\xi(P_S,{\cal D})$} \LF{Done}
+	Such that $P_S$ is the distribution over $\mathcal{H}$ corresponding to the sampled $S$.
 	
 	Assuming $\xi(P_S, \mathcal{D}, f)$ is finite, for any $\delta \in (0,1)$, the following inequality holds uniformly for all posteriors $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ with probability at least $1-\delta$ over the choice of $S\sim \mathcal{D}$:
 	
@@ -288,8 +288,8 @@ As we have seen, the meta-learning framework provides us with an informative hyp
 \end{theorem}
 
 The term $\xi(P_S, \mathcal{D}, f)$ is known as the \emph{moment-generating function}, and when it exists, it is an alternative specification of the probability distribution for $f$.
-This moment-generating function intuitively quantifies the concentration of the function $f$ in the stochastic kernel, and will be low if $f$ is ell-concentrated.
-The term $\log\\xi(P_S, \mathcal{D}, f)$ is known as the \emph{log-moment}. One particularly appealing application of this general bound is for learners that conform to certain algorithmic stability properties that cause the log-moment term to be bounded, and therefore yield a useful upper bound on the expected error.
+This moment-generating function intuitively quantifies the concentration of the function $f$ in the stochastic kernel \RM{$P\in{\cal K}({\cal Z}^m,{\cal H})$}, and will be low if $f$ is ell-concentrated.
+The term $\log\xi(P_S, \mathcal{D}, f)$ is known as the \emph{log-moment}. One particularly appealing application of this general bound is for learners that conform to certain algorithmic stability properties that cause the log-moment term to be bounded, and therefore yield a useful upper bound on the expected error. \RM{Give ref and examples}
 
 These data-dependent bounds can be applied to the meta-learning setting, giving us the following general proposition:
 
@@ -358,7 +358,7 @@ So by plugging these values in Equation \ref{eq:main-result-generic} gives us
 
 In order to clarify this expression, we will use more intuitive definitions for our empirical losses:
 \begin{defn}
-	We define the adapted meta-loss (AML) $$\hat{\mathcal{L}}_{aml}\triangleq \hat{\mathcal{L}}^{(\gamma,\beta)}(\mathcal{Q}^{\gamma}_{1:N,T}, S_T)=\mathbb{E}_{P\sim \mathcal{Q}^{\gamma}_{1:N,T}}\mathbb{E}_{h\sim Q^{\beta}(P,S_T)}\left [\hat{\mathcal{L}}(h, S_T)\right ]$$ as the fully adapted loss, meaning $S_T$ is used to adapt both the hyper-prior ($\mathcal{Q}_{1:N}$) and the sampled prior. $\hat{\mathcal{L}}_{aml}$ is a function of both $\gamma$ and $\beta$. \RM{Explain `aml' - adaptive meta learning (?)} \LF{Done}
+	We define the adapted meta-loss (AML) $$\hat{\mathcal{L}}_{aml}\triangleq \hat{\mathcal{L}}^{(\gamma,\beta)}(\mathcal{Q}^{\gamma}_{1:N,T}, S_T)=\mathbb{E}_{P\sim \mathcal{Q}^{\gamma}_{1:N,T}}\mathbb{E}_{h\sim Q^{\beta}(P,S_T)}\left [\hat{\mathcal{L}}(h, S_T)\right ]$$ as the fully adapted loss, meaning $S_T$ is used to adapt both the hyper-prior ($\mathcal{Q}_{1:N}$) and the sampled prior. $\hat{\mathcal{L}}_{aml}$ is a function of both $\gamma$ and $\beta$. 
 	
 	We define the standard meta-loss $$\hat{\mathcal{L}}_{ml}\triangleq \hat{\mathcal{L}}'(\mathcal{Q}_{1:N}, S_T)=\mathbb{E}_{P\sim \mathcal{Q}_{1:N}}\mathbb{E}_{h\sim Q^{\beta}(P,S_T)}\left [\hat{\mathcal{L}}(h, S_T)\right ]$$ as the empirical loss of the base learner using the hyper-prior. $\hat{\mathcal{L}}_{ml}$ depends on $\beta$, but is not a function of $\gamma$.
 \end{defn}
@@ -676,7 +676,7 @@ We restate the result for stochastic kernels:
 	Let $P\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ be a stochastic kernel, let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
 	Define $f\triangleq F\circ A$, and let 
 	$$\xi(P_S, \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{f(S, h)}P_S(dh)\mathcal{D}(dS)$$
-	Such that $P_S$ is the distribution over $\mathcal{H}$ corresponding to the sampled $S$.\RM{Write the arguments of $\xi=\xi(P_S,{\cal D})$} \LF{Done}
+	Such that $P_S$ is the distribution over $\mathcal{H}$ corresponding to the sampled $S$.
 	
 	Assuming $\xi(P_S, \mathcal{D}, f)$ is finite, for any $\delta \in (0,1)$, the following inequality holds uniformly for all posteriors $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ with probability at least $1-\delta$ over the choice of $S\sim \mathcal{D}$:
 	
@@ -695,8 +695,10 @@ We restate the result for stochastic kernels:
 	\end{align}
 	
 	
-	where 
-	$$\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq \Expect{S\sim D_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S)\right )}}$$
+	where \RM{You use both $D_T$ and ${\cal D}_T$. Are they the same?}
+	\begin{equation}\label{eq:tilde_xi}
+	\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq \Expect{S\sim D_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, D_T)-\hat{\mathcal{L}}(h, S)\right )}}
+	\end{equation}
 \end{proposition}
 
 \begin{proof}
@@ -707,9 +709,9 @@ We restate the result for stochastic kernels:
 	Let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
 	Define $f\triangleq F\circ A$, and let 
 	$$\xi((\mathcal{P}_S,P_S), \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{f(S, h)}\mathcal{P}_S(dP)P_S(P)(dh)\mathcal{D}(dS)$$
+	\RM{Shouldn't there be $3$ integrals rather than $2$? The notation $P_S(P)(dh)$ is somewhat cumbersome.}
 	
-	
-	Using Equation \ref{eq:ribasplata-pb-appendix} with $f(S,(P,h))=\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h,S))$, $Q_S=(\mathcal{Q}_S, Q_S)$ and $P_S=(\mathcal{Q}_{1:N}, Q_S)$,
+	Using Equation \ref{eq:ribasplata-pb-appendix} with $f(S,(P,h))=\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h,S))$, $Q_S=(\mathcal{Q}_S, Q_S)$ \RM{You use $Q_S$ on the left and right of the definition - this is confusing} and $P_S=(\mathcal{Q}_{1:N}, Q_S)$ ,
 	we have that for any $\delta_T \in (0,1)$, the following inequality holds uniformly for all posteriors $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ with probability at least $1-\delta_T$ over the choice of $S_T\sim \mathcal{D}_T$:
 	
 	\begin{equation} \label{eq:appendix-proof-eq}
@@ -762,12 +764,13 @@ We restate the result for stochastic kernels:
 	
 	Finally, combining this result with Equation \ref{eq:appendix-proof-eq-2} gives us the final inequality:
 	
-	For any $\delta_T \in (0,1)$, the following holds uniformly for all hyper-posteriors $Q_{S_T}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$:
+	For any $\delta_T \in (0,1)$, the following holds uniformly for all hyper-posteriors $Q_{S_T}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ \RM{Should be ${\cal Q}_{S_T}$} with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$:
 	
 	\begin{align*}
 	\mathcal{L}(\mathcal{Q}_{S_T}, D_T) \leq \hat{\mathcal{L}}(\mathcal{Q}_{S_T}, S_T) + \frac{1}{\lambda}D_{KL}(\mathcal{Q}_{S_T}||\mathcal{Q}_{1:N})
 	+\frac{1}{\lambda}\log\frac{\xi(\lambda,\mathcal{Q}_{1:N})}{\delta_T}
 	\end{align*}
+	\RM{The last term should be as in \eqref{eq:tilde_xi}}
 
 \end{proof}
 
