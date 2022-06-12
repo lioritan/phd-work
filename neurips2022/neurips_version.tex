@@ -289,7 +289,7 @@ As we have seen, the meta-learning framework provides us with an informative hyp
 
 The term $\xi(P_S, \mathcal{D}, f)$ is known as the \emph{moment-generating function}, and when it exists, it is an alternative specification of the probability distribution for $f$.
 This moment-generating function intuitively quantifies the concentration of the function $f$ in the stochastic kernel $P\in{\cal K}({\cal Z}^m,{\cal H})$ \RM{$P\in{\cal K}({\cal Z}^m,{\cal H})$}, and will be low if $f$ is well-concentrated.
-The term $\log\xi(P_S, \mathcal{D}, f)$ is known as the \emph{log-moment}. One particularly appealing application of this general bound is for learners that conform to certain algorithmic stability properties that cause the log-moment term to be bounded, and therefore yield a useful upper bound on the expected error. \RM{Give ref and examples}
+The term $\log\xi(P_S, \mathcal{D}, f)$ is known as the \emph{log-moment}. One particularly appealing application of this general bound is for learners that conform to certain algorithmic stability properties that cause the log-moment term to be bounded, and therefore yield a useful upper bound on the expected error. As an example for this notion, \citet{Rivasplata2020} show that for any prior satisfying the differential privacy property ($DP(\epsilon)$), the log-moment can be upper bounded by the log-moment of a data-free prior plus a term that depends on the privacy parameter $\epsilon$. \RM{Give ref and examples} \LF{Gave one example, can also give \citet{Farid2021} (PAC-BUS) as an example, but it's a training set bound so it's hard to compare directly.}
 
 These data-dependent bounds can be applied to the meta-learning setting, giving us the following general proposition:
 
@@ -547,7 +547,89 @@ Choosing $\beta=\sqrt{m}$ results in the right-hand side of this Corollary to ha
 
 \section{Theoretical and empirical comparison of bounds}
 
-\LF{Work in progress. Settings where $\hat{\mathcal{L}}(\mathcal{Q},S_T)$ is low seem promising.}
+In order to better understand the differences between the classical bound and this novel meta-adaptation bound, we consider a simple comparison setting. We take four regression tasks with data from 2D-Gaussian distributions each with different means. 
+For each task, we sample 1000 examples in total.
+Figure \ref{fig:ex-baseline} shows the training tasks and the hyper-posterior $\mathcal{Q}_{1:4}$ learned from them (modeled as a 2D-Gaussian over priors).
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\textwidth]{toy_example_train.JPG}
+	\caption{Four training tasks and the learned hyper-posterior $\mathcal{Q}_{1:4}$}
+	\label{fig:ex-baseline}
+\end{figure}
+
+We consider the test performance of this hyper-posterior on a new test task $\mathcal{D}_T$, which in this case is out-of-distribution. Figure \ref{fig:ex-erm} shows the result of minimizing the empirical loss on a sampled test set $S_5$ (i.e. running ERM starting from a prior sampled from the hyper-prior $P\sim \mathcal{Q}_{1:4}$). We see that for this simple setting, the empirical loss for the posterior is low, as there is sufficient data to learn the new task.
+While ERM is effective as a base learner here, using an objective inspired by PAC-Bayes bound such as $$\min_{Q}\hat{\mathcal{L}}(Q, S_T) + \frac{1}{\lambda}KL(Q||P)$$ would also lead to similar results. 
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\textwidth]{toy_example_erm.JPG}
+	\caption{Transfer of a learned hyper-prior $\mathcal{Q}_{1:4}$ to a new task with ERM}
+	\label{fig:ex-erm}
+\end{figure}
+
+
+We now show the result of applying a simple meta-adaptation objective 
+$$\min_{Q}\hat{\mathcal{L}}(Q, S_T) + \frac{1}{\lambda}KL(Q||P)+\frac{1}{\lambda}KL(\mathcal{Q}||\mathcal{Q}_{1:4})$$
+where unlike before, the task prior $P$ is sampled from $\mathcal{Q}$. Figure \ref{fig:ex-aml} shows the adaptation process as well as the final result. We see that this objective yields a hyper-posterior $\mathcal{Q}$ with a closer mean to the test task, and we see that the variance of the prior is high along the axis connecting the hyper-prior and the test posterior. 
+
+\begin{figure}[h!]
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{toy_example_aml_mid.JPG}
+		\caption{Meta-adaptation after 10 SGD steps.}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{toy_example_aml_fin.JPG}
+		\caption{Meta-adaptation after convergence.}	 	
+	\end{subfigure}
+	\hfill
+	\caption{Adaptation and transfer from a learned hyper-prior to a new task}	 
+	\label{fig:ex-aml}
+\end{figure}
+
+\LF{Possible critique: test task is OOD so training bound assumptions are slightly violated. This still works if we have 3 training tasks and the fourth one completes the corners}
+
+Since the empirical loss of the final hypothesis is similar regardless of hyper-prior, we can easily compare the bounds. We will mark this empirical loss $\hat{l}$. For the training-based bound we have (with probability at least $1-\delta$ over the choice of $S_1,...,S_4$ and probability at least $1-\delta_T$ over the choice of $S_T$):
+
+\begin{align*}
+\begin{split}
+	\mathcal{L}(\mathcal{Q}_{1:4},\mathcal{D}_T)\leq \hat{l} &+ \sqrt{\frac{D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})+\log\frac{8}{\delta}}{6}}\\
+	&+\frac{1}{4}\sum_{i=1}^{4}\sqrt{\frac{ D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})
+			+\Expect{P\sim\mathcal{Q}}{D_{KL}(Q(P,S_i)||P)}+\log\frac{8000}{\delta}}{2000}}\\
+		&+\sqrt{\frac{\log\frac{1}{\delta_T}}{2000}}
+\end{split}
+\end{align*}
+
+
+We note that the KL-divergences for each task are identical (and empirically, are less than 1). This gives us a bound of form:
+
+$$	\mathcal{L}(\mathcal{Q}_{1:4},\mathcal{D}_T)\leq \hat{l} + \sqrt{\frac{D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})+3+\log\frac{1}{\delta}}{6}}
++\sqrt{\frac{ D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})
+		+1+13+\log\frac{1}{\delta}}{2000}}
++\sqrt{\frac{\log\frac{1}{\delta_T}}{2000}}$$
+
+We can clearly see that the dominant term is $\hat{l} + \sqrt{\frac{D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})+3+\log\frac{1}{\delta}}{6}}$.  
+
+A quick glance at the meta-adaptation bound shows us that we have for $\lambda=\sqrt{m}$ (with probability at least $1-\delta_T$ over the choice of $S_T$):
+
+\begin{align*}
+\begin{split}
+\mathcal{L}(\mathcal{Q},\mathcal{D}_T)\leq \hat{l} &+\frac{1}{\sqrt{1000}}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:4})+\frac{1}{\sqrt{1000}} \log\frac{\tilde{\xi}(\sqrt{1000},\mathcal{Q}_{1:4},\mathcal{D}_T)}{\delta_T}
+\end{split}
+\end{align*}
+
+The dominant term for this case is $\hat{l} + +\frac{1}{\sqrt{1000}}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:4})$.
+We can see that for this setting our gain is twofold:
+\begin{enumerate}
+	\item The denominator of the KL-divergence term goes to zero as the number of data points goes to infinity.
+	\item The KL-divergence itself is smaller, since the hyper-posterior $\mathcal{Q}$ is quite close to the learned hyper-prior $\mathcal{Q}_{1:4}$.
+\end{enumerate}
+
+\LF{I also tried adaptive $\lambda$, but the result was a slightly slower ERM, which makes sense since the learning problem is easy}
 
 \section{Practical implementation and empirical evaluation}
 
@@ -721,7 +803,7 @@ We restate the result for stochastic kernels:
 	\end{split}
 	\end{equation}
 	
-	It is important to note that the only assumption we make here is that the hyper-prior $\mathcal{Q}_{1:N}$ is data-free with respect to the new data $S_T\sim \mathcal{D}_T$. Since we consider meta-learned distributions over priors, this is a reasonable assumption, as it is satisfied if we have not seen $S_T$ during meta-trainings.
+	It is important to note that the only assumption we make here is that the hyper-prior $\mathcal{Q}_{1:N}$ is data-free with respect to the new data $S_T\sim \mathcal{D}_T$. Since we consider meta-learned distributions over priors, this is a reasonable assumption, as it is satisfied if we have not seen $S_T$ during meta-training.
 	
 	First, let us make sure that the moment terms are equivalent. We note here that since the hyper-prior does not depend on $S_T$, the expectation can be easily decomposed as follows:
 	
