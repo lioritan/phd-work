@@ -288,7 +288,7 @@ As we have seen, the meta-learning framework provides us with an informative hyp
 \end{theorem}
 
 The term $\xi(P_S, \mathcal{D}, f)$ is known as the \emph{moment-generating function}, and when it exists, it is an alternative specification of the probability distribution for $f$.
-This moment-generating function intuitively quantifies the concentration of the function $f$ in the stochastic kernel $P\in{\cal K}({\cal Z}^m,{\cal H})$ \RM{$P\in{\cal K}({\cal Z}^m,{\cal H})$}, and will be low if $f$ is well-concentrated.
+This moment-generating function intuitively quantifies the concentration of the function $f$ in the stochastic kernel $P\in{\cal K}({\cal Z}^m,{\cal H})$, and will be low if $f$ is well-concentrated.
 The term $\log\xi(P_S, \mathcal{D}, f)$ is known as the \emph{log-moment}. One particularly appealing application of this general bound is for learners that conform to certain algorithmic stability properties that cause the log-moment term to be bounded, and therefore yield a useful upper bound on the expected error. As an example for this notion, \citet{Rivasplata2020} show that for any prior satisfying the differential privacy property ($DP(\epsilon)$), the log-moment can be upper bounded by the log-moment of a data-free prior plus a term that depends on the privacy parameter $\epsilon$. \RM{Give ref and examples} \LF{Gave one example, can also give \citet{Farid2021} (PAC-BUS) as an example, but it's a training set bound so it's hard to compare directly.}
 
 These data-dependent bounds can be applied to the meta-learning setting, giving us the following general proposition:
@@ -653,8 +653,8 @@ this approximation allows for the derivation of a complete practical algorithm f
 				\State $h\leftarrow$ \Call{SGLD}{$P$, $S_T$, $\beta$} \Comment Approximate posterior sampling
 				\State add $\nabla \hat{\mathcal{L}}(h, S_T)$ to gradients
 			\EndFor
-			\State $\nabla \hat{\mathcal{L}}(Q, S_T)=$average(gradients)
-			\State $\hat{\mathcal{Q}}_{1:N, T}\leftarrow$ \Call{SGLD-step}{$\hat{\mathcal{Q}}_{1:N, T}$, $\gamma$, $\nabla \hat{\mathcal{L}}(Q, S_T)$} \Comment Update hyper-posterior
+			\State $\nabla \hat{\mathcal{L}}(\hat{\cal Q}_{1:N,T}, S_T)=$average(gradients)
+			\State $\hat{\mathcal{Q}}_{1:N, T}\leftarrow$ \Call{SGLD-step}{$\hat{\mathcal{Q}}_{1:N, T}$, $\gamma$, $\nabla \hat{\mathcal{L}}(\hat{\cal Q}_{1:N,T}, S_T)$} \Comment Update hyper-posterior
 			
 			\State Estimate $\hat{\mathcal{L}}_{aml}$
 			\State Update $\gamma$ using Equation \ref{eq:meta-pb-gamma}
@@ -777,9 +777,9 @@ We restate the result for stochastic kernels:
 	\end{align}
 	
 	
-	where \RM{You use both $D_T$ and ${\cal D}_T$. Are they the same?} \LF{Fixed, it's a mistake, it should be ${\cal D}_T$}
+	where 
 	\begin{equation}\label{eq:tilde_xi}
-	\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq \Expect{S\sim \mathcal{D}_T), P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T)-\hat{\mathcal{L}}(h, S)\right )}}
+	\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq \Expect{S\sim \mathcal{D}_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T)-\hat{\mathcal{L}}(h, S)\right )}}
 	\end{equation}
 \end{proposition}
 
@@ -793,7 +793,7 @@ We restate the result for stochastic kernels:
 	$$\xi((\mathcal{P}_S,P_S), \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{M}(\mathcal{H})\times\mathcal{H}}e^{f(S, h)}\mathcal{P}_S(dP)P'_{S,P}(dh)\mathcal{D}(dS)$$
 	\RM{Shouldn't there be $3$ integrals rather than $2$? The notation $P_S(P)(dh)$ is somewhat cumbersome.} \LF{Is this new version clearer?}
 	
-	Using Equation \ref{eq:ribasplata-pb-appendix} with $f(S,(P,h))=\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h,S))$, a 2-level posterior $(\mathcal{Q}_S, Q_S)$ \RM{You use $Q_S$ on the left and right of the definition - this is confusing} \LF{This should be better, the left side is unnecessary. } and a 2-level prior $(\mathcal{Q}_{1:N}, Q_S)$ ,
+	Using Equation \ref{eq:ribasplata-pb-appendix} with $f(S,(P,h))=\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h,S))$, a 2-level posterior $(\mathcal{Q}_S, Q_S)$ and a 2-level prior $(\mathcal{Q}_{1:N}, Q_S)$,
 	we have that for any $\delta_T \in (0,1)$, the following inequality holds uniformly for all posteriors $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ with probability at least $1-\delta_T$ over the choice of $S_T\sim \mathcal{D}_T$:
 	
 	\begin{equation} \label{eq:appendix-proof-eq}
@@ -845,15 +845,13 @@ We restate the result for stochastic kernels:
 	
 	Finally, combining this result with Equation \ref{eq:appendix-proof-eq-2} gives us the final inequality:
 	
-	For any $\delta_T \in (0,1)$, the following holds uniformly for all hyper-posteriors $\mathcal{Q}_{S_T}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ \RM{Should be ${\cal Q}_{S_T}$} \LF{Fixed} with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$:
+	For any $\delta_T \in (0,1)$, the following holds uniformly for all hyper-posteriors $\mathcal{Q}_{S_T}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$:
 	
 	\begin{align*}
 	\mathcal{L}(\mathcal{Q}_{S_T}, \mathcal{D}_T)) \leq \hat{\mathcal{L}}(\mathcal{Q}_{S_T}, S_T) + \frac{1}{\lambda}D_{KL}(\mathcal{Q}_{S_T}||\mathcal{Q}_{1:N})
 	+\frac{1}{\lambda}\log\frac{\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)}{\delta_T}
 	\end{align*}
-	\RM{The last term should be as in \eqref{eq:tilde_xi}} \LF{Fixed}
-
-\end{proof}
+	\end{proof}
 
 \subsection{Optimal hyper-parameters for Gibbs meta-adaptation} \label{append:optimiziation}
 
