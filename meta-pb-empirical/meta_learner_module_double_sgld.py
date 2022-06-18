@@ -3,6 +3,7 @@ import math
 import learn2learn as l2l
 import numpy as np
 import torch
+import wandb
 from learn2learn.utils import update_module
 from torch.autograd import grad
 
@@ -42,6 +43,7 @@ class MetaLearnerDoubleSGLD(object):
         self.meta_batch_size = meta_batch_size
         self.train_adapt_steps = train_adapt_steps
         self.test_adapt_steps = test_adapt_steps
+        self.meta_lr = meta_lr
         self.device = device
         self.maml = l2l.algorithms.MAML(nn_model, lr=per_task_lr, first_order=False).to(device)
         self.loss = f_loss
@@ -54,9 +56,9 @@ class MetaLearnerDoubleSGLD(object):
         self.shots_mult = shots_mult
         self.adaptive_gamma = True
 
-    def calculate_meta_loss(self, task_batch, learner, adapt_steps, training_mode=True):
+    def calculate_meta_loss(self, task_batch, learner, adapt_steps, use_sgd=True):
         split_data = self.split_adapt_eval(task_batch)
-        return self.adapt_model(split_data, learner, adapt_steps, training_mode)
+        return self.adapt_model(split_data, learner, adapt_steps, use_sgd)
 
     def manual_grad_sgld(self, learner, error):
         diff_params = [p for p in learner.module.parameters() if p.requires_grad]
@@ -97,13 +99,13 @@ class MetaLearnerDoubleSGLD(object):
                     p.update = xi
         update_module(learner.module)
 
-    def adapt_model(self, task_batch, learner, adapt_steps, training_mode=True):
+    def adapt_model(self, task_batch, learner, adapt_steps, use_sgd=True):
         D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval = task_batch
 
         # Adapt the model
         for step in range(adapt_steps):
             adaptation_error = self.loss(learner(D_task_xs_adapt), D_task_ys_adapt)
-            if training_mode:
+            if use_sgd:
                 learner.adapt(adaptation_error)
             else:
                 self.manual_grad_sgld(learner, adaptation_error)
@@ -151,7 +153,7 @@ class MetaLearnerDoubleSGLD(object):
                 # sample
                 batch = train_taskset.sample()
                 evaluation_error, evaluation_accuracy = \
-                    self.calculate_meta_loss(batch, learner, self.train_adapt_steps, training_mode=True)
+                    self.calculate_meta_loss(batch, learner, self.train_adapt_steps, use_sgd=True)
 
                 evaluation_error.backward()
                 meta_train_error += evaluation_error.item()
@@ -178,8 +180,8 @@ class MetaLearnerDoubleSGLD(object):
             D_test_batch, train_frac=self.shots_mult)
 
         if self.adaptive_gamma:
-            non_adapt_loss = self.get_base_learner_loss(D_task_xs_adapt, D_task_xs_error_eval,
-                                                        D_task_ys_adapt, D_task_ys_error_eval)
+            non_adapt_loss = self.get_base_learner_loss(D_task_xs_adapt,
+                                                        D_task_ys_adapt)
             loss_diff = 0
             last_adapt_loss = non_adapt_loss
             old_gamma = self.test_opt.param_groups[0]["beta"]
@@ -196,8 +198,9 @@ class MetaLearnerDoubleSGLD(object):
                 batch = (D_task_xs_adapt[shuffled_indices], D_task_ys_adapt[shuffled_indices])
                 # batch = (D_task_xs_adapt, D_task_ys_adapt)
                 evaluation_error, evaluation_accuracy = \
-                    self.calculate_meta_loss(batch, learner, self.test_adapt_steps, training_mode=False)
+                    self.calculate_meta_loss(batch, learner, self.test_adapt_steps, use_sgd=False)
                 evaluation_error.backward()
+                del learner
 
             # Average the accumulated task gradients and optimize
             for p in self.maml.parameters():  # Note: this is somewhat bad practice
@@ -205,35 +208,14 @@ class MetaLearnerDoubleSGLD(object):
             self.test_opt.step()
 
             if self.adaptive_gamma:
-                adapt_loss = self.get_base_learner_loss(D_task_xs_adapt, D_task_xs_error_eval,
-                                                        D_task_ys_adapt, D_task_ys_error_eval)
-                with torch.no_grad():
-                    new_loss_diff = adapt_loss - non_adapt_loss
-                    n_params = len(self.test_opt.last_noise)
-                    dl_dw = [param.grad.data for param in self.test_opt.param_groups[0]["params"] if
-                             param.requires_grad]
-                    dl_dgamma = 0
-                    if dw_dgamma is None:
-                        dw_dgamma = [0 for i in range(n_params)]
-                    for param_ind in range(n_params):
-                        dw_dgamma[param_ind] = dw_dgamma[param_ind] + self.test_opt.last_noise[param_ind] * (
-                                    -0.5 / old_gamma)
-                        dl_dgamma += torch.sum(dw_dgamma[param_ind] * dl_dw[param_ind])
-                    if dl_dgamma == 0:
-                        dl_dgamma = old_gamma
-                    new_gamma = new_loss_diff / dl_dgamma
-                    old_gamma = self.test_opt.param_groups[0]["beta"]
-                    if new_gamma > 1.0:
-                        self.test_opt.param_groups[0]["beta"] = 5.0 + new_gamma
-                    elif new_gamma < -1.0:
-                        self.test_opt.param_groups[0]["beta"] = 5.0 - new_gamma
-                    # else:
-                    #     self.test_opt.param_groups[0]["beta"] = new_gamma
+                old_gamma, dw_dgamma = self.set_new_gamma(D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval,
+                                   dw_dgamma, non_adapt_loss, old_gamma, epoch)
 
         learner = self.maml.clone()
         evaluation_error, evaluation_accuracy = self.adapt_model(
             (D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval),
-            learner, self.test_adapt_steps, training_mode=False)
+            learner, self.test_adapt_steps, use_sgd=False)
+        del learner
 
         # Logging
         print('Meta Test Error', evaluation_error.item(), flush=True)
@@ -241,10 +223,53 @@ class MetaLearnerDoubleSGLD(object):
 
         return evaluation_error.item(), evaluation_accuracy.item()
 
-    def get_base_learner_loss(self, D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval):
+    def set_new_gamma(self, D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval, dw_dgamma,
+                      non_adapt_loss, old_gamma, epoch):
+        adapt_loss = self.get_base_learner_loss(D_task_xs_adapt,
+                                                D_task_ys_adapt)
+        with torch.no_grad():
+            new_loss_diff = adapt_loss - non_adapt_loss
+            n_params = len(self.test_opt.last_noise)
+            dl_dw = [param.grad.data.detach().clone() for param in self.test_opt.param_groups[0]["params"] if
+                     param.requires_grad]
+            dl_dgamma = 0
+            if dw_dgamma is None:
+                dw_dgamma = [0 for i in range(n_params)]
+            for param_ind in range(n_params):
+                dw_dgamma[param_ind] = dw_dgamma[param_ind] + self.test_opt.last_noise[param_ind].detach().clone() * (
+                        -0.5* math.sqrt(self.meta_lr)/ (old_gamma**(1.5)+1e-8))
+                dl_dgamma += torch.sum(dw_dgamma[param_ind] * dl_dw[param_ind])
+            if dl_dgamma == 0:
+                dl_dgamma = old_gamma
+            new_gamma = new_loss_diff / dl_dgamma
+            #new_gamma = -new_loss_diff/non_adapt_loss
+            old_gamma = self.test_opt.param_groups[0]["beta"]
+            # if new_gamma > 0.0:
+            #     self.test_opt.param_groups[0]["beta"] *= new_gamma
+            # elif new_gamma < -0.0:
+            #     self.test_opt.param_groups[0]["beta"] *= (-new_gamma)
+            if new_gamma > 1.0:
+                self.test_opt.param_groups[0]["beta"] = 5.0 + new_gamma
+            elif new_gamma < -1.0:
+                self.test_opt.param_groups[0]["beta"] = 5.0 - new_gamma
+            # else:
+            #     self.test_opt.param_groups[0]["beta"] = new_gamma
+
+        # learner = self.maml.clone()
+        # _, evaluation_accuracy = self.adapt_model(
+        #             (D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval),
+        #             learner, self.test_adapt_steps, use_sgd=False)
+        # del learner
+        # test_acc_for_logging = evaluation_accuracy.detach().clone().item()
+        #
+        # wandb.log({"epoch": epoch, "new_gamma": new_gamma, "old_gamma": old_gamma, "loss_diff": new_loss_diff, "loss_grad": dl_dgamma,
+        #                "test_accuracy": test_acc_for_logging})
+        return old_gamma, dw_dgamma
+
+    def get_base_learner_loss(self, D_task_xs_adapt, D_task_ys_adapt):
         learner = self.maml.clone()
-        evaluation_error, _ = self.adapt_model(
-            (D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval),
-            learner, self.test_adapt_steps, training_mode=False)
+        evaluation_error, _ = self.calculate_meta_loss(
+            (D_task_xs_adapt, D_task_ys_adapt),
+            learner, self.test_adapt_steps, use_sgd=False)
         del learner
-        return evaluation_error
+        return evaluation_error.detach().clone()

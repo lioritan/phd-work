@@ -289,7 +289,14 @@ As we have seen, the meta-learning framework provides us with an informative hyp
 
 The term $\xi(P_S, \mathcal{D}, f)$ is known as the \emph{moment-generating function}, and when it exists, it is an alternative specification of the probability distribution for $f$.
 This moment-generating function intuitively quantifies the concentration of the function $f$ in the stochastic kernel $P\in{\cal K}({\cal Z}^m,{\cal H})$, and will be low if $f$ is well-concentrated.
-The term $\log\xi(P_S, \mathcal{D}, f)$ is known as the \emph{log-moment}. One particularly appealing application of this general bound is for learners that conform to certain algorithmic stability properties that cause the log-moment term to be bounded, and therefore yield a useful upper bound on the expected error. As an example for this notion, \citet{Rivasplata2020} show that for any prior satisfying the differential privacy property ($DP(\epsilon)$), the log-moment can be upper bounded by the log-moment of a data-free prior plus a term that depends on the privacy parameter $\epsilon$. \RM{Give ref and examples} \LF{Gave one example, can also give \citet{Farid2021} (PAC-BUS) as an example, but it's a training set bound so it's hard to compare directly.}
+The term $\log\xi(P_S, \mathcal{D}, f)$ is known as the \emph{log-moment}. 
+One simple setting where this term can be upper bounded is when the prior $P_S$ is data-free and $f$ is bounded., By switching the order of expectations (Fubini's theorem) and using Hoeffding's lemma, an upper bound for $f(S,h)=\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h, S))$ for any $\lambda\in \mathbb{R}$ would be:
+
+$$\Expect{h\sim Q_S}{\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h, S))} \leq D_{KL}(Q_S||P_S)+\log\left (\frac{1}{\delta}\right ) + \frac{\lambda^2(b-a)^2}{8}$$
+
+Notably, this bound is similar to that of \citet{Catoni2004}. Other choices of $f$ result in other traditional PAC-Bayes bounds such as that of \citet{Mcallester} via similar methods (see \citet{Rivasplata2020} for further detail). 
+One particularly appealing application of this general bound is for data-dependent priors with bounded log-moment terms, for example by conforming to certain algorithmic stability properties 
+As an example for this notion, \citet{Rivasplata2020} show that for any prior satisfying the differential privacy property ($DP(\epsilon)$), the log-moment can be upper bounded by the log-moment of a data-free prior plus a term that depends on the privacy parameter $\epsilon$. \RM{Give ref and examples} \LF{Fixed.}
 
 These data-dependent bounds can be applied to the meta-learning setting, giving us the following general proposition:
 
@@ -304,12 +311,25 @@ These data-dependent bounds can be applied to the meta-learning setting, giving 
 	
 	
 	where 
-	$$\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq \Expect{S\sim \mathcal{D}_T), P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T))-\hat{\mathcal{L}}(h, S)\right )}}$$
+	$$\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq \Expect{S\sim \mathcal{D}_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T))-\hat{\mathcal{L}}(h, S)\right )}}$$
 \end{proposition}
 
-The full proof of Proposition \ref{thm:main-result} is in Appendix \ref{append:proof-main-result}, but it follows quite straightforwardly from Theorem \ref{thm:rivasplata-pb} using a two-level prior hypothesis $(\mathcal{Q}_{1:N}, Q)$, meaning the distribution where we first sample $P\sim \mathcal{Q}_{1:N}$ and then sample $h\sim Q(P, S_T)$ to arrive at a hypothesis. This two-level prior is compared to a two-level posterior $(\mathcal{Q}, Q)$. Since the bound allows for a data-dependent prior, it is possible to choose the same base learner $Q(P, S_T)$ for both prior and posterior, resulting in a bound with only an environment-level complexity term.
+The full proof of Proposition \ref{thm:main-result} is in Appendix \ref{append:proof-main-result}, but it follows quite straightforwardly from Theorem \ref{thm:rivasplata-pb} using a two-level prior hypothesis $(\mathcal{Q}_{1:N}, Q)$, meaning the distribution where we first sample $P\sim \mathcal{Q}_{1:N}$ and then sample $h\sim Q(P, S_T)$ to arrive at a hypothesis. This two-level prior is compared to a two-level posterior $(\mathcal{Q}, Q)$. The proof itself applies even if the loss function $l$ is not bounded, but this assumption is very useful for providing bounds on the log-moment term.
 
-We note that this generic bound also provides us with an immediate bound on the expected error of the hyper-prior for the downstream task by picking $\mathcal{Q}=\mathcal{Q}_{1:N}$:
+Since the bound allows for a data-dependent prior, it is possible to choose the same base learner $Q(P, S_T)$ for both prior and posterior, resulting in a bound with only an environment-level complexity term. 
+Notably, this differs significantly from a more traditional bound that would use a data-free two-level prior $(\mathcal{Q}_{1:N}, P)$. This would result in a bound that contains two complexity terms:
+
+\begin{align*}
+\begin{split}
+\mathcal{L}(\mathcal{Q}, \mathcal{D}_T)) &\leq \hat{\mathcal{L}}(\mathcal{Q}, S_T) \\
+&+ \frac{1}{\lambda}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N}) + \frac{1}{\lambda}\Expect{P\sim \mathcal{Q}}{D_{KL}(Q(P,S_T)||P)}\\
+&+\frac{1}{\lambda}\log\frac{1}{\delta_T}+\frac{1}{\lambda}\frac{\lambda^2}{8m}
+\end{split}
+\end{align*}
+
+This more traditional bound contains a task-level complexity term, but since the base learner $P$ is independent from $S_T$ the moment term can be easily bounded. In essence, we can see this as a trade-off between the part of the bound that can be optimized by choosing $\mathcal{Q}$ and the term in the bound that results from the log-moment.
+
+One immediate result of Equation \ref{eq:main-result-generic} is a useful bound on the expected error of the hyper-prior for the downstream task, achieved by picking $\mathcal{Q}=\mathcal{Q}_{1:N}$:
 
 \begin{corollary} \label{thm:corollary-base}
 	Let $\mathcal{Q}_{1:N}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ be a meta-learned hyper-posterior (e.g. the result of meta-training on $\{S_1,...,S_N\}$), and let $\mathcal{D}_T\sim \tau$ be a \emph{given} test task. Let $Q: \mathcal{Z}^m\times\mathcal{M}(\mathcal{H})\rightarrow \mathcal{M}(\mathcal{H})$ be a given base learner. Let $l: \mathcal{H}\times \mathcal{Z}\rightarrow [0, 1]$ be a bounded loss function.
@@ -319,10 +339,10 @@ We note that this generic bound also provides us with an immediate bound on the 
 	+\frac{1}{\lambda}\log\frac{\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)}{\delta_T}$$
 	
 	where 
-	$$\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq \Expect{S\sim \mathcal{D}_T), P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T))-\hat{\mathcal{L}}(h, S)\right )}}$$
+	$$\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq \Expect{S\sim \mathcal{D}_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T))-\hat{\mathcal{L}}(h, S)\right )}}$$
 \end{corollary}
 
-It is important to note that the log-moment term $\log\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)$ is a key term in both cases. This term will be low if the empirical losses are well concentrated around the expected loss for our data-dependent prior. One possible method of achieving this is by choosing a base learner $Q$ with algorithmic stability properties.
+It is important to note that the log-moment term $\log\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)$ is a key term in both cases. This term will be low if the empirical losses are well concentrated around the expected loss for our data-dependent prior. One possible method of achieving this is by choosing a base learner $Q$ with algorithmic stability properties such as the empirical Gibbs posterior, as we will see in the next subsection.
 
 Unlike the results in Section \ref{sec:meta}, the right-hand side for this bound contains the empirical loss on data from the test task, making straightforward comparison between these bounds effectively impossible. The bound in Corollary \ref{thm:corollary-base} can be thought of as a confidence bound for the expected loss whereas the bound in Theorem \ref{thm:meta-highprob} provides a PAC-Bayes bound based on the data-free hyper-prior and the average training loss.
 
@@ -388,6 +408,12 @@ This equation gives us a generalization bound that considers the empirical loss 
 	+\frac{1}{\lambda}\log\frac{\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)}{\delta_T}$$
 \end{corollary}
 
+In order to better understand the impact of the log-moment term, we remark that \citet{Rivasplata2020} have shown that for $\lambda=\sqrt{m}$ and given that the base learner is the empirical Gibbs posterior $Q^\beta$ and the loss is bounded:
+
+$$\log\tilde{\xi}(\sqrt{m},\mathcal{Q}_{1:N},\mathcal{D}_T) \leq 2+\log(1+\sqrt{e})+\frac{2\beta}{\sqrt{m}} $$
+
+As a consequence of this, choosing $\beta=\sqrt{m}$ would result in a bound on the generalization gap of rate $O(\frac{1}{\sqrt{m}})$.
+
 Corollary \ref{thm:main-result-gibbs} provides an upper bound on the expected error for a given test task that depends on the empirical errors of the hyper-prior $\hat{\mathcal{L}}_{ml}$ and the hyper-posterior $\hat{\mathcal{L}}_{aml}$. 
 Since the bound applies uniformly for all $\gamma>0,\beta>0,\lambda>0$, this bound can be further optimized by choosing optimal values for $\gamma, \beta, \lambda$. This can be done by deriving the right-hand-side of Equation \ref{eq:pb-adapt-multi} and comparing to zero. 
 We show the derivation itself in Appendix \ref{append:optimiziation}, and provide the end result here:
@@ -408,7 +434,7 @@ Equation \ref{eq:meta-pb-gamma-paper} encourages an equilibrium for $\gamma$, as
 This result aligns well with Equation \ref{eq:pb-adapt-multi}, since if the adapted loss is low we are encouraged to decrease $\gamma$ to tighten the bound, but that would lead to the hyper-posterior to be more similar to the hyper-prior, and similarly if the base loss $\hat{\mathcal{L}}_{ml}$ is low we are encouraged to increase $\gamma$ in order to tighten the bound.
 
 Equation \ref{eq:meta-pb-lambda-paper} contains the log-moment term, thereby preventing the choice of a large $\lambda$ that would cause the moment to diverge. Aside from that term, 
-the first term of the numerator serve encourages a lower value for $\lambda$ if there is a positive prediction gain from meta-adaptation $\hat{\mathcal{L}}_{aml}<\hat{\mathcal{L}}_{ml}$. 
+the first term of the numerator serve encourages a lower value for $\lambda$ if there is a positive prediction gain from meta-adaptation $\hat{\mathcal{L}}_{aml}<\hat{\mathcal{L}}_{ml}$.
 
 \subsection{Tighter bounds for the low error setting}
 % seeger
@@ -547,6 +573,8 @@ Choosing $\beta=\sqrt{m}$ results in the right-hand side of this Corollary to ha
 
 \section{Theoretical and empirical comparison of bounds}
 
+%TODO: cleanup
+
 In order to better understand the differences between the classical bound and this novel meta-adaptation bound, we consider a simple comparison setting. We take four regression tasks with data from 2D-Gaussian distributions each with different means. 
 For each task, we sample 1000 examples in total.
 Figure \ref{fig:ex-baseline} shows the training tasks and the hyper-posterior $\mathcal{Q}_{1:4}$ learned from them (modeled as a 2D-Gaussian over priors).
@@ -632,6 +660,8 @@ We can see that for this setting our gain is twofold:
 \LF{I also tried adaptive $\lambda$, but the result was a slightly slower ERM, which makes sense since the learning problem is easy}
 
 \section{Practical implementation and empirical evaluation}
+
+%TODO
 
 As is usually the case with PAC-Bayes bounds, Theorem \ref{thm:main-result-gibbs} provides us with a practical algorithm for meta-adaptation. In order to perform approximate posterior sampling for a Gibbs posterior, the SGLD (Stochastic Gradient Langevin Dynamics) algorithm \citep{Welling2011} can be used, assuming a sufficient number of iterations.
 Combined with Monte-Carlo sampling to estimate expectations over priors, 
@@ -749,6 +779,40 @@ As we can see from Figure \ref{fig:results-gamma}, there is a noticeable improve
 \section{Appendix}
 
 \subsection{Hyper-parameters and implementation details} \label{append:hyper-params}
+%TODO
+
+\subsection{Basic properties of Gibbs posteriors} \label{append:gibbs-properties}
+
+\begin{theorem} (\citet{Donsker1975} - variational formula)
+	
+	For any bounded function $f$:
+	\begin{equation*} 
+	\log \Expect{h\sim P}{e^{f(h)}}=\sup_{Q}\left[\Expect{h\sim Q}{e^{f(h)}}-D_{KL}(Q||P) \right ]
+	\end{equation*}
+	
+	And the Gibbs posterior 
+	$$Q(h)=\frac{P(h)e^{f(h)}}{\Expect{h\sim P}{e^{f(h)}}}$$ 
+	Is the supremum with respect to $Q$.
+\end{theorem}
+
+\begin{proposition}
+	The empirical Gibbs posterior 
+	$$Q^\beta(h)=\frac{P(h)e^{-\beta \hat{\mathcal{L}}(h, S)}}{\Expect{h\sim P}{e^{-\beta \hat{\mathcal{L}}(h, S)}}}$$ 
+	Is the minimizer of $$\min_{Q}\left[\hat{\mathcal{L}}(Q, S)+\frac{1}{\beta}D_{KL}(Q||P)\right ]$$
+\end{proposition}
+
+Additional useful properties:
+\begin{enumerate}
+	\item If $\beta=0$, we have $Q^\beta(h)=P(h)$
+	\item If $\beta\rightarrow \infty$, then $Q$ is a delta function around the ERM solution $\min_h \hat{\mathcal{L}}(h,S)$
+	\item $D_{KL}(Q^\beta||P)=-\beta\hat{\mathcal{L}}(Q^\beta, S)-\log\Expect{h\sim P}{e^{-\beta \hat{\mathcal{L}}(h, S)}}$
+	\item $-\log\Expect{h\sim P}{e^{-\beta \hat{\mathcal{L}}(h, S)}}\leq \beta\hat{\mathcal{L}}(P,S)$ \footnote{Using Jensen's inequality}
+	\item $Q^\beta$ is $DP(\frac{2\beta}{m})$ \citep{McSherry2007}
+\end{enumerate}
+
+\subsection{Useful log-moment bounds} \label{append:log-moment-stuff}
+%TODO
+
 
 \subsection{Proof of the generic meta-adaptation bound} \label{append:proof-main-result}
 
@@ -790,7 +854,7 @@ We restate the result for stochastic kernels:
 	
 	Let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
 	Define $f\triangleq F\circ A$, and let 
-	$$\xi((\mathcal{P}_S,P_S), \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{M}(\mathcal{H})\times\mathcal{H}}e^{f(S, h)}\mathcal{P}_S(dP)P'_{S,P}(dh)\mathcal{D}(dS)$$
+	$$\xi((\mathcal{P}_S,P'_S), \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{M}(\mathcal{H})\times\mathcal{H}}e^{f(S, h)}\mathcal{P}_S\times P'_{S,P}(dP,dh)\mathcal{D}(dS)$$
 	\RM{Shouldn't there be $3$ integrals rather than $2$? The notation $P_S(P)(dh)$ is somewhat cumbersome.} \LF{Is this new version clearer?}
 	
 	Using Equation \ref{eq:ribasplata-pb-appendix} with $f(S,(P,h))=\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h,S))$, a 2-level posterior $(\mathcal{Q}_S, Q_S)$ and a 2-level prior $(\mathcal{Q}_{1:N}, Q_S)$,

@@ -31,7 +31,7 @@ def run_meta_learner_doubleSGLD(
         model_num=0):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    shots_mult = 2 if not large_test_set else 10
+    shots_mult = 2 if not large_test_set else 5
 
     print("get tasks")
     if dataset == "mnist":
@@ -96,4 +96,8 @@ def run_meta_learner_doubleSGLD(
 
     print(f"meta learner test")
     set_random_seed(seed)
-    return meta_learner.meta_test(n_test_epochs, task_sets.test)
+    experiment_result = meta_learner.meta_test(n_test_epochs, task_sets.test)
+    del meta_learner
+    del task_sets
+    del model
+    return experiment_result

@@ -4,17 +4,29 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-    data_df = df = pd.read_csv(r"C:\Users\liori\Downloads\experiment_data.csv", sep=',')
-    possible_n_shots = sorted(data_df["n_shots"].unique())
-    for n_shots in possible_n_shots:
+    comparison_types = ["baseline", "nonadapt", "adaptive_longer", "adaptive_fixed", "adaptive_low_start_gamma"]
+    ctype_dfs = []
+    for ctype in comparison_types:
+        data_df = df = pd.read_csv(rf"C:\Users\liori\Downloads\all_models_{ctype}.csv", sep=',')
+        possible_n_shots = sorted(data_df["n_shots"].unique())
+        possible_models = sorted(data_df["model_num"].unique())
+        means_df = data_df.groupby(["n_shots", "beta", "gamma", "model_num"]).mean()["test_accuracy"].reset_index()
+
+        best_params_df = data_df.groupby(["n_shots", "model_num"]).max().reset_index()
+        stderr_df = data_df.groupby(["n_shots", "beta", "gamma", "model_num"]).sem()["test_accuracy"].reset_index()
+        stderr_df.rename(columns={'test_accuracy': 'test_accuracy_stderr'}, inplace=True)
+
+        filtered_stderrs = best_params_df.join(stderr_df.set_index(["n_shots", "beta", "gamma", "model_num"]), on=["n_shots", "beta", "gamma", "model_num"])
+        filtered_stderrs.to_csv(rf"C:\Users\liori\Downloads\accs_all_models_{ctype}.csv", index=False)
+        ctype_dfs.append(filtered_stderrs)
+
+    for model_num in possible_models:
         plt.figure()
-        df_filtered = data_df[data_df["n_shots"] == n_shots]
-        interesting_beta = df_filtered["beta"] > 1000
-        plt.scatter(np.log10(df_filtered["gamma"][interesting_beta]), np.log10(df_filtered["beta"][interesting_beta]),
-                    c=df_filtered["test_accuracy"][interesting_beta])
-        plt.xlabel("Meta gamma (logscale 10)")
-        plt.ylabel("Base beta (logscale 10)")
-        plt.colorbar()
-        plt.title(f"Test accuracies vs gamma and beta, n_shots={n_shots}")
-        plt.savefig(f"test_accuracies_{n_shots}.png")
+        for i, ctype in enumerate(comparison_types):
+            df_filtered = ctype_dfs[i][ctype_dfs[i]["model_num"]==model_num]
+            plt.errorbar(df_filtered["n_shots"], df_filtered["test_accuracy"], yerr=df_filtered["test_accuracy_stderr"], label=f"{ctype}")
+        plt.title(f"Test accuracies vs n_shots, model={model_num}")
+        plt.legend()
+        plt.savefig(f"test_accuracies_model {model_num}.png")
         plt.close()
+
