@@ -586,7 +586,8 @@ Figure \ref{fig:ex-baseline} shows the training tasks and the hyper-posterior $\
 	\label{fig:ex-baseline}
 \end{figure}
 
-We consider the test performance of this hyper-posterior on a new test task $\mathcal{D}_T$, which in this case is out-of-distribution. Figure \ref{fig:ex-erm} shows the result of minimizing the empirical loss on a sampled test set $S_5$ (i.e. running ERM starting from a prior sampled from the hyper-prior $P\sim \mathcal{Q}_{1:4}$). We see that for this simple setting, the empirical loss for the posterior is low, as there is sufficient data to learn the new task.
+We consider the test performance of this hyper-posterior on a new test task $\mathcal{D}_T$, 
+which in this case is out-of-distribution but this dies not significantly change the analysis. Figure \ref{fig:ex-erm} shows the result of minimizing the empirical loss on a sampled test set $S_5$ (i.e. running ERM starting from a prior sampled from the hyper-prior $P\sim \mathcal{Q}_{1:4}$). We see that for this simple setting, the empirical loss for the posterior is low, as there is sufficient data to learn the new task.
 While ERM is effective as a base learner here, using an objective inspired by PAC-Bayes bound such as $$\min_{Q}\hat{\mathcal{L}}(Q, S_T) + \frac{1}{\lambda}KL(Q||P)$$ would also lead to similar results. 
 
 \begin{figure}
@@ -597,9 +598,9 @@ While ERM is effective as a base learner here, using an objective inspired by PA
 \end{figure}
 
 
-We now show the result of applying a simple meta-adaptation objective 
-$$\min_{Q}\hat{\mathcal{L}}(Q, S_T) + \frac{1}{\lambda}KL(Q||P)+\frac{1}{\lambda}KL(\mathcal{Q}||\mathcal{Q}_{1:4})$$
-where unlike before, the task prior $P$ is sampled from $\mathcal{Q}$. Figure \ref{fig:ex-aml} shows the adaptation process as well as the final result. We see that this objective yields a hyper-posterior $\mathcal{Q}$ with a closer mean to the test task, and we see that the variance of the prior is high along the axis connecting the hyper-prior and the test posterior. 
+We now show the result of applying a simple meta-adaptation objective: 
+$$\min_{Q}\hat{\mathcal{L}}(Q, S_T) + \frac{1}{\lambda}\Expect{P\sim \mathcal{Q}}{KL(Q||P)}+\frac{1}{\lambda}KL(\mathcal{Q}||\mathcal{Q}_{1:4})$$
+Notably, the task prior $P$ is sampled from $\mathcal{Q}$. Figure \ref{fig:ex-aml} shows the adaptation process as well as the final result. We see that this objective yields a hyper-posterior $\mathcal{Q}$ with a closer mean to the test task, and we see that the variance of the prior is high along the axis connecting the hyper-prior and the test posterior. 
 
 \begin{figure}[h!]
 	\centering
@@ -619,49 +620,30 @@ where unlike before, the task prior $P$ is sampled from $\mathcal{Q}$. Figure \r
 	\label{fig:ex-aml}
 \end{figure}
 
-\LF{Possible critique: test task is OOD so training bound assumptions are slightly violated. This still works if we have 3 training tasks and the fourth one completes the corners}
-
-Since the empirical loss of the final hypothesis is similar regardless of hyper-prior, we can easily compare the bounds. We will mark this empirical loss $\hat{l}$. For the training-based bound we have (with probability at least $1-\delta$ over the choice of $S_1,...,S_4$ and probability at least $1-\delta_T$ over the choice of $S_T$):
+Since the empirical loss of the final hypothesis is similar regardless of hyper-prior, we can easily compare the bounds. We will mark this empirical loss $\hat{l}$. Since the number of samples per task $m$ is quite large ($m=1000$), terms that are divided by it are small. For the training-based bound of Equation \ref{eq:meta-pb-amit}, we have (with probability at least $1-\delta$ over the choice of $S_1,...,S_4$ and probability at least $1-\delta_T$ over the choice of $S_T$):
 
 \begin{align*}
 \begin{split}
-	\mathcal{L}(\mathcal{Q}_{1:4},\mathcal{D}_T)\leq \hat{l} &+ \sqrt{\frac{D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})+\log\frac{8}{\delta}}{6}}\\
-	&+\frac{1}{4}\sum_{i=1}^{4}\sqrt{\frac{ D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})
-			+\Expect{P\sim\mathcal{Q}}{D_{KL}(Q(P,S_i)||P)}+\log\frac{8000}{\delta}}{2000}}\\
-		&+\sqrt{\frac{\log\frac{1}{\delta_T}}{2000}}
+	\mathcal{L}(\mathcal{Q}_{1:4},\mathcal{D}_T)\leq \hat{l} &+ \sqrt{\frac{D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})+\log\frac{2N}{\delta}}{2(N-1)}}
+	+O\left (\frac{\sqrt{\log{1/\delta_T}}}{\sqrt{m}}+\frac{\sqrt{\log{m/\delta}}}{\sqrt{m}}\right )
 \end{split}
 \end{align*}
 
-
-We note that the KL-divergences for each task are identical (and empirically, are less than 1). This gives us a bound of form:
-
-$$	\mathcal{L}(\mathcal{Q}_{1:4},\mathcal{D}_T)\leq \hat{l} + \sqrt{\frac{D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})+3+\log\frac{1}{\delta}}{6}}
-+\sqrt{\frac{ D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})
-		+1+13+\log\frac{1}{\delta}}{2000}}
-+\sqrt{\frac{\log\frac{1}{\delta_T}}{2000}}$$
-
-We can clearly see that the dominant term is $\hat{l} + \sqrt{\frac{D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})+3+\log\frac{1}{\delta}}{6}}$.  
-
-A quick glance at the meta-adaptation bound shows us that we have for $\lambda=\sqrt{m}$ (with probability at least $1-\delta_T$ over the choice of $S_T$):
+Where the terms that depend on $\sqrt{m}$ are negligible in comparison to term that depend on the number of tasks $N$.
+A quick glance at the meta-adaptation bound of Equation \ref{eq:main-result-generic} shows us that we have for $\lambda=\sqrt{m}$ (with probability at least $1-\delta_T$ over the choice of $S_T$):
 
 \begin{align*}
 \begin{split}
-\mathcal{L}(\mathcal{Q},\mathcal{D}_T)\leq \hat{l} &+\frac{1}{\sqrt{1000}}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:4})+\frac{1}{\sqrt{1000}} \log\frac{\tilde{\xi}(\sqrt{1000},\mathcal{Q}_{1:4},\mathcal{D}_T)}{\delta_T}
+\mathcal{L}(\mathcal{Q},\mathcal{D}_T)\leq \hat{l} + O\left (\frac{\sqrt{\log{1/\delta_T}}}{\sqrt{m}}\right ) 
 \end{split}
 \end{align*}
 
-The dominant term for this case is $\hat{l} + +\frac{1}{\sqrt{1000}}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:4})$.
-We can see that for this setting our gain is twofold:
-\begin{enumerate}
-	\item The denominator of the KL-divergence term goes to zero as the number of data points goes to infinity.
-	\item The KL-divergence itself is smaller, since the hyper-posterior $\mathcal{Q}$ is quite close to the learned hyper-prior $\mathcal{Q}_{1:4}$.
-\end{enumerate}
+This comparison lets us clearly see that for a small, finite number of training task, this bound offers significant advantages. We also note that in this example,  $$D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})>D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:4})$$ 
+and so there is an additional advantage in the hyper-KL term being smaller and eliminating the task-level KL terms. This example also shows us that if the empirical loss on the adaptation set $\hat{\mathcal{L}}(\mathcal{Q}, S_T)$ is high, the new meta-adaptation bound is less useful compared to traditional training-set bounds. 
 
-\LF{I also tried adaptive $\lambda$, but the result was a slightly slower ERM, which makes sense since the learning problem is easy}
+Finally, we note that the choice of $\lambda=\sqrt{m}$ leads to a hyper-posterior that balances low loss with similarity to the hyper-prior, and choosing a significantly higher value may lead to a hyper-prior that coincides with the ERM posterior. Empirically for this setting, choosing $\lambda>>m$ caused this behavior to occur.
 
 \section{Practical implementation and empirical evaluation}
-
-%TODO
 
 As is usually the case with PAC-Bayes bounds, Theorem \ref{thm:main-result-gibbs} provides us with a practical algorithm for meta-adaptation. In order to perform approximate posterior sampling for a Gibbs posterior, the SGLD (Stochastic Gradient Langevin Dynamics) algorithm \citep{Welling2011} can be used, assuming a sufficient number of iterations.
 Combined with Monte-Carlo sampling to estimate expectations over priors, 
@@ -681,10 +663,10 @@ this approximation allows for the derivation of a complete practical algorithm f
 			\For {each Monte-Carlo estimation}
 				\State Sample $P\sim \hat{\mathcal{Q}}_{1:N, T}$
 				\State $h\leftarrow$ \Call{SGLD}{$P$, $S_T$, $\beta$} \Comment Approximate posterior sampling
-				\State add $\nabla \hat{\mathcal{L}}(h, S_T)$ to gradients
+				\State add $\nabla_{\theta_i} \hat{\mathcal{L}}(h, S_T)$ to gradients
 			\EndFor
-			\State $\nabla \hat{\mathcal{L}}(\hat{\cal Q}_{1:N,T}, S_T)=$average(gradients)
-			\State $\hat{\mathcal{Q}}_{1:N, T}\leftarrow$ \Call{SGLD-step}{$\hat{\mathcal{Q}}_{1:N, T}$, $\gamma$, $\nabla \hat{\mathcal{L}}(\hat{\cal Q}_{1:N,T}, S_T)$} \Comment Update hyper-posterior
+			\State $\nabla_\theta \hat{\mathcal{L}}(\hat{\cal Q}_{1:N,T}, S_T)\leftarrow$average(gradients)
+			\State $\hat{\mathcal{Q}}_{1:N, T}\leftarrow$ \Call{SGLD-step}{$\hat{\mathcal{Q}}_{1:N, T}$, $\gamma$, $\nabla_\theta \hat{\mathcal{L}}(\hat{\cal Q}_{1:N,T}, S_T)$} \Comment Update hyper-posterior
 			
 			\State Estimate $\hat{\mathcal{L}}_{aml}$
 			\State Update $\gamma$ using Equation \ref{eq:meta-pb-gamma}
@@ -703,17 +685,29 @@ this approximation allows for the derivation of a complete practical algorithm f
 	\end{algorithmic}
 \end{algorithm}
 
-We note that choosing $\gamma=\lambda=\sqrt{N}, \beta=\sqrt{m}$ may be a good initialization that ensures that for a data-free prior, the moment term $\xi$ does not diverge (with high probability), but other initializations may lead to faster convergence. Since estimating the optimal values for $\beta,\gamma,\lambda$ is both computationally expensive and may suffer from high variance in the few-shot classification setting, we consider a simpler variation of this algorithm by setting $\gamma, \beta, \lambda$ as hyper-parameters. This choice leads to a sub-optimal output, but still results in a valid hyper-posterior that can be evaluated and compared to standard meta-testing approaches.
+Optimizing for $\lambda$ is computationally infeasible in general, as it requires deriving the log-moment term $\log\tilde{\xi}$. Since $\tilde{\xi}(\lambda, \mathcal{Q}_{1:N},\mathcal{D}_T)$ contains an expectation over samples from the underlying test distribution $\mathcal{D}_T$, we cannot derive it directly. As such, we opted to keep $\lambda$ constant, and focused on adapting only the Gibbs temperature parameter $\gamma$.
+Estimating $\hat{\mathcal{L}}_{ml},\hat{\mathcal{L}}_{aml}$ is quite simple, but estimating $\frac{d}{d\gamma}\hat{\mathcal{L}}_{aml}$ is a bit more challenging.
 
-\LF{Future extension: $\beta,\gamma,\lambda$ change during adaptation}
+Since we tested our approach on neural networks, the hypothesis space is defined as $\{h_w|w\in \mathbb{R}^d\}$ where the weights $w$ serve as the parameters of each hypothesis.
+Using the chain rule, 
+$$\frac{d}{d\gamma}\hat{\mathcal{L}}_{aml}=\frac{d}{dw}\hat{\mathcal{L}}_{aml}\frac{d}{d\gamma}w$$
+Since the update rule of SGLD is 
+$$w^{t+1}=w^t-\eta\nabla_w \hat{\mathcal{L}}(h_w,S)+\sqrt{\frac{\eta}{\gamma}}\epsilon \text{ , where } \epsilon\sim N(0,1)$$
+We have
+\begin{equation}
+\frac{d}{d\gamma}w^{t+1}=\frac{d}{d\gamma}w^t-\eta\frac{d}{d\gamma}\nabla_w \hat{\mathcal{L}}(h_w,S)-\frac{1}{2}\sqrt{\frac{\eta}{\gamma^3}}\epsilon
+\end{equation}
 
-In order to demonstrate the efficacy of our meta-adaptation algorithm, we compare our approach to standard meta-testing for few-shot image classification tasks. The hypothesis space in question is a set of neural networks with a given architecture $\{h_w|w\in \mathbb{R}^d\}$. We use the cross-entropy loss during adaptation, despite the fact that it is not bounded. We note that a clipped variation of this loss does exist and conforms to theoretical guarantees, and in practice the cross-entropy loss tends to be low.
+Since $\frac{d}{d\gamma}w^0=0$, the only remaining issue is deriving the loss gradient by $\gamma$. In our experiments, we assumed $\frac{d}{d\gamma}\nabla_w \hat{\mathcal{L}}(h_w,S)=0$ to simplify the update rule, and if the loss gradient itself is small, this is quite reasonable.
 
-We conduct experiments on a task environment based on the MNIST dataset \citep{LeCun1998}, where each task was created by performing a random permutation on some of the image pixels. The number of pixels to be permuted and the total number of classes (referred to as ``ways'') was chosen in advance. We meta-learn a hyper-prior by running MAML \citep{Finn2017} for 100 meta-training iterations on randomly sampled training tasks, with 10 examples from each class. The resulting network weights were then used as the mean of a d-dimensional Gaussian (with variance $\sigma I_d$, where $\sigma=\sqrt{\frac{\eta}{\gamma}}$ is the noise variance for SGLD) to form our final meta-training hyper-prior $\mathcal{Q}_{1:N}$. We used the same convolutional neural network (CNN) architecture used by \citet{Vinyals2016} for the Omniglot dataset, as it has similar dimensions. We perform our tests on tasks with 100 permuted pixels and compare hyper-priors learned with training tasks that have either 100 or 1000\footnote{Since images in the MNIST dataset have $28\times 28=784$ pixels, this means that on average, all pixels were permuted.} permuted pixels during training. See appendix \ref{append:hyper-params} for a full list of hyper-parameters and implementation details. Code to reproduce our experiments is available at the following \hyperlink{Github repository}{https://github.com/lioritan/phd-work}.
+In order to demonstrate the efficacy of our meta-adaptation algorithm, we compare our approach to standard meta-testing for few-shot image classification tasks. 
+We use the cross-entropy loss during adaptation, despite the fact that it is not bounded. We note that a clipped variation of this loss does exist and conforms to theoretical guarantees, and in practice the cross-entropy loss tends to be low.
+
+We conduct experiments on a task environment based on the MNIST dataset \citep{LeCun1998}, where each task was created by performing a random permutation on some of the image pixels. The number of pixels to be permuted and the total number of classes (referred to as ``ways'') was chosen in advance. We meta-learn a hyper-prior by running MAML \citep{Finn2017} for 100 meta-training iterations on randomly sampled training tasks, with 10 examples from each class. The resulting network weights were then used as the mean of a d-dimensional Gaussian (with variance $\sigma I_d$, where $\sigma=\sqrt{\frac{\eta}{\gamma}}$ is the noise variance for SGLD) to form our final meta-training hyper-prior $\mathcal{Q}_{1:N}$. We used the same convolutional neural network (CNN) architecture used by \citet{Vinyals2016} for the Omniglot dataset, as it has similar dimensions. We perform our tests on tasks with 100 permuted pixels and compare hyper-priors learned with training tasks that have either 100 or 1000\footnote{Since images in the MNIST dataset have $28\times 28=784$ pixels, this means that there is a high likelihood that most pixels were permuted.} permuted pixels during training. See appendix \ref{append:hyper-params} for a full list of hyper-parameters and implementation details. Code to reproduce our experiments is available at the following \hyperlink{Github repository}{https://github.com/lioritan/phd-work}.
 
 \LF{TODO: move code to a clean github repo, and make wandb optional}
 
-For standard meta-testing, we used SGD with the Adam optimizer \citep{Kingma2015}, and performed 10 adaptation steps given the labeled adaptation dataset $S_T$. For our meta-adaptation method, we utilize a similar setup, but additionally perform 10 steps of meta-adaptation as detailed in Algorithm \ref{alg1} with pre-selected values for $\beta,\gamma$ instead of running the complete meta-adaptation algorithm to convergence. Figure \ref{fig:results-gamma} shows the test accuracy averaged over 10 meta-testing seeds for various values of $\gamma$ with $\beta\rightarrow \infty$ \footnote{This is equivalent to using SGD for posterior sampling.} for both 2-shot and 5-shot classification tasks. The best accuracies are also reported in Table \ref{table:gamma}.
+For standard meta-testing, we used SGD with the Adam optimizer \citep{Kingma2015}, and performed 10 adaptation steps given the labeled adaptation dataset $S_T$. For our meta-adaptation method, we utilize a similar setup, but additionally perform 10 steps of meta-adaptation as detailed in Algorithm \ref{alg1} with both pre-selected values for $\gamma$ as well as adapting $\gamma$ using the chain rule decomposition detailed above. Figure \ref{fig:results-gamma} shows the test accuracy averaged over 10 meta-testing seeds for the best hyper-parameters with varying adaptation set sizes. The best accuracies are also reported in Table \ref{table:gamma}.
 
 %TODO: have each plot contain both bad prior and good prior
 
@@ -721,14 +715,14 @@ For standard meta-testing, we used SGD with the Adam optimizer \citep{Kingma2015
 	\centering
 	\begin{subfigure}[b]{0.49\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{accuracy_plot_2}
-		\caption{2-shot test adaptation}
+		\includegraphics[width=\textwidth]{test_accuracies_model_aligned}
+		\caption{Test adaptation for a correct hyper-prior}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}[b]{0.49\textwidth}
 		\centering
-		\includegraphics[width=\textwidth]{accuracy_plot_5}
-		\caption{5-shot test adaptation}	 	
+		\includegraphics[width=\textwidth]{test_accuracies_model_misspecified}
+		\caption{Test adaptation for a misspecified hyper-prior}	 	
 	\end{subfigure}
 	\hfill
 	\caption{Average test accuracies for meta-adaptation with different values of $\gamma$. All runs assumed $\beta\rightarrow\infty$. Error bars represent standard errors from the average over 10 runs.}	 
@@ -740,33 +734,55 @@ For standard meta-testing, we used SGD with the Adam optimizer \citep{Kingma2015
 	\centering
 	\begin{tabular}{lll}
 		\toprule
-		Method   & Hyper-prior \#permuted pixels  & Test accuracy   \\
+		Method   & Hyper-prior  & Test accuracy   \\
 		\midrule
-		Meta-testing, 2-shot & 100   & $0.777\pm 0.023 $      \\
-		Adapted meta-testing, 2-shot & 100   & $0.747\pm 0.024$      \\
+		Meta-testing, 2-shot & correct   & $0.9\pm 0.037 $      \\
+		Adapted meta-testing, 2-shot & correct   & $0.95\pm 0.039$      \\
+		Adapted meta-testing with adaptive $\gamma$, 2-shot & correct   & $0.85\pm 0.042$      \\
 		\midrule
-		Meta-testing, 2-shot & 1000   & $0.627\pm 0.025 $      \\
-		Adapted meta-testing, 2-shot & 1000   & $0.646\pm 0.023$      \\
+		Meta-testing, 2-shot & misspecified   & $0.8\pm 0.035 $      \\
+		Adapted meta-testing, 2-shot & misspecified   & $0.875\pm 0.043$      \\
+		Adapted meta-testing with adaptive $\gamma$, 2-shot & misspecified   & $0.85\pm 0.046$    \\
+		\midrule 
+		
+		Meta-testing, 5-shot & correct   & $0.92\pm 0.018 $      \\
+		Adapted meta-testing, 5-shot & correct   & $0.93\pm 0.021$      \\
+		Adapted meta-testing with adaptive $\gamma$, 5-shot & correct   & $0.96\pm 0.02$      \\
 		\midrule
-		Meta-testing, 5-shot & 100   & $0.86\pm 0.018$      \\
-		Adapted meta-testing, 5-shot & 100   & $0.859\pm 0.016$      \\
+		Meta-testing, 5-shot & misspecified   & $0.91\pm 0.025 $      \\
+		Adapted meta-testing, 5-shot & misspecified   & $0.9\pm 0.021$      \\
+		Adapted meta-testing with adaptive $\gamma$, 5-shot & misspecified   & $0.9\pm 0.023$ \\   
 		\midrule
-		Meta-testing, 5-shot & 1000   & $0.73\pm 0.024$      \\
-		Adapted meta-testing, 5-shot & 1000   & $0.776\pm 0.026$      \\
+		
+		Meta-testing, 10-shot & correct   & $0.94\pm 0.012 $      \\
+		Adapted meta-testing, 10-shot & correct   & $0.945\pm 0.011$      \\
+		Adapted meta-testing with adaptive $\gamma$, 19-shot & correct   & $0.95\pm 0.01$      \\
+		\midrule
+		Meta-testing, 10-shot & misspecified   & $0.91\pm 0.016 $      \\
+		Adapted meta-testing, 10-shot & misspecified   & $0.915\pm 0.016$      \\
+		Adapted meta-testing with adaptive $\gamma$, 10-shot & misspecified   & $0.905\pm 0.01$    \\
+		\midrule
+		
+		Meta-testing, 20-shot & correct   & $0.953\pm 0.012 $      \\
+		Adapted meta-testing, 20-shot & correct   & $0.955\pm 0.012$      \\
+		Adapted meta-testing with adaptive $\gamma$, 20-shot & correct   & $0.955\pm 0.011$      \\
+		\midrule
+		Meta-testing, 20-shot & misspecified   & $0.918\pm 0.013 $      \\
+		Adapted meta-testing, 20-shot & misspecified   & $0.923\pm 0.014$      \\
+		Adapted meta-testing with adaptive $\gamma$, 20-shot & misspecified   & $0.923\pm 0.013$    \\
+		\midrule
 		\bottomrule
 	\end{tabular}
-	\caption{Best test accuracies for the permuted-MNIST dataset with variable hyper-priors and $\beta\rightarrow \infty$. All accuracies are averaged over 10 seeds and reported with standard error. Dashed line represents baseline meta-testing accuracy.}
+	\caption{Best test accuracies for the permuted-MNIST dataset with variable hyper-priors. All accuracies are averaged over 10 seeds and reported with standard error. Dashed line represents baseline meta-testing accuracy.}
 	\label{table:gamma}
 \end{table}
 
 %TODO: explain findings
 
-As we can see from Figure \ref{fig:results-gamma}, there is a noticeable improvement in accuracy for 5-shot classification, with most sufficiently large $\gamma$ values performing similarly. For the harder 2-shot classification problem, the results suggest that a straightforward increase of $\gamma$ does not lead to better test accuracy, and that there is some optimal equilibrium point. We note that while there is little to no benefit to this meta-adaptation approach for cases where the learned hyper-prior is already effective, there is a notable improvement for cases where the test task is different and therefore adaptation is necessary.
+As we can see from Figure \ref{fig:results-gamma}, for the aligned hyper-prior, adaptive meta-learning offers some improvement over naive meta-testing. For the two-shot case adapting $\gamma$ did not improve results on average, and a deeper analysis showed that for several of the training seeds both the loss and gradients during meta-adaptation were large, thereby causing the loss estimation to be too noisy. 
+For the misspecified hyper-prior, we see that choosing a constant value for $\gamma$ performed better in most settings. The misspecified hyper-prior caused the adaptive gamma to increase to rapidly, resulting in an ERM-like optimization process.
 
-
-\LF{TODO: heatmap of beta/gamma vs accuracy. }
-
-\section{Conclusions}
+\section{Conclusions and future work}
 
 % Something
 
@@ -812,7 +828,39 @@ Additional useful properties:
 
 \subsection{Useful log-moment bounds} \label{append:log-moment-stuff}
 %TODO
+\begin{theorem}
+	If $l\in[a,b]$ is bounded and the prior $P$ is data-free, for any $\lambda\in \mathbb{R}$,
+	$$\log \Expect{S\in \mathcal{D}, h\in P}{e^{\lambda(\hat{\mathcal{L}}(h,S)-\mathcal{L}(h,\mathcal{D}))}} \leq \frac{\lambda^2(b-a)^2}{8m}$$
+\end{theorem}
 
+\begin{theorem} \citep{Rivasplata2020}
+	
+	If $l\in[0,b]$ is bounded and the prior $P(h)\propto P_0(h)e^{-\beta\hat{\mathcal{L}}(h,S)}$ is an empirical Gibbs distribution, 
+	$$\log \Expect{S\in \mathcal{D}, h\in P}{e^{\sqrt{m}(\hat{\mathcal{L}}(h,S)-\mathcal{L}(h,\mathcal{D}))}} \leq 2b^2(1+\frac{2\beta}{\sqrt{m}})+\log(1+e^{b^2/2})$$
+\end{theorem}
+
+\begin{theorem} \citep{Rivasplata2020, Dziugaite2018}
+	
+	If the prior P is $DP(\epsilon)$, and there exists some data-free prior $P^0$ such that with probability at least $1-\delta$,
+	$$\Expect{h\sim Q_S}{f(S,h)} \leq D_{KL}(Q_S||P^0)+\log\frac{\zeta(m)}{\delta}$$
+	then 
+	$$\log \Expect{S\in \mathcal{D}, h\in P}{e^{f(S,h)}} \leq \log 2\zeta(m) + \frac{2\epsilon^2}{2}+\epsilon\sqrt{\frac{m}{2}\log(\frac{4}{\delta})}$$
+	
+	For $f=m\cdot kl(\hat{\mathcal{L}}(Q_S,S)||\mathcal{L}(Q_S,\mathcal{D}))$, the choice of $\zeta(m)=2\sqrt{m}$ is valid.
+\end{theorem}
+
+\begin{theorem} \citep{Rivasplata2020}
+	
+	For $w\in\mathbb{R}^d$ and prior $P(w)\propto e^{-\frac{\gamma\lambda}{2}||w||^2}$ where $\gamma>0$ and $\lambda>\max_i{\lambda_i-\hat{\lambda}_i}$ is the maximal difference between eigenvalues of the population covariance matrix and the sample covariance matrix,
+	
+	$$\log \Expect{S\in \mathcal{D}, w\in P}{e^{\gamma(\mathcal{L}(w,\mathcal{D})-\hat{\mathcal{L}}(w,S))}} = \gamma\max_w{\left [\mathcal{L}(w,\mathcal{D})-\hat{\mathcal{L}}(w,S)-(\lambda/2)||w||^2\right ]} + \frac{1}{2}\sum_{i=1}^{d}\log\left (\frac{\lambda}{\lambda+\hat{\lambda}_i-\lambda_i} \right ) $$
+\end{theorem}
+
+\begin{theorem} \citep{Rivasplata2020}
+	
+	If $l\in[0,\infty)$ is unbounded and the prior $P$ is data-free, for any $\lambda\in \mathbb{R}$,
+	$$\log \Expect{S\in \mathcal{D}, h\in P}{e^{\lambda m(\hat{\mathcal{L}}(h,S)-\mathcal{L}(h,\mathcal{D}))}} \leq \frac{\lambda^2m}{2}\Expect{h\sim P}{l(h,Z)^2}$$
+\end{theorem}
 
 \subsection{Proof of the generic meta-adaptation bound} \label{append:proof-main-result}
 
