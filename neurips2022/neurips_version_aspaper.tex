@@ -7,7 +7,7 @@
 
 
 % ready for submission
-%\usepackage[final]{neurips_2022}
+\usepackage[final]{neurips_2022}
 
 % to compile a preprint version, e.g., for submission to arXiv, add add the
 % [preprint] option:
@@ -21,7 +21,7 @@
 % to avoid loading the natbib package, add option nonatbib:
 %    \usepackage[nonatbib]{neurips_2022}
 
-\usepackage[square,numbers]{natbib}
+\usepackage{natbib}
 
 \usepackage{times} 
 \usepackage{helvet}  
@@ -39,24 +39,18 @@
 \usepackage{multirow}
 \usepackage{ctable}
 \usepackage{color}
-%\usepackage{natbib}
+\usepackage{natbib}
 \usepackage[normalem]{ulem}
 \usepackage{caption, subcaption}
 
 
-\usepackage{hyperref}
-\hypersetup{
-	colorlinks=true,
-	linkcolor=black, % color for table of contents
-	citecolor=black, % color for citations
-	urlcolor=blue, % color for hyperlinks
-	bookmarks=true,
-}
+%\usepackage[style=authoryear]{biblatex}
 
 
-%\usepackage[utf8]{inputenc} % allow utf-8 input
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
-%\usepackage[backref=page]{hyperref}       % hyperlinks
+\usepackage[backref=page]{hyperref}       % hyperlinks
 \usepackage{url}            % simple URL typesetting
 \usepackage{booktabs}       % professional-quality tables
 \usepackage{amsfonts}       % blackboard math symbols
@@ -67,24 +61,18 @@
 \theoremstyle{definition}
 \newtheorem{defn}{Definition}[section]
 \newtheorem{theorem}{Theorem}[section]
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{corollary}[theorem]{Corollary}
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{hypothesis}[theorem]{Hypothesis}
-\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{hypothesis}{Hypothesis}[section]
+\newtheorem{assumption}{Assumption}
 \newcommand{\Expect}[2]{\mathbb{E}_{#1}\left [#2 \right ]}
 \newcommand{\RM}[1]{\textcolor{magenta}{\{RM: #1\}}}
 \newcommand{\LF}[1]{\textcolor{blue}{\{LF: #1\}}}
 
-\usepackage[utf8]{inputenc}
 
-\title{Adaptive meta-learning and continual learning \\	
-	%TODO: Hebrew title
-	%\R{כככ}
-%	 \cjRL{’bgd} \\
-%	 \textcjheb{deg}\\
-	\large	PhD Research Proposal
-	}
+
+\title{Effective meta-adaptation based on data-dependent PAC-Bayes bounds}
 
 
 % The \author macro works with any number of authors. There are two commands
@@ -96,55 +84,54 @@
 % \AND instead of \And before the third author name.
 
 
-%\author{%
-%	Lior Friedman, Ron Meir \\
-%	The Viterbi Faculty of Electrical and Computer Engineering\\
-%	Technion - Israel Institute of Technology\\
-%	Haifa 3200003, Israel\\
-%	\texttt{\{liorf@campus,rmeir@ee\}.technion.ac.il} \\
-%}
-
 \author{%
-	Lior Friedman\\
-	\texttt{liorf@campus.technion.ac.il} \\
+	Lior Friedman, Ron Meir \\
+	The Viterbi Faculty of Electrical and Computer Engineering\\
+	Technion - Israel Institute of Technology\\
+	Haifa 3200003, Israel\\
+	\texttt{\{liorf@campus,rmeir@ee\}.technion.ac.il} \\
 }
 
 
 \begin{document}
 	
 \maketitle
-\thispagestyle{empty}
 
-\vfill
-\textbf{Supervised by Prof. Ron Meir}
+	\begin{abstract}
+	\LF{Very rough draft, rewrite after finishing the rest of the paper}
+	
+	Over the last few years, the paradigm of meta-learning, or learning to learn, has been shown to be an effective way to solve several machine learning problems, with especially impressive empirical results for few-shot classification problems - an important setting to many real-world applications such as medical imaging and natural language processing.
+		
+	In an effort to understand and quantify the generalization capabilities of such methods, there have been several extensions of PAC-Bayes approaches and mutual-information bounds to the problem of meta-learning. While these extensions provide meaningful bounds and practical optimization methods, the focus of such analysis was always the meta-learning process. 
+	
+	As several recent works on PAC-Bayes bounds have shown, data-dependent bounds can lead to significantly tighter confidence intervals, and so it stands to reason that applying such bounds to the meta-testing process can provide us with meaningful risk certificates for few-shot classification.
+	
+	In this paper, we derive a novel data-dependent PAC-Bayes bound for meta-testing and demonstrate its efficacy for few-shot image classification. \LF{If time and results permit, also discuss forgetting here, ideally both theoretically and empirically}
+		
+	\end{abstract}
 
-The Viterbi Faculty of Electrical and Computer Engineering
-
-Technion - Israel Institute of Technology
-
-
-\clearpage
-\tableofcontents	
-\clearpage
 
 \section{Introduction}
 
-% ml, meta-learning and few-shot
-Over the last few decades, the field of machine learning has developed rapidly both theoretically and as an engineering practice. Of particular interest is the field of learning and adapting quickly from only a few examples, which requires a balance between prior experience and new information in order to solve new tasks effectively without overfitting.
-One common approach to tackle this few-shot learning problem is that of meta-learning, where training data is used to create a prior conducive to the downstream task. This approach has shown promising empirical results in a variety of domains (see survey \citep{Hospedales2021}), especially for cases with few test examples.
+\LF{TODO: start with a motivating example for meta-learning}
 
-As an illustrative example of the meta-learning problem, we might consider a visual classification system that must also be capable of identifying new categories of objects with very few examples. In order to effectively achieve this goal, the system must maintain prior knowledge on similar vision problems, and utilize this prior to adapt quickly to the new data.
+% ml, meta-learning and few-shot
+Over the last few decades, the field of machine learning has developed rapidly both theoretically and as an engineering practice. Of particular interest is the task of learning and adapting quickly from only a few examples, and balancing prior experience and new information in order to solve new tasks effectively without overfitting.
+One common approach to tackle this few-shot learning problem is that of meta-learning (or learning to learn), where training data is used to create a prior conducive to the downstream task. This approach has shown promising empirical results in a variety of domains (see survey \citep{Hospedales2021}), especially for cases with few test examples.
+
+\LF{Need to mention the basic idea of meta-learning a distribution over priors for the test task}
 
 In order to better understand the generalization capabilities of classification methods and give upper bounds on the gap between the training and test performance, several theoretical frameworks were devised.  Among these frameworks, methods based on PAC-Bayes bounds \citep{Mcallester} are of particular interest, as they result in practical optimization algorithms with potentially non-vacuous generalization guarantees with high probability. As such, it is not surprising that several works have extended the PAC-Bayes framework to the domain of meta-learning, such as \citet{Pentina2014}, \citet{Amit2018} and \citet{Rothfuss2020}.
 
 There have been several recent works that showed non-vacuous generalization bounds for practical deep learning problems, such as the methods suggested by \citet{Dziugaite2017} and later improved by \citet{Perez-Ortiz2021}. In both cases, the use of a data-dependent prior was shown to be a major component in achieving these impressive results. As such, data-dependent PAC-Bayes bounds such as those proposed in \citet{Rivasplata2020} may be of great interest for meta-learning problems.
 
-In our preliminary work, we utilize data-dependent PAC-Bayes bounds to provide an upper bound on the generalization error for meta-testing by adapting an existing distribution over priors to better fit the given test task. This approach allows us to use existing methods to meta-learn a distribution over training tasks and provides a potentially tighter guarantee for the new task, at the potential cost of partially forgetting the training tasks. 
-We compare our bounds to known bounds for a simple setting, and develop a practical algorithm for meta-testing and adaptation. We demonstrate the effectiveness of this meta-adaptation approach for classification on vision tasks.
+\LF{It may be a good idea to add a paragraph here about issues with meta-learning PB bounds and why data-dependent bounds can help - the benefit in meta-learning would be reducing the hyper-KL term, but usually the task-KL is a bigger issue there.}
 
-We plan to expand our work to settings of continual meta-learning where multiple adaptation steps that consider a tradeoff between prior knowledge and new data are required for good overall performance. We intend on exploring both repetitions of our approach from this work as well as methods that minimize an explicit upper bound on the continual learning loss.
+In this paper, we utilize data-dependent PAC-Bayes bounds to provide an upper bound on the generalization error for meta-testing by adapting an existing distribution over priors to better fit the given test task. This approach allows us to use existing methods to meta-learn a distribution over training tasks and provides a potentially tighter guarantee for the new task, at the cost of partially forgetting the training tasks. 
+We then use these bounds to develop a practical algorithm for meta-testing and adaptation.
+Our main contributions are as follows: (i) A novel bound for adaptation in meta-learning using data-dependent priors (ii) A generic algorithm for meta-testing (iii) Empirical demonstration of the benefit of this method compared to standard meta-testing methods for few-shot image classification.
 
-Another avenue for future research will be PAC-Bayes bounds for curriculum learning. We will explore the relationship between task choice and the applicability of optimizing the posterior based on the chosen task, as well as the effect of this overall process on downstream tasks.
+\LF{This is a poor intro, rework this later}
 
 \section{Background} %also previous work?
 
@@ -215,7 +202,7 @@ Both of these solutions have been shown to provide meaningful, non-vacuous gener
 %\end{equation}
 
 
-\section{Preliminary results - Adaptive meta-learning}
+\section{Main results}
 
 \subsection{PAC-Bayes bounds for meta-learning} \label{sec:meta}
 
@@ -584,7 +571,7 @@ Choosing $\beta=\sqrt{m}$ results in the right-hand side of this Corollary to ha
 
 %\LF{Interesting direction: this bound is vacuous for few-shot adaptation ($\sqrt{m}<6b^2$), it seems that the few shot adaptation setting requires either very low $\lambda$ (since we can use existing bounds from the training data) or very high $\lambda$ (weak reliance on the prior, but may cause the moment to diverge)}
 
-\subsection{Theoretical and empirical comparison of bounds}
+\section{Theoretical and empirical comparison of bounds}
 
 %TODO: cleanup
 
@@ -656,7 +643,7 @@ and so there is an additional advantage in the hyper-KL term being smaller and e
 
 Finally, we note that the choice of $\lambda=\sqrt{m}$ leads to a hyper-posterior that balances low loss with similarity to the hyper-prior, and choosing a significantly higher value may lead to a hyper-prior that coincides with the ERM posterior. Empirically for this setting, choosing $\lambda>>m$ caused this behavior to occur.
 
-\subsection{Practical implementation and empirical evaluation}
+\section{Practical implementation and empirical evaluation}
 
 As is usually the case with PAC-Bayes bounds, Theorem \ref{thm:main-result-gibbs} provides us with a practical algorithm for meta-adaptation. In order to perform approximate posterior sampling for a Gibbs posterior, the SGLD (Stochastic Gradient Langevin Dynamics) algorithm \citep{Welling2011} can be used, assuming a sufficient number of iterations.
 Combined with Monte-Carlo sampling to estimate expectations over priors, 
@@ -794,92 +781,41 @@ For standard meta-testing, we used SGD with the Adam optimizer \citep{Kingma2015
 As we can see from Figure \ref{fig:results-gamma}, for the aligned hyper-prior, adaptive meta-learning offers some improvement over naive meta-testing. For the two-shot case adapting $\gamma$ did not improve results on average, and a deeper analysis showed that for several of the training seeds both the loss and gradients during meta-adaptation were large, thereby causing the loss estimation to be too noisy. 
 For the misspecified hyper-prior, we see that choosing a constant value for $\gamma$ performed better in most settings. The misspecified hyper-prior caused the adaptive gamma to increase too rapidly, resulting in an ERM-like optimization process.
 
-\section{Future work}
+\section{Conclusions and future work}
 
-Future work will focus on several main extensions. First, we plan to consider extensions of this meta-adaptation approach for the continual meta-learning setting. Second, we intend to consider the curriculum setting where we can actively choose the order and sample size for tasks. \LF{It would be good to have a third direction here, but nothing immediate springs to mind. RL is fine but not strongly related to the text.}
-
-\subsection{Adaptation in continual meta-learning}
-
-So far, our analysis considered the setting where all training tasks are given in advance and performance is measured on a final test task. The continual setting posits a more complex problem: at each time step, we are given a new task, and performance is measured with respect to each individual task as it is given. 
-
-More formally, this setting assumes tasks $\mathcal{D}_1,\mathcal{D}_T\sim \tau$ are given sequentially, and for each task we sample $S_i\sim \mathcal{D}_i$ for training. Since we are measured by our performance on all tasks, we wish to minimize 
-$$\sum_{i=1}^{T}\mathcal{L}(Q_i(S_i), \mathcal{D}_i)$$
-
-Where $Q_i(S_i)$ is the hypothesis space adapted to the new sample $S_i$. Notably, this setting assumes data from previous tasks is no longer available once new tasks are provided, thereby requiring some distillation of prior knowledge as a method to improve performance. This setting has a clear tradeoff between forgetting prior knowledge in order to learn new tasks and generalizing to tasks further downstream, since all tasks are assumed to come from the same distribution and thus ignoring prior knowledge is likely to lead to overfitting to the specific task.
-
-As we have seen in the Gaussian case, optimization based on the meta-adaptation upper bound explicitly allows us to encode this tradeoff in the form of the weight parameter $\lambda$.
-This would suggest that for the continual setting, changing $\lambda$ between tasks based on known data such as the number of remaining tasks and the training loss for each task may lead to better downstream performance. In future work, we plan to extend our theoretical analysis to the continual setting and attempt to derive upper bounds that can be translated to practical algorithms for continual meta-learning.
-
-A recent work by \citet{Haddouche2022} used a similar approach to ours to derive PAC-Bayes bound for online learning, essentially solving for the case where each task contains a single example and there is a global tradeoff parameter $\lambda$ that is given in advance. Interestingly, this work also used adaptation based on Gibbs posteriors to explicitly optimize the tradeoff between new data and existing knowledge. We plan to use similar underlying mathematical principles to derive bounds for continual meta-learning setting, and plan to consider bound for both the realizable setting (based on kl bounds) and the non-realizable setting with variable tradeoff parameters.
-%discuss tradeoff adaptation/forgetting, mention online pb
-
-\subsection{Bounds for curriculum learning} 
-
-The generic bound of Theorem \ref{thm:rivasplata-pb} does not make assumptions on the data distribution. As such, a promising avenue for future work would be deriving meaningful PAC-Bayes upper bounds for curriculum learning methods that can select future tasks based on past performance. 
-
-The field of curriculum learning \citep{Bengio2009} historically focused on ordering samples to facilitate faster learning, and has expanded since then to also apply to learning from several tasks (see \citet{Soviany2021} for a survey). The strict dependence between the loss on previously seen tasks and data from new tasks makes deriving meaningful upper bounds for this setting challenging. 
-
-As a demonstrative example of the difficulty of this setting, we might consider the case of trying to learn the mean of a high-variance Gaussian distribution in few samples. Figure \ref{fig:cl_demo} shows an orange Gaussian whose mean we would like to estimate. At each time step, we can either sample from the orange Gaussian or the blue Gaussian. If the number of samples is large, it makes sense to sample from the orange target Gaussian directly, but if we the sample budget is small, it may be preferable to estimate the parameters using the low variance blue Gaussian and transfer this learned mean to the orange distribution. Even in this relatively simple setting (for classical curriculum learning), the optimal sampling strategy for a given budget of training data is unclear.
-
-\begin{figure}
-	\centering
-	\includegraphics[width=0.9\textwidth]{cl_example.JPG}
-	\caption{Samples from two Gaussian distributions. The blue Gaussian has low variance but not the mean we wish to estimate, and the orange Gaussian has the correct mean, but much higher variance.}
-	\label{fig:cl_demo}
-\end{figure}
-
-PAC-Bayes bounds based on the log-moment of the prior, such as those suggested by \citet{Rivasplata2020} and expanded upon by this work, may offer a principled manner to derive theoretical bounds and practical algorithms to tackle this setting. In future work, we intend to look at the effect of choosing datasets on the log-moment as a constraining measure on the tasks a curriculum algorithm can select in order to allow a learner to learn meaningful posteriors. For example. given a bound of the form:
-$$	\Expect{h\sim Q_S}{f(S, h)} \leq D_{KL}(Q_S||P_S)+\log\left (\frac{\xi(P_S, \mathcal{D}, f)}{\delta}\right )$$
-
-A potentially useful approach would be to consider how the choice of $\mathcal{D}\sim \tau$ would change $\log\xi$ as a constraint on the applicability of the bound, and then optimize the measurable quantities of $\Expect{h\sim Q_S}{f(S, h)} + D_{KL}(Q_S||P_S)$ with respect to the posterior $Q_S$.
-
-While there are many similarities between continual learning and curriculum learning, there are two fundamental differences between them that force a change in approach:
-\begin{enumerate}
-	\item The overall objective of curriculum learning is performance on test tasks, whereas continual learning measures performance on each task encountered along the way.
-	\item Curriculum learning is centered around choosing future training tasks, but continual learning assumes they occur randomly based on their real-world distribution.
-\end{enumerate}
-
+% Something
 
 \clearpage
 \bibliographystyle{plainnat}
 \bibliography{library}
 
-\clearpage
+
 \appendix
 \section{Appendix}
 
 \subsection{Hyper-parameters and implementation details} \label{append:hyper-params}
 
-The network architecture used for classification on the permuted MNIST dataset is identical to that used for the Omniglot dataset by \citet{Vinyals2016}: 4 layers of 2D 3x3 convolution layers followed by batch norm and max pooling each. These are followed by a linear classification layer with 5 (number of ways) outputs. The training loss used was standard cross-entropy loss. We used the Adam optimizer for meta-training and SGLD for meta-adaptation.
-
-\begin{table}[h]	
+\begin{table}	
 	
 	\centering
 	\begin{tabular}{lll}
 		\toprule
 		Notation   & Description  & Value/s   \\
 		\midrule
-		\#Training epochs & Number of training epochs for hyper-prior   & 100      \\
+		aa & aa   & aa      \\
 		\midrule
-		\#Adaptation steps & Number of base learner gradient updates on a specific task   & 5/10      \\
+		aa & aa   & aa      \\
 		\midrule
-		$\eta_{\alpha}$  & Learning rate for the meta-learner   & $0.01$      \\
-		\midrule
-		$\eta_{\beta}$  & Learning rate for the base learner   & $0.1$      \\
-		\midrule
-		\#Test epochs  & Number of training epochs for hyper-posterior   & 10      \\
-		\midrule
-		Test permutations  & Number of pixels permuted on each test image   & 100/1000      \\
-		\midrule
-		$\gamma$  & Initial value for the meta-learner temperature parameter   & $10/100/1000/5000$      \\
-		\midrule
-		$\beta$  & Initial value for the base learner temperature parameter   & $1e4/1e5/1e8$      \\
+		aa  & aa   & aa      \\
+
 		\bottomrule
 	\end{tabular}
 	\caption{Hyper-parameter choices}
 	\label{table:hyper-params}
 \end{table}
 
+The network architecture 
+%TODO
 
 \subsection{Basic properties of Gibbs posteriors} \label{append:gibbs-properties}
 
@@ -987,6 +923,7 @@ We restate the result for stochastic kernels:
 	Let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
 	Define $f\triangleq F\circ A$, and let 
 	$$\xi((\mathcal{P}_S,P'_S), \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{M}(\mathcal{H})\times\mathcal{H}}e^{f(S, h)}\mathcal{P}_S\times P'_{S,P}(dP,dh)\mathcal{D}(dS)$$
+	\RM{Shouldn't there be $3$ integrals rather than $2$? The notation $P_S(P)(dh)$ is somewhat cumbersome.} \LF{Is this new version clearer?}
 	
 	Using Equation \ref{eq:ribasplata-pb-appendix} with $f(S,(P,h))=\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h,S))$, a 2-level posterior $(\mathcal{Q}_S, Q_S)$ and a 2-level prior $(\mathcal{Q}_{1:N}, Q_S)$,
 	we have that for any $\delta_T \in (0,1)$, the following inequality holds uniformly for all posteriors $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ with probability at least $1-\delta_T$ over the choice of $S_T\sim \mathcal{D}_T$:
