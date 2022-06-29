@@ -31,6 +31,22 @@ year={2013}
 	year = {2004}
 }
 
+@article{Evron2022,
+	abstract = {To better understand catastrophic forgetting, we study fitting an overparameterized linear model to a sequence of tasks with different input distributions. We analyze how much the model forgets the true labels of earlier tasks after training on subsequent tasks, obtaining exact expressions and bounds. We establish connections between continual learning in the linear setting and two other research areas-alternating projections and the Kaczmarz method. In specific settings, we highlight differences between forgetting and convergence to the offline solution as studied in those areas. In particular, when T tasks in d dimensions are presented cyclically for k iterations, we prove an upper bound of T 2 min{\{}1/ √ k, d/k{\}} on the forgetting. This stands in contrast to the convergence to the offline solution, which can be arbitrarily slow according to existing alternating projection results. We further show that the T 2 factor can be lifted when tasks are presented in a random ordering.},
+	archivePrefix = {arXiv},
+	arxivId = {2205.09588v2},
+	author = {Evron, Itay and Me, Itay@evron and Moroshko, Edward and Ward, Rachel and Srebro, Nati and Soudry, Daniel},
+	eprint = {2205.09588v2},
+	file = {::},
+	journal = {Proceedings of Machine Learning Research},
+	mendeley-groups = {Curriculum ML/pac-bayes refs},
+	pages = {1--52},
+	title = {{How catastrophic can catastrophic forgetting be in linear regression?}},
+	volume = {178},
+	year = {2022}
+}
+
+
 
 @article{Farid2021,
 	abstract = {We are motivated by the problem of providing strong generalization guarantees in the context of meta-learning. Existing generalization bounds are either challenging to evaluate or provide vacuous guarantees in even relatively simple settings. We derive a probably approximately correct (PAC) bound for gradient-based meta-learning using two different generalization frameworks in order to deal with the qualitatively different challenges of generalization at the "base" and "meta" levels. We employ bounds for uniformly stable algorithms at the base level and bounds from the PAC-Bayes framework at the meta level. The result of this approach is a novel PAC bound that is tighter when the base learner adapts quickly, which is precisely the goal of meta-learning. We show that our bound provides a tighter guarantee than other bounds on a toy non-convex problem on the unit sphere and a text-based classification example. We also present a practical regularization scheme motivated by the bound in settings where the bound is loose and demonstrate improved performance over baseline techniques.},
@@ -110,6 +126,36 @@ year={2013}
 	year = {2009}
 }
 
+@article{Mansour2009,
+	abstract = {This paper addresses the general problem of domain adaptation which arises in
+	a variety of applications where the distribution of the labeled sample
+	available somewhat differs from that of the test data. Building on previous
+	work by Ben-David et al. (2007), we introduce a novel distance between
+	distributions, discrepancy distance, that is tailored to adaptation problems
+	with arbitrary loss functions. We give Rademacher complexity bounds for
+	estimating the discrepancy distance from finite samples for different loss
+	functions. Using this distance, we derive novel generalization bounds for
+	domain adaptation for a wide family of loss functions. We also present a series
+	of novel adaptation bounds for large classes of regularization-based
+	algorithms, including support vector machines and kernel ridge regression based
+	on the empirical discrepancy. This motivates our analysis of the problem of
+	minimizing the empirical discrepancy for various loss functions for which we
+	also give novel algorithms. We report the results of preliminary experiments
+	that demonstrate the benefits of our discrepancy minimization algorithms for
+	domain adaptation.},
+	archivePrefix = {arXiv},
+	arxivId = {0902.3430},
+	author = {Mansour, Yishay and Mohri, Mehryar and Rostamizadeh, Afshin},
+	doi = {10.48550/arxiv.0902.3430},
+	eprint = {0902.3430},
+	file = {::},
+	journal = {COLT 2009 - The 22nd Conference on Learning Theory},
+	mendeley-groups = {Curriculum ML/transfer learning theory},
+	month = {feb},
+	title = {{Domain Adaptation: Learning Bounds and Algorithms}},
+	url = {https://arxiv.org/abs/0902.3430v2},
+	year = {2009}
+}
 
 
 @article{Mcallester,
@@ -1054,6 +1100,47 @@ title = {{A Comprehensive Survey on Curriculum Learning}},
 url = {http://arxiv.org/abs/2010.13166},
 year = {2020}
 }
+
+@inproceedings{Begin2016,
+	abstract = {We propose a simplified proof process for PAC-Bayesian generalization bounds, that allows to divide the proof in four successive inequalities, easing the “customization” of PAC-Bayesian theorems. We also propose a family of PAC-Bayesian bounds based on the R{\'{e}}nyi divergence between the prior and posterior distributions, whereas most PAC-Bayesian bounds are based on the Kullback-Leibler divergence. Finally, we present an empirical evaluation of the tightness of each inequality of the simplified proof, for both the classical PAC-Bayesian bounds and those based on the R{\'{e}}nyi divergence.},
+	author = {B{\'{e}}gin, Luc and Germain, Pascal and Laviolette, Fran{\c{c}}ois and Roy, Jean Francis},
+	booktitle = {Proceedings of the 19th International Conference on Artificial Intelligence and Statistics, AISTATS 2016},
+	file = {::},
+	mendeley-groups = {Curriculum ML/pac-bayes refs},
+	pages = {435--444},
+	title = {{PAC-Bayesian bounds based on the R{\'{e}}nyi divergence}},
+	year = {2016}
+}
+
+@article{Ohnishi2020,
+	abstract = {We introduce several novel change of measure inequalities for two families of divergences: {\$}f{\$}-divergences and {\$}\backslashalpha{\$}-divergences. We show how the variational representation for {\$}f{\$}-divergences leads to novel change of measure inequalities. We also present a multiplicative change of measure inequality for {\$}\backslashalpha{\$}-divergences and a generalized version of Hammersley-Chapman-Robbins inequality. Finally, we present several applications of our change of measure inequalities, including PAC-Bayesian bounds for various classes of losses and non-asymptotic intervals for Monte Carlo estimates.},
+	archivePrefix = {arXiv},
+	arxivId = {2002.10678},
+	author = {Ohnishi, Yuki and Honorio, Jean},
+	eprint = {2002.10678},
+	file = {::},
+	mendeley-groups = {Curriculum ML/pac-bayes refs},
+	title = {{Novel Change of Measure Inequalities with Applications to PAC-Bayesian Bounds and Monte Carlo Estimation}},
+	url = {http://arxiv.org/abs/2002.10678},
+	year = {2020}
+}
+
+@article{Lugosi2022,
+	abstract = {Since the celebrated works of Russo and Zou (2016, 2019) and Xu and Raginsky (2017), it has been well known that the generalization error of supervised learning algorithms can be bounded in terms of the mutual information between their input and the output, given that the loss of any fixed hypothesis has a subgaussian tail. In this work, we generalize this result beyond the standard choice of Shannon's mutual information to measure the dependence between the input and the output. Our main result shows that it is indeed possible to replace the mutual information by any strongly convex function of the joint input-output distribution, with the subgaussianity condition on the losses replaced by a bound on an appropriately chosen norm capturing the geometry of the dependence measure. This allows us to derive a range of generalization bounds that are either entirely new or strengthen previously known ones. Examples include bounds stated in terms of p-norm divergences and the Wasserstein-2 distance, which are respectively applicable for heavy-tailed loss distributions and highly smooth loss functions. Our analysis is entirely based on elementary tools from convex analysis by tracking the growth of a potential function associated with the dependence measure and the loss function.},
+	archivePrefix = {arXiv},
+	arxivId = {2202.04985v2},
+	author = {Lugosi, G{\'{a}}bor},
+	eprint = {2202.04985v2},
+	file = {::},
+	journal = {Proceedings of Machine Learning Research},
+	keywords = {convex analysis,generalization error,supervised learning},
+	mendeley-groups = {Curriculum ML/pac-bayes refs},
+	title = {{Generalization Bounds via Convex Analysis}},
+	year = {2022}
+}
+
+
+
 @article{Anonymous2021,
 abstract = {Inspired by human learning, researchers have proposed ordering examples during training based on their difficulty. Both curriculum learning, exposing a network to easier examples early in training, and anti-curriculum learning, showing the most difficult examples first, have been suggested as improvements to the standard i.i.d. training. In this work, we set out to investigate the relative benefits of ordered learning. We first investigate the $\backslash$emph{\{}implicit curricula{\}} resulting from architectural and optimization bias and find that samples are learned in a highly consistent order. Next, to quantify the benefit of $\backslash$emph{\{}explicit curricula{\}}, we conduct extensive experiments over thousands of orderings spanning three kinds of learning: curriculum, anti-curriculum, and random-curriculum -- in which the size of the training dataset is dynamically increased over time, but the examples are randomly ordered. We find that for standard benchmark datasets, curricula have only marginal benefits, and that randomly ordered samples perform as well or better than curricula and anti-curricula, suggesting that any benefit is entirely due to the dynamic training set size. Inspired by common use cases of curriculum learning in practice, we investigate the role of limited training time budget and noisy data in the success of curriculum learning. Our experiments demonstrate that curriculum, but not anti-curriculum can indeed improve the performance either with limited training time budget or in existence of noisy data.},
 archivePrefix = {arXiv},
