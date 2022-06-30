@@ -9,7 +9,7 @@
 % ready for submission
 %\usepackage[final]{neurips_2022}
 
-% to compile a preprint version, e.g., for submission to arXiv, add add the
+% to compile a preprint version, e.g., for submission to arXiv, add add the\left 
 % [preprint] option:
 %     \usepackage[preprint]{neurips_2022}
 
@@ -80,6 +80,10 @@
 \usepackage[utf8]{inputenc}
 
 \title{Adaptive meta-learning and continual learning \\	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.5\textwidth]{hebrew_text.PNG}
+	\end{figure}
 	%TODO: Hebrew title
 	%\R{כככ}
 %	 \cjRL{’bgd} \\
@@ -302,7 +306,7 @@ While these bounds provide us with useful and practical approaches to use the av
 As we have seen, the meta-learning framework provides us with an informative hyper-posterior from which a good prior (i.e.\ one with low expected error) can be sampled. Given a specific downstream task $\mathcal{D}_T\sim \tau$ and a sample $S_T\sim \mathcal{D}^m$, we would like to provide a bound on the performance of any hyper-posterior that uses $S_T$ and the given hyper-prior $\mathcal{Q}_{1:N}$ that we previously meta-learned. In order to do so, we make use of PAC-Bayes bounds for data-dependent priors as the i.i.d.\ assumption common to PAC-Bayes bounds may not apply. As such, we re-state a known inequality from \citet{Rivasplata2020} and adapt it to the meta-learning setting
 
 \begin{theorem} (PAC-Bayes for stochastic kernels - adapted from Theorem 2 in \citet{Rivasplata2020}) \label{thm:rivasplata-pb}
-	Let $P\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ be a stochastic kernel \LFe{(namely, this means $P$ may depend on the sampled data $S$)}, let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
+	Let $P\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ be a stochastic kernel (namely, this means $P$ may depend on the sampled data $S$), let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
 	Define $f\triangleq F\circ A$, and let 
 	$$\xi(P_S, \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{f(S, h)}P_S(dh)\mathcal{D}(dS)$$
 	Such that $P_S$ is the distribution over $\mathcal{H}$ corresponding to the sampled $S$.
@@ -613,8 +617,8 @@ and as we have seen before in Equation \ref{eq:tolstikhin-kl-bound}, for the rea
 
 In order to better understand the differences between the classical bound and this novel meta-adaptation bound, we consider a simple setting. We take four clustering tasks with data from 2D-Gaussian distributions each with different means. 
 For each task, we sample 1000 examples in total.
-\LFe{The empirical loss for a given sample is $$\hat{\mathcal{L}}(h,S_i)=\frac{1}{m}\sum_{j=1}^{m}||h-x_j||_2^2, \;\;\;\; h\sim \mathcal{N}(\mu_i,\sigma^2 I_d), \;\;\;\; \mu_i\sim \mathcal{N}(\mu_\tau,\sigma_\tau I_d)$$}
-Figure \ref{fig:ex-baseline} shows the training tasks and the hyper-posterior $\mathcal{Q}_{1:4}$ learned minimizing the right-hand-side of Equation \ref{eq:meta-pb-amit} (where the hyper-posterior is modeled as a 2D-Gaussian over prior \LFe{means}).
+The empirical loss for a given sample is $$\hat{\mathcal{L}}(h,S_i)=\frac{1}{m}\sum_{j=1}^{m}||h-x_j||_2^2, \;\;\;\; h\sim \mathcal{N}(\mu_i,\sigma^2 I_d), \;\;\;\; \mu_i\sim \mathcal{N}(\mu_\tau,\sigma_\tau I_d)$$
+Figure \ref{fig:ex-baseline} shows the training tasks and the hyper-posterior $\mathcal{Q}_{1:4}$ learned minimizing the right-hand-side of Equation \ref{eq:meta-pb-amit} (where the hyper-posterior is modeled as a 2D-Gaussian over prior means).
 
 \begin{figure}
 	\centering
@@ -828,24 +832,29 @@ As stated before, these results are preliminary, and their statistical significa
 
 \section{Future work}
 
-Future work will focus on several main extensions. First, we plan to consider extensions of this meta-adaptation approach to the continual meta-learning setting. Second, we intend to consider the curriculum setting where we can actively choose the order and sample size for tasks. Finally, we plan to explore high probability bounds for meta-learning based on divergences other than the KL-divergence.
+Future work will focus on several main extensions. \LFe{
+\begin{itemize}
+	\item First, we plan to consider extensions of this meta-adaptation approach to the continual meta-learning setting.
+	\item Second, we intend to consider the curriculum setting where we can actively choose the order and sample size for tasks.
+	\item Finally, we plan to explore high probability bounds for meta-learning based on divergences other than the KL-divergence.
+\end{itemize}}  
 
 \subsection{Adaptation in continual meta-learning}
 
 So far, our analysis considered the setting where all training tasks are given in advance and performance is measured on a final test task. The continual setting posits a more complex problem: at each time step, we are given a new task, and performance is measured with respect to each individual task as it is given. 
 
 More formally, this setting assumes tasks $\mathcal{D}_1,\ldots,\mathcal{D}_N\sim \tau$ are given sequentially, and for each task we sample $S_i\sim \mathcal{D}_i$ for training. Since we are measured by our performance on all tasks, we wish to minimize the cumulative loss
-$$\sum_{i=1}^{N}\Expect{h\sim Q_i}{\ell(h, \mathcal{D}_i)| S_{1:i-1}}$$
+$$\sum_{i=1}^{N}\Expect{h\sim Q_i}{\ell(h, \mathcal{D}_i)| F_{1:i-1}}$$
+where $Q_i(S_i)$ is the hypothesis space adapted to the new sample $S_i$ and \LFe{$F_{1:j}$ is some summary statistic of the previously observed datasets $\{S_1,...,S_j\}$}.
+%This setting usually assumes that data from previous tasks is no longer available once new tasks are provided, thereby requiring some distillation of prior knowledge as a method to improve performance.
+This cumulative loss can be compared to the loss of a learner that knows all of the tasks in advance and is not constrained by seeing them sequentially, giving us a notion similar to regret in the bandit setting,
 
-Where $Q_i(S_i)$ is the hypothesis space adapted to the new sample $S_i$ and $S_{1:j}=\{S_1,...,S_j\}$ is the set of observed training sets at step $j$.
-This setting usually assumes that data from previous tasks is no longer available once new tasks are provided, thereby requiring some distillation of prior knowledge as a method to improve performance.
-This cumulative loss can be compared to the loss of a learner that knows all of the tasks in advance and is not constrained by seeing them sequentially, giving us a notion similar to regret in the bandit setting
+$$R_N\triangleq \sum_{i=1}^{N}\Expect{h\sim Q_i}{\ell(h, \mathcal{D}_i)| F_{1:i-1}}-\sum_{i=1}^{N}\Expect{h\sim Q_i}{\ell(h,\mathcal{D}_i)|S_1,\ldots,S_N}$$.
 
-$$R_N\triangleq \sum_{i=1}^{N}\Expect{h\sim Q_i}{\ell(h, \mathcal{D}_i)| S_{1:i-1}}-\sum_{i=1}^{N}\Expect{h\sim Q_i}{\ell(h,\mathcal{D}_i)|S_1,\ldots,S_N}$$
-
-As we have seen in the Gaussian case for the offline setting, optimization based on the meta-adaptation upper bound explicitly allows us to encode the tradeoff between prior knowledge and loss for a new task in the form of the weight parameter $\lambda$.
+As we have seen in the Gaussian case for the offline setting, optimization based on the meta-adaptation upper bound explicitly allows us to encode the tradeoff between prior knowledge and loss for a new 
+task in the form of the weighting parameter $\lambda$.
 This would suggest that for the continual setting, changing $\lambda$ between tasks based on known data such as the number of remaining tasks and the training loss for each task may lead to better downstream performance. 
-A recent work by \citet{Haddouche2022} used a similar approach to ours to derive PAC-Bayes bound for online learning, essentially solving for the case where each task contains a single example and there is a global tradeoff parameter $\lambda$ that is given in advance. Interestingly, this work also used adaptation based on Gibbs posteriors to explicitly optimize the tradeoff between new data and existing knowledge.
+A recent work by \citet{Haddouche2022} used \LFe{an approach similar to this in order to} derive PAC-Bayes bound for online learning, essentially solving for the case where each task contains a single example and there is a global tradeoff parameter $\lambda$ that is given in advance. Interestingly, this work also used adaptation based on Gibbs posteriors to explicitly optimize the tradeoff between new data and existing knowledge.
 
 In future work, we plan to explore both the general question of deriving high probability bounds on the cumulative loss and regret in the continual meta-learning setting, as well as the specific question of how to set the weight parameters for each task $\lambda_i$ for adaptation based on the Gibbs posterior. 
 
@@ -853,15 +862,18 @@ Since the continual learning setting assumes that data from previous tasks is no
 
 $$F(Q_k)\triangleq \sum_{i=1}^{k-1}\Expect{h\sim Q_k}{\ell(h, \mathcal{D}_i)}$$
 
-Naturally, this forgetting is affected by task order and the relatedness of tasks. A recent paper by \citet{Evron2022} explored forgetting for linear learners in the over-parametrized setting under various task orderings. 
+Naturally, this forgetting is affected by task order and the relatedness of tasks.
+A recent paper by \citet{Evron2022} explored forgetting for linear learners in the over-parametrized setting under various task orderings. 
 As they have shown, the order of tasks can play a significant role in bounding the worst-case and average forgetting even in the linear setting.
 An interesting avenue for future research is deriving upper bounds on the forgetting for more general learner classes that achieve low cumulative regret. In particular, there is likely some connection between the worst-case forgetting and measures of task relatedness.
+
+\LFe{Research into the effects of task order and relatedness naturally lead to the the question of how to select and tasks in order to maximize downstream performance, which naturally leads to the problem of curriculum learning discussed in the following Section.}
 
 \subsection{Bounds for curriculum learning} 
 
 Before discussing the curriculum learning setting formally, we briefly discuss prior work on bounds for domain adaptation and generalization that consider inter-task relations, as task relatedness is an important part of the curriculum setting.
 
-In this work we, as well as several previous works \citep{Amit2018, Rothfuss2020, Farid2021} before it, have made the often unrealistic assumption that the task distributions $\mathcal{D}_i$ are i.i.d.\
+In this work, as in several previous works \citep{Amit2018, Rothfuss2020, Farid2021} before, we have made the often unrealistic assumption that the task distributions $\mathcal{D}_i$ are i.i.d.\
 One way to extend this assumption was previously explored in \citet{Pentina2015a}, where the base learner for task $i$ may depend on both the task data $S_i$ and the previous task $S_{i-1}$. These bounds depend in a complex fashion on the divergence between the hyper-prior and hyper-posterior, and are difficult to apply in practice.
 
 Another interesting extension of the i.i.d.\ assumption is to assume that tasks are independent, but not identically distributed. Since Theorem \ref{thm:rivasplata-pb} \citep{Rivasplata2020} does not make an i.i.d.\ assumption, it seems likely that the results from this work can be extend to this setting in future work.
@@ -873,7 +885,7 @@ These bounds consider a measure of divergence between the source and target dist
 
 The domain disagreement term used in \citet{Germain2020} motivates meta-adaptation bounds that depend explicitly on the domain disagreement between training tasks and the test task. Previous work such as \citet{Pentina2015} demonstrate that this type of bound may be useful on the curriculum learning setting.
 
-The field of curriculum learning \citep{Bengio2009} historically focused on ordering samples to facilitate faster learning, and has expanded since then to also apply to learning from several tasks (see \citet{Soviany2021} for a survey). In this setting, described schematically in Figure \ref{fig:cl-setting}, we assume that training tasks $\mathcal{D}_i$ are generated by a `teacher' algorithm, and the joint `teacher-student' system tries to optimize learning by the student. This can be seen as a cooperative two-player game, where the teacher agent selects tasks and sample sizes, and both teacher and student try to minimize the student loss on some (unknown) test distribution. 
+The field of curriculum learning \citep{Bengio2009} historically \LFe{originated from ordering single samples} to facilitate faster learning, and has expanded since then to also apply to learning from several tasks (see \citet{Soviany2021} for a survey). In this setting, described schematically in Figure \ref{fig:cl-setting}, we assume that training tasks $\mathcal{D}_i$ are generated by a `teacher' algorithm, and the joint `teacher-student' system tries to optimize learning by the student. This can be seen as a cooperative two-player game, where the teacher agent selects tasks and sample sizes, and both teacher and student try to minimize the student loss on some (unknown) test distribution. 
 
 \begin{figure}[t]
 	\centering
@@ -898,7 +910,7 @@ Possible future extensions of this work, possibly with domain disagreement terms
 
 \subsection{Meta-learning bounds with other divergence measures}
 
-The bounds used in this work contain a complexity term that depends on the KL-divergence between the prior and the posterior distributions. Recent work by \citet{Begin2016} introduced PAC-Bayes bounds based on the $\alpha$-R\'{e}nyi divergence, and work by \citet{Ohnishi2020} extended PAC-Bayes bounds to $f$-divergences. \citet{Lugosi2022} devised information-theoretic bounds on the expected generalization gap using the Wasserstein and total-variation (TV) distance metrics, which unlike the KL-divergence, also apply for disjoint distributions. It is important to note that this bound applies in expectation and not "with high probability", but bounds based on these divergences may allow algorithm to better consider geometric structures in hypothesis space.
+The bounds used in this work contain a complexity term that depends on the KL-divergence between the prior and the posterior distributions. Recent work by \citet{Begin2016} introduced PAC-Bayes bounds based on the $\alpha$-R\'{e}nyi divergence, and work by \citet{Ohnishi2020} extended PAC-Bayes bounds to $f$-divergences. \citet{Lugosi2022} devised information-theoretic bounds on the expected generalization gap using the Wasserstein and total-variation (TV) distance metrics, which unlike the KL-divergence, also apply for \LFe{settings where the supports of the prior and posterior do not overlap}. It is important to note that this bound applies in expectation and not "with high probability", but bounds based on these divergences may allow algorithm to better account for geometric structures in hypothesis space.
 
 Since bounds for divergences other than the KL-divergence commonly arise from different change-of-measure inequalities, it stands to reason that we can derive bounds for these settings with data-dependent priors similar to Theorem \ref{thm:rivasplata-pb} \citep{Rivasplata2020}. Such bounds can also be extended to the meta-learning setting and can hopefully lead to new practical algorithms to minimize the expected loss while taking into account different properties of the divergence between prior and posterior.
 
@@ -1014,7 +1026,7 @@ Additional useful properties:
 We restate the result for stochastic kernels:
 
 \begin{theorem} (PAC-Bayes for stochastic kernels - adapted from Theorem 2 in \citet{Rivasplata2020}) \label{thm:rivasplata-pb-appendix}
-	Let $P\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ be a stochastic kernel \LFe{(Namely, the prior may depend on the sample data $S$)}, let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
+	Let $P\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ be a stochastic kernel (Namely, the prior may depend on the sample data $S$), let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
 	Define $f\triangleq F\circ A$, and let 
 	$$\xi(P_S, \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{f(S, h)}P_S(dh)\mathcal{D}(dS)$$
 	Such that $P_S$ is the distribution over $\mathcal{H}$ corresponding to the sampled $S$.
