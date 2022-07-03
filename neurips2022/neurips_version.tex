@@ -318,6 +318,8 @@ As we have seen, the meta-learning framework provides us with an informative hyp
 	\end{equation}
 \end{theorem}
 
+\LFe{An important but subtle distinguishing factor between this bound and classical PAC-Bayes bounds is that this bound applies to each individual posterior $Q_S$, but does not apply uniformly to all posteriors. This seemingly minor difference means that the bound of Equation \ref{eq:ribasplata-pb} is not applicable for optimization over posteriors. Taking this limitation into account, this Theorem still provides an applicable upper bound on the expected loss for a given trained posterior.}
+
 The term $\xi(P_S, \mathcal{D}, f)$ is known as the \emph{moment-generating function}, and when it exists, it is an alternative specification of the probability distribution for $f$.
 This moment-generating function intuitively quantifies the concentration of the function $f$ in the stochastic kernel $P\in{\cal K}({\cal Z}^m,{\cal H})$, and will be low if $f$ is well-concentrated.
 The term $\log\xi(P_S, \mathcal{D}, f)$ is commonly referred to as the \emph{log-moment} and we will also do so throughout the rest of this paper for convenience. 
@@ -440,9 +442,11 @@ This equation gives us a generalization bound that considers the empirical loss 
 	For all $\lambda>0, \gamma>0$, 
 	with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$:
 	
-	$$\mathcal{L}(\mathcal{Q}_{1:N,T}, \mathcal{D}_T) \leq 
+	\begin{equation*}
+	\mathcal{L}(\mathcal{Q}_{1:N,T}, \mathcal{D}_T) \leq 
 	(1-\frac{\gamma}{\lambda})\hat{\mathcal{L}}_{\mathrm{aml}} + \frac{\gamma}{\lambda}\hat{\mathcal{L}}_{\mathrm{ml}} 
-	+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )$$
+	+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
+	\end{equation*}
 \end{corollary}
 
 In order to better understand the impact of the log-moment term, we remark that \citet{Rivasplata2020} have shown that for $\lambda=\sqrt{m}$ and given that the base learner is the empirical Gibbs posterior $Q^\beta$ and the loss is bounded,
@@ -640,8 +644,10 @@ While ERM is effective as a base learner here, using an objective inspired by PA
 
 
 We now show the result of applying a simple meta-adaptation objective based on Equation \ref{eq:bound-aml-datafree}: 
-$$\min_{\mathcal{Q}}\left [\hat{\mathcal{L}}(Q, S_T) + \frac{1}{\lambda}\Expect{P\sim \mathcal{Q}}{KL(Q||P)}+\frac{1}{\lambda}KL(\mathcal{Q}||\mathcal{Q}_{1:4})\right ]$$
-Notably, the task prior $P$ is sampled from $\mathcal{Q}$. Figure \ref{fig:ex-aml} shows the adaptation process as well as the final result for $\lambda=m$. We see that this objective yields a hyper-posterior $\mathcal{Q}$ with a closer mean to the test task, and we see that the variance of the prior is high along the axis connecting the hyper-prior and the test posterior. 
+$$\min_{\mathcal{Q},Q}\left [\hat{\mathcal{L}}(\mathcal{Q}, S_T) + \frac{1}{\lambda}\Expect{P\sim \mathcal{Q}}{KL(Q||P)}+\frac{1}{\lambda}KL(\mathcal{Q}||\mathcal{Q}_{1:4})\right ]$$
+where the task prior $P$ is sampled from $\mathcal{Q}$. 
+\LFe{We note that the task-level KL term $\Expect{P\sim \mathcal{Q}}{KL(Q||P)}$ is necessary in order to provide an applicable bound for optimization, since the prior must be data-free for classical PAC-Bayes bounds to apply. This term can be excluded from the final bound on the expected loss as that is given by Equation \ref{eq:main-result-generic} which is applicable for a given hyper-posterior and posterior.}
+Figure \ref{fig:ex-aml} shows the adaptation process as well as the final result for $\lambda=m$. We see that this objective yields a hyper-posterior $\mathcal{Q}$ with a closer mean to the test task, and we see that the variance of the prior is high along the axis connecting the hyper-prior and the test posterior. 
 
 \begin{figure}[h!]
 	\centering
@@ -665,28 +671,35 @@ Since the empirical loss of the final hypothesis is similar regardless of hyper-
 
 \begin{align*}
 \begin{split}
-	\mathcal{L}(\mathcal{Q}_{1:4},\mathcal{D}_T)\leq \hat{l} &+ \sqrt{\frac{D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})+\log\frac{2N}{\delta}}{2(N-1)}}
+	\mathcal{L}(\mathcal{Q},\mathcal{D}_T)\leq \hat{l} &+ \sqrt{\frac{D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})+\log\frac{2N}{\delta}}{2(N-1)}}
 	+O\left (\sqrt{\frac{\log{1/\delta_T}}{m}}+\sqrt{\frac{\log{m/\delta}}{m}}\right )
 \end{split}
 \end{align*}
-
-And since $m$ is large, the last term is negligible in comparison to term that depend on the number of tasks $N$.
-A quick glance at the meta-adaptation bound of Equation \ref{eq:main-result-generic} shows us that we have for $\lambda=\sqrt{m}$, with probability at least $1-\delta_T$ over the choice of $S_T$:
+\LFe{ignoring task-level KL terms, and since $m$ is large, the last term is negligible in comparison to term that depend on the number of tasks $N$.
+Since the meta-adaptation bound of Equation \ref{eq:main-result-generic} applies for any hyper-posterior, we can use it for the resulting $\mathcal{Q}$ and see that
+for $\lambda=\sqrt{m}$, with probability at least $1-\delta_T$ over the choice of $S_T$:}
 
 \begin{align*}
 \begin{split}
-\mathcal{L}(\mathcal{Q},\mathcal{D}_T)\leq \hat{l} + O\left (\frac{\sqrt{\log{1/\delta_T}}}{\sqrt{m}}\right ) 
+\mathcal{L}(\mathcal{Q},\mathcal{D}_T)\leq \hat{l} + \LFe{\frac{1}{\sqrt{m}}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:4})} + O\left (\frac{\sqrt{\log{1/\delta_T}}}{\sqrt{m}}\right ) 
 \end{split}
 \end{align*}
 
-This comparison lets us clearly see that for a small number of training tasks, this bound offers significant advantages. Intuitively, bounds based on the training set are looser as they must provide a guarantee over all tasks in the task distribution $\tau$, whereas meta-adaptation bounds are specific to a given test task. We also note that in this example,  $$D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})>D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:4})$$ 
+This comparison lets us clearly see that for a small number of training tasks, 
+this bound offers significant advantages. Intuitively, bounds based on the training set are looser as they must provide a guarantee over all tasks in the task distribution $\tau$, whereas meta-adaptation bounds are specific to a given test task. We also note that in this example,  $$D_{KL}(\mathcal{Q}_{1:4}||\mathcal{P})>D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:4})$$ 
 and so there is an additional advantage in the hyper-KL term being smaller and eliminating the task-level KL terms present in Equation \ref{eq:meta-pb-amit}. This example also shows us that if the empirical loss on the adaptation set $\hat{\mathcal{L}}(\mathcal{Q}, S_T)$ is high, the new meta-adaptation bound is less useful compared to traditional training-set bounds. 
+
 
 Finally, we note that the choice of $\lambda=\sqrt{m}$ leads to a hyper-posterior that balances low loss with similarity to the hyper-prior, and choosing a significantly higher value may lead to a hyper-prior that coincides with the ERM posterior. Empirically for this setting, choosing $\lambda\gg m$ caused this behavior to occur.
 
 \subsection{Practical implementation and empirical evaluation}
 
-As is usually the case with PAC-Bayes bounds, Theorem \ref{thm:main-result-gibbs} provides us with a practical algorithm for meta-adaptation. In order to perform approximate posterior sampling for a Gibbs posterior, the SGLD (Stochastic Gradient Langevin Dynamics) algorithm \citep{Welling2011} can be used, assuming a sufficient number of iterations.
+\LFe{Since Theorem \ref{thm:main-result-gibbs} does not apply uniformly over hyper-posteriors, we cannot derive a practical optimization algorithm just by minimizing the right-hand side of   Equation \ref{eq:pb-adapt-multi}. 
+One way to resolve this issue is to add base-learner complexity terms $$\frac{1}{\lambda}\Expect{P\sim \mathcal{Q}}{D_{KL}(Q||P)}$$ to Equation \ref{eq:main-result-generic} and derive meta-adaptation bounds based on data-free priors.
+Another potential solution to this issue is to separate the provided data $S_T$ into disjoint adaptation and evaluation sets $S_{adapt},S_{eval}$ during the meta-adaptation phase and learn the posterior $Q$ based on the adaptation set $S_{adapt}$ alone. Since this is already common practice in meta-learning algorithms, we chose to do so for our empirical evaluation. Future work will look at both solutions to this issue.
+}
+
+In order to perform approximate posterior sampling for a Gibbs posterior, the SGLD (Stochastic Gradient Langevin Dynamics) algorithm \citep{Welling2011} can be used, assuming a sufficient number of iterations.
 Combined with Monte-Carlo sampling to estimate expectations over priors, 
 this approximation allows for the derivation of a complete practical algorithm for approximating $\mathcal{Q}_{1:N,T}$, which we describe in Algorithm \ref{alg1}. 
 
@@ -754,7 +767,7 @@ A hyper-prior with the same number of permuted pixels is aligned with test task,
 
 For standard meta-testing, we used SGD with the Adam optimizer \citep{Kingma2015}, and performed 10 adaptation steps given the labeled adaptation dataset $S_T$. For our meta-adaptation method, we utilize a similar setup, but additionally perform 10 steps of meta-adaptation as detailed in Algorithm \ref{alg1} with both pre-selected values for $\gamma$ as well as adapting $\gamma$ using the chain rule decomposition detailed above. See appendix \ref{append:hyper-params} for a full list of hyper-parameters and implementation details. Code to reproduce our experiments is available at the following \hyperlink{Github repository}{https://github.com/lioritan/phd-work}.
 
-\LF{TODO: move code to a clean github repo, and make wandb optional}
+%\LF{TODO: move code to a clean github repo, and make wandb optional}
 
 Figure \ref{fig:results-gamma} shows the test accuracy averaged over 10 meta-testing seeds for the best hyper-parameters with varying adaptation set sizes. The best accuracies are also reported in Table \ref{table:gamma}.
 
@@ -832,12 +845,12 @@ As stated before, these results are preliminary, and their statistical significa
 
 \section{Future work}
 
-Future work will focus on several main extensions. \LFe{
+Future work will focus on several main extensions. 
 \begin{itemize}
 	\item First, we plan to consider extensions of this meta-adaptation approach to the continual meta-learning setting.
 	\item Second, we intend to consider the curriculum setting where we can actively choose the order and sample size for tasks.
 	\item Finally, we plan to explore high probability bounds for meta-learning based on divergences other than the KL-divergence.
-\end{itemize}}  
+\end{itemize} 
 
 \subsection{Adaptation in continual meta-learning}
 
@@ -845,7 +858,7 @@ So far, our analysis considered the setting where all training tasks are given i
 
 More formally, this setting assumes tasks $\mathcal{D}_1,\ldots,\mathcal{D}_N\sim \tau$ are given sequentially, and for each task we sample $S_i\sim \mathcal{D}_i$ for training. Since we are measured by our performance on all tasks, we wish to minimize the cumulative loss
 $$\sum_{i=1}^{N}\Expect{h\sim Q_i}{\ell(h, \mathcal{D}_i)| F_{1:i-1}}$$
-where $Q_i(S_i)$ is the hypothesis space adapted to the new sample $S_i$ and \LFe{$F_{1:j}$ is some summary statistic of the previously observed datasets $\{S_1,...,S_j\}$}.
+where $Q_i(S_i)$ is the hypothesis space adapted to the new sample $S_i$ and $F_{1:j}$ is some summary statistic of the previously observed datasets $\{S_1,...,S_j\}$.
 %This setting usually assumes that data from previous tasks is no longer available once new tasks are provided, thereby requiring some distillation of prior knowledge as a method to improve performance.
 This cumulative loss can be compared to the loss of a learner that knows all of the tasks in advance and is not constrained by seeing them sequentially, giving us a notion similar to regret in the bandit setting,
 
@@ -854,7 +867,7 @@ $$R_N\triangleq \sum_{i=1}^{N}\Expect{h\sim Q_i}{\ell(h, \mathcal{D}_i)| F_{1:i-
 As we have seen in the Gaussian case for the offline setting, optimization based on the meta-adaptation upper bound explicitly allows us to encode the tradeoff between prior knowledge and loss for a new 
 task in the form of the weighting parameter $\lambda$.
 This would suggest that for the continual setting, changing $\lambda$ between tasks based on known data such as the number of remaining tasks and the training loss for each task may lead to better downstream performance. 
-A recent work by \citet{Haddouche2022} used \LFe{an approach similar to this in order to} derive PAC-Bayes bound for online learning, essentially solving for the case where each task contains a single example and there is a global tradeoff parameter $\lambda$ that is given in advance. Interestingly, this work also used adaptation based on Gibbs posteriors to explicitly optimize the tradeoff between new data and existing knowledge.
+A recent work by \citet{Haddouche2022} used an approach similar to this in order to derive PAC-Bayes bound for online learning, essentially solving for the case where each task contains a single example and there is a global tradeoff parameter $\lambda$ that is given in advance. Interestingly, this work also used adaptation based on Gibbs posteriors to explicitly optimize the tradeoff between new data and existing knowledge.
 
 In future work, we plan to explore both the general question of deriving high probability bounds on the cumulative loss and regret in the continual meta-learning setting, as well as the specific question of how to set the weight parameters for each task $\lambda_i$ for adaptation based on the Gibbs posterior. 
 
@@ -867,7 +880,7 @@ A recent paper by \citet{Evron2022} explored forgetting for linear learners in t
 As they have shown, the order of tasks can play a significant role in bounding the worst-case and average forgetting even in the linear setting.
 An interesting avenue for future research is deriving upper bounds on the forgetting for more general learner classes that achieve low cumulative regret. In particular, there is likely some connection between the worst-case forgetting and measures of task relatedness.
 
-\LFe{Research into the effects of task order and relatedness naturally lead to the the question of how to select and tasks in order to maximize downstream performance, which naturally leads to the problem of curriculum learning discussed in the following Section.}
+Research into the effects of task order and relatedness naturally lead to the the question of how to select and tasks in order to maximize downstream performance, which naturally leads to the problem of curriculum learning discussed in the following Section.
 
 \subsection{Bounds for curriculum learning} 
 
@@ -885,7 +898,7 @@ These bounds consider a measure of divergence between the source and target dist
 
 The domain disagreement term used in \citet{Germain2020} motivates meta-adaptation bounds that depend explicitly on the domain disagreement between training tasks and the test task. Previous work such as \citet{Pentina2015} demonstrate that this type of bound may be useful on the curriculum learning setting.
 
-The field of curriculum learning \citep{Bengio2009} historically \LFe{originated from ordering single samples} to facilitate faster learning, and has expanded since then to also apply to learning from several tasks (see \citet{Soviany2021} for a survey). In this setting, described schematically in Figure \ref{fig:cl-setting}, we assume that training tasks $\mathcal{D}_i$ are generated by a `teacher' algorithm, and the joint `teacher-student' system tries to optimize learning by the student. This can be seen as a cooperative two-player game, where the teacher agent selects tasks and sample sizes, and both teacher and student try to minimize the student loss on some (unknown) test distribution. 
+The field of curriculum learning \citep{Bengio2009} historically originated from ordering single samples to facilitate faster learning, and has expanded since then to also apply to learning from several tasks (see \citet{Soviany2021} for a survey). In this setting, described schematically in Figure \ref{fig:cl-setting}, we assume that training tasks $\mathcal{D}_i$ are generated by a `teacher' algorithm, and the joint `teacher-student' system tries to optimize learning by the student. This can be seen as a cooperative two-player game, where the teacher agent selects tasks and sample sizes, and both teacher and student try to minimize the student loss on some (unknown) test distribution. 
 
 \begin{figure}[t]
 	\centering
@@ -910,13 +923,15 @@ Possible future extensions of this work, possibly with domain disagreement terms
 
 \subsection{Meta-learning bounds with other divergence measures}
 
-The bounds used in this work contain a complexity term that depends on the KL-divergence between the prior and the posterior distributions. Recent work by \citet{Begin2016} introduced PAC-Bayes bounds based on the $\alpha$-R\'{e}nyi divergence, and work by \citet{Ohnishi2020} extended PAC-Bayes bounds to $f$-divergences. \citet{Lugosi2022} devised information-theoretic bounds on the expected generalization gap using the Wasserstein and total-variation (TV) distance metrics, which unlike the KL-divergence, also apply for \LFe{settings where the supports of the prior and posterior do not overlap}. It is important to note that this bound applies in expectation and not "with high probability", but bounds based on these divergences may allow algorithm to better account for geometric structures in hypothesis space.
+The bounds used in this work contain a complexity term that depends on the KL-divergence between the prior and the posterior distributions. Recent work by \citet{Begin2016} introduced PAC-Bayes bounds based on the $\alpha$-R\'{e}nyi divergence, and work by \citet{Ohnishi2020} extended PAC-Bayes bounds to $f$-divergences. \citet{Lugosi2022} devised information-theoretic bounds on the expected generalization gap using the Wasserstein and total-variation (TV) distance metrics, which unlike the KL-divergence, also apply for settings where the supports of the prior and posterior do not overlap. It is important to note that this bound applies in expectation and not "with high probability", but bounds based on these divergences may allow algorithm to better account for geometric structures in hypothesis space.
 
 Since bounds for divergences other than the KL-divergence commonly arise from different change-of-measure inequalities, it stands to reason that we can derive bounds for these settings with data-dependent priors similar to Theorem \ref{thm:rivasplata-pb} \citep{Rivasplata2020}. Such bounds can also be extended to the meta-learning setting and can hopefully lead to new practical algorithms to minimize the expected loss while taking into account different properties of the divergence between prior and posterior.
 
 Future extensions of this work will consider the necessary conditions for applying high-probability bounds based on other divergence measures such as Maximum Mean Discrepancy (MMD), Wasserstein distance and $f$-divergences, to the meta-learning setting. 
 Since data-dependent priors have been demonstrated \citep{Dziugaite2017, Perez-Ortiz2021} to be useful for providing tight guarantees for KL-divergences, it stands to reason that bounds based on other divergence measures should also allow for such priors.
 Consequentially, we intend to focus on bounds using non-standard divergences that are also applicable for data-dependent priors and hyper-priors.
+
+\LFe{Since Theorem \ref{thm:rivasplata-pb} itself applies only for generalization guarantees and not as an optimization scheme, finding another class of divergences that result in bounds that apply uniformly for all posteriors would be very useful as a stepping stone in designing optimization algorithms for data-dependent priors.}
 
 
 
@@ -1106,8 +1121,7 @@ We restate the result for stochastic kernels:
 	\begin{align*}
 	\begin{split}
 	D_{KL}((\mathcal{Q}_{S_T}, Q_{S_T})||(\mathcal{Q}_{1:N}, Q_{S_T}))&=\Expect{(P,h)\sim (\mathcal{Q}_{S_T},Q_{S_T})}{\log\frac{\mathcal{Q}_{S_T}(P)Q(P, S_T)(h)}{\mathcal{Q}_{1:N}(P)Q(P, S_T)(h)}}\\
-	&=\mathbb{E}_{P\sim \mathcal{Q}_{S_T}}\Expect{h\sim Q(P,S_T)}{\log\frac{\mathcal{Q}_{S_T}(P)Q(P, S_T)(h)}{\mathcal{Q}_{1:N}(P)Q(P, S_T)(h)}}\\
-	&=\Expect{P\sim \mathcal{Q}_{S_T}}{\log\frac{\mathcal{Q}_{S_T}(P)}{\mathcal{Q}_{1:N}(P)}}+\mathbb{E}_{P\sim \mathcal{Q}_{S_T}}\Expect{h\sim Q(P,S_T)}{\log\frac{Q(P, S_T)(h)}{Q(P, S_T)(h)}}\\
+	&=\mathbb{E}_{P\sim \mathcal{Q}_{S_T}}\Expect{h\sim Q(P,S_T)}{\log\frac{\mathcal{Q}_{S_T}(P)}{\mathcal{Q}_{1:N}(P)}}\\
 	&=\Expect{P\sim \mathcal{Q}_{S_T}}{\log\frac{\mathcal{Q}_{S_T}(P)}{\mathcal{Q}_{1:N}(P)}}\\
 	&=D_{KL}(\mathcal{Q}_{S_T}||\mathcal{Q}_{1:N})
 	\end{split}
