@@ -772,31 +772,34 @@ Numerical values for both tasks as well as standard error are reported in Table 
 		Adaptive, variable hyper-prior & 2   & $0.35\pm 0.045 $ & $0.2\pm 0 $ \\
 		\midrule
 		Standard & 5   & $0.528\pm 0.04 $   & $0.2\pm 0 $   \\
-		Adaptive, constant hyper-prior & 5   & $0.681\pm 0.062 $ & $0.505\pm 0.095 $ \\
+		Adaptive, constant hyper-prior & 5   & $0.681^*\pm 0.062 $ & $0.505^*\pm 0.095 $ \\
 		Adaptive, variable hyper-prior & 5   & $0.515\pm 0.043 $ & $0.212\pm 0.01 $ \\
 		\midrule
 		Standard & 10   & $0.7\pm 0.038 $   & $0.2\pm 0.0 $   \\
-		Adaptive, constant hyper-prior & 10   & $0.826\pm 0.016 $ & $0.461\pm 0.106 $ \\
+		Adaptive, constant hyper-prior & 10   & $0.826^*\pm 0.016 $ & $0.461\pm 0.106 $ \\
 		Adaptive, variable hyper-prior & 10   & $0.745\pm 0.025 $ & $0.22\pm 0.014 $ \\
 		\midrule
 		Standard & 20   & $0.79\pm 0.021 $   & $0.2\pm 0.0 $   \\
-		Adaptive, constant hyper-prior & 20   & $0.896\pm 0.012 $ & $0.754\pm 0.093 $ \\
-		Adaptive, variable hyper-prior & 20   & $0.834\pm 0.023 $ & $0.383\pm 0.094 $ \\
+		Adaptive, constant hyper-prior & 20   & $0.8986^*\pm 0.012 $ & $0.754^*\pm 0.093 $ \\
+		Adaptive, variable hyper-prior & 20   & $0.834^*\pm 0.023 $ & $0.383\pm 0.094 $ \\
 		\midrule
 		Standard & 50   & $0.87\pm 0.01 $   & $0.477\pm 0.113 $   \\
-		Adaptive, constant hyper-prior & 50   & $0.93\pm 0.007 $ & $0.86\pm 0.074 $ \\
-		Adaptive, variable hyper-prior & 50   & $0.915\pm 0.01 $ & $0.542\pm 0.114 $ \\
+		Adaptive, constant hyper-prior & 50   & $0.93^*\pm 0.007 $ & $0.86^*\pm 0.074 $ \\
+		Adaptive, variable hyper-prior & 50   & $0.915^*\pm 0.01 $ & $0.542\pm 0.114 $ \\
 		\midrule
 		\bottomrule
 	\end{tabular}
-	\caption{Test accuracies for the meta-MNIST dataset with 100 shuffled pixels or permuted labels. All accuracies are averaged over 10 seeds and reported with standard error.}
+	\caption{Test accuracies for the meta-MNIST dataset with 100 shuffled pixels or permuted labels. All accuracies are averaged over 10 seeds and reported with standard error. Statistically significant ($p<0.05$) improvements over the standard meta-testing approach are marked with *.}
 	\label{table:gamma}
 \end{table*}
 
-As we can see from Figure \ref{fig:results-pixels}, for the shuffled-pixels task, meta-adaptation with respect to a constant hyper-prior $N(0,\sigma I_d)$ yields a hyper-posterior that is both better in terms of overall test accuracy, as well as the number of gradient steps required to achieve said accuracy. % TODO-reasons
-Additionally, for the shuffled-pixels task with a varying hyper-prior that is initialized as the meta-training hyper-prior, we can see similar levels of improvement, but only for larger sample sizes for the adaptation set $S_T$. The large improvement in accuracy between 5 and 40 meta-adaptation steps suggests that given a larger number of meta-adaptation steps, an even better hyper-prior can be found.
+As we can see from Figure \ref{fig:results-pixels}, for the shuffled-pixels task, meta-adaptation with respect to a constant hyper-prior $N(0,\sigma I_d)$ yields a hyper-posterior that is both better in terms of overall test accuracy, as well as the number of gradient steps required to achieve said accuracy. Analysis of the mean variance in each layer for the 50 shot case shows that the variance of the input layer decreases and the variance of the linear output layer increases.
+A possible explanation of this phenomenon is that the adaptation data was used to calibrate the input convolution layer to the specific subtask, resulting in less uncertainty. The output layer likely became more uncertain due to the higher variance inherent to the sub-sampling process.
+Additionally, for the shuffled-pixels task with a varying hyper-prior that is initialized as the meta-training hyper-prior, we can see similar levels of improvement, but only for larger sample sizes for the adaptation set $S_T$. The large improvement in accuracy between 5 and 40 meta-adaptation steps suggests that given a larger number of meta-adaptation steps, an even better hyper-posterior can be found.
 
 The results for the permuted-labels task are largely similar, but there is a far more pronounced gap in performance for few-shot cases, where standard meta-testing fails to adapt and our meta-adaptation approaches create a better suited hyper-posterior without access to additional data compared to standard meta-testing.
+
+We note that we also ran meta-adaptation experiments comparing the hyper-posterior to the meta-trained hyper-prior without changing it between meta-adaptation steps, but this resulted in non-significant improvements over standard meta-testing. Observations of the KL divergence for each layer individually show minor changes in the input layer that are likely insufficient compared to the variable hyper-prior approach.
 
 %TODO-add bounds!
 
