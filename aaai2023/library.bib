@@ -28,6 +28,7 @@ year={2013}
 	keywords = {2000 Mathematics Subject Classification: 62H30,62B10 Keywords: Statistical learning theory,68T05,PAC-Bayesian theorems,Support Vector Machines,VC dimension,adaptive statistics,compression schemes,fat shattering dimension,lo-calized complexity bounds,margin bounds 3,pattern recogni-tion,randomized estimators},
 	mendeley-groups = {Curriculum ML/pac-bayes refs},
 	title = {{A PAC-Bayesian approach to adaptive classification}},
+	journal = {preprint 840},
 	year = {2004}
 }
 
@@ -46,19 +47,23 @@ year={2013}
 	year = {2022}
 }
 
-
-
 @article{Farid2021,
-	abstract = {We are motivated by the problem of providing strong generalization guarantees in the context of meta-learning. Existing generalization bounds are either challenging to evaluate or provide vacuous guarantees in even relatively simple settings. We derive a probably approximately correct (PAC) bound for gradient-based meta-learning using two different generalization frameworks in order to deal with the qualitatively different challenges of generalization at the "base" and "meta" levels. We employ bounds for uniformly stable algorithms at the base level and bounds from the PAC-Bayes framework at the meta level. The result of this approach is a novel PAC bound that is tighter when the base learner adapts quickly, which is precisely the goal of meta-learning. We show that our bound provides a tighter guarantee than other bounds on a toy non-convex problem on the unit sphere and a text-based classification example. We also present a practical regularization scheme motivated by the bound in settings where the bound is loose and demonstrate improved performance over baseline techniques.},
-	archivePrefix = {arXiv},
-	arxivId = {2102.06589},
-	author = {Farid, Alec and Majumdar, Anirudha},
-	eprint = {2102.06589},
-	mendeley-groups = {Curriculum ML/pac-bayes refs},
-	month = {feb},
-	title = {{Generalization Bounds for Meta-Learning via PAC-Bayes and Uniform Stability}},
-	url = {https://proceedings.neurips.cc/paper/2021/hash/1102a326d5f7c9e04fc3c89d0ede88c9-Abstract.html http://arxiv.org/abs/2102.06589},
-	year = {2021}
+  title={Generalization bounds for meta-learning via PAC-bayes and uniform stability},
+  author={Farid, Alec and Majumdar, Anirudha},
+  journal={Advances in Neural Information Processing Systems},
+  volume={34},
+  pages={2173--2186},
+  year={2021}
+}
+
+@article{Liu2021,
+  title={Statistical generalization performance guarantee for meta-learning with data dependent prior},
+  author={Liu, Tianyu and Lu, Jie and Yan, Zheng and Zhang, Guangquan},
+  journal={Neurocomputing},
+  volume={465},
+  pages={391--405},
+  year={2021},
+  publisher={Elsevier}
 }
 
 
@@ -82,7 +87,14 @@ year={2013}
 	number={},
 	pages={94-103},
 	doi={10.1109/FOCS.2007.66}}
-
+@inproceedings{Dwork2006,
+  title={Calibrating noise to sensitivity in private data analysis},
+  author={Dwork, Cynthia and McSherry, Frank and Nissim, Kobbi and Smith, Adam},
+  booktitle={Theory of cryptography conference},
+  pages={265--284},
+  year={2006},
+  organization={Springer}
+}
 @article{Haddouche2022,
 	abstract = {Most PAC-Bayesian bounds hold in the batch learning setting where data is collected at once, prior to inference or prediction. This somewhat departs from many contemporary learning problems where data streams are collected and the algorithms must dynamically adjust. We prove new PAC-Bayesian bounds in this online learning framework, leveraging an updated definition of regret, and we revisit classical PAC-Bayesian results with a batch-to-online conversion, extending their remit to the case of dependent data. Our results hold for bounded losses, potentially $\backslash$emph{\{}non-convex{\}}, paving the way to promising developments in online learning.},
 	archivePrefix = {arXiv},
@@ -93,6 +105,7 @@ year={2013}
 	file = {::},
 	mendeley-groups = {Curriculum ML/pac-bayes refs},
 	month = {may},
+	journal={arXiv preprint arXiv:2206.00024},
 	title = {{Online PAC-Bayes Learning}},
 	url = {https://arxiv.org/abs/2206.00024v1 http://arxiv.org/abs/2206.00024},
 	year = {2022}
@@ -197,18 +210,17 @@ year={2013}
 @article{Amit2022,
 	title={Integral Probability Metrics PAC-Bayes Bounds},
 	author={Amit, Ron and Epstein, Baruch and Moran, Shay and Meir, Ron},
-	journal={stat},
-	volume={1050},
-	pages={1},
+	journal={arXiv preprint arXiv:2207.00614},
 	year={2022}
 }
 
-@article{Mcallester,
-abstract = {PAC-Bayesian learning methods combine the informative priors of Bayesian methods with distribution-free PAC guarantees. Building on earlier methods for PAC-Bayesian model selection , this paper presents a method for PAC-Bayesian model averaging. The method constructs an optimized weighted mixture of concepts analogous to a Bayesian posterior distribution. Although the main result is stated for bounded loss, a preliminary analysis for unbounded loss is also given.},
-author = {Mcallester, David A},
-file = {::},
-year = {2000},
-title = {{PAC-Bayesian Model Averaging}}
+@inproceedings{Mcallester,
+  title={PAC-Bayesian model averaging},
+  author={McAllester, David A},
+  booktitle={Proceedings of the twelfth annual conference on Computational learning theory},
+  pages={164--170},
+  year={1999}
+}
 }
 @article{Kuzborskij2019,
 	abstract = {Gibbs-ERM learning is a natural idealized model of learning with stochastic optimization algorithms (such as Stochastic Gradient Langevin Dynamics and ---to some extent--- Stochastic Gradient Descent), while it also arises in other contexts, including PAC-Bayesian theory, and sampling mechanisms. In this work we study the excess risk suffered by a Gibbs-ERM learner that uses non-convex, regularized empirical risk with the goal to understand the interplay between the data-generating distribution and learning in large hypothesis spaces. Our main results are distribution-dependent upper bounds on several notions of excess risk. We show that, in all cases, the distribution-dependent excess risk is essentially controlled by the effective dimension {\$}\backslashmathrm{\{}tr{\}}\backslashleft(\backslashboldsymbol{\{}H{\}}{\^{}}{\{}\backslashstar{\}} (\backslashboldsymbol{\{}H{\}}{\^{}}{\{}\backslashstar{\}} + \backslashlambda \backslashboldsymbol{\{}I{\}}){\^{}}{\{}-1{\}}\backslashright){\$} of the problem, where {\$}\backslashboldsymbol{\{}H{\}}{\^{}}{\{}\backslashstar{\}}{\$} is the Hessian matrix of the risk at a local minimum. This is a well-established notion of effective dimension appearing in several previous works, including the analyses of SGD and ridge regression, but ours is the first work that brings this dimension to the analysis of learning using Gibbs densities. The distribution-dependent view we advocate here improves upon earlier results of Raginsky et al. (2017), and can yield much tighter bounds depending on the interplay between the data-generating distribution and the loss function. The first part of our analysis focuses on the localized excess risk in the vicinity of a fixed local minimizer. This result is then extended to bounds on the global excess risk, by characterizing probabilities of local minima (and their complement) under Gibbs densities, a results which might be of independent interest.},
@@ -1202,18 +1214,13 @@ title = {{When Do Curricula Work?}},
 url = {http://arxiv.org/abs/2012.03107},
 year = {2020}
 }
-@article{Rothfuss2020,
-abstract = {Meta-learning can successfully acquire useful inductive biases from data. Yet, its generalization properties to unseen learning tasks are poorly understood. Particularly if the number of meta-training tasks is small, this raises concerns about overfitting. We provide a theoretical analysis using the PAC-Bayesian framework and derive novel generalization bounds for meta-learning. Using these bounds, we develop a class of PAC-optimal meta-learning algorithms with performance guarantees and a principled meta-level regularization. Unlike previous PAC-Bayesian meta-learners, our method results in a standard stochastic optimization problem which can be solved efficiently and scales well. When instantiating our PAC-optimal hyper-posterior (PACOH) with Gaussian processes and Bayesian Neural Networks as base learners, the resulting methods yield state-of-the-art performance, both in terms of predictive accuracy and the quality of uncertainty estimates. Thanks to their principled treatment of uncertainty, our meta-learners can also be successfully employed for sequential decision problems.},
-archivePrefix = {arXiv},
-arxivId = {2002.05551},
-author = {Rothfuss, Jonas and Fortuin, Vincent and Josifoski, Martin and Krause, Andreas},
-eprint = {2002.05551},
-file = {::},
-issn = {2331-8422},
-month = {feb},
-title = {{PACOH: Bayes-Optimal Meta-Learning with PAC-Guarantees}},
-url = {https://arxiv.org/abs/2002.05551v5 http://arxiv.org/abs/2002.05551},
-year = {2020}
+@inproceedings{Rothfuss2020,
+  title={PACOH: Bayes-optimal meta-learning with PAC-guarantees},
+  author={Rothfuss, Jonas and Fortuin, Vincent and Josifoski, Martin and Krause, Andreas},
+  booktitle={International Conference on Machine Learning},
+  pages={9116--9126},
+  year={2021},
+  organization={PMLR}
 }
 @article{Jain2017,
 abstract = {In this work, we propose several online methods to build a $\backslash$emph{\{}learning curriculum{\}} from a given set of target-task-specific training tasks in order to speed up reinforcement learning (RL). These methods can decrease the total training time needed by an RL agent compared to training on the target task from scratch. Unlike traditional transfer learning, we consider creating a sequence from several training tasks in order to provide the most benefit in terms of reducing the total time to train. Our methods utilize the learning trajectory of the agent on the curriculum tasks seen so far to decide which tasks to train on next. An attractive feature of our methods is that they are weakly coupled to the choice of the RL algorithm as well as the transfer learning method. Further, when there is domain information available, our methods can incorporate such knowledge to further speed up the learning. We experimentally show that these methods can be used to obtain suitable learning curricula that speed up the overall training time on two different domains.},

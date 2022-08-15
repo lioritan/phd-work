@@ -40,7 +40,7 @@
 }
 
 
-\setcounter{secnumdepth}{1}
+\setcounter{secnumdepth}{2}
 
 
 \usepackage{amssymb}
@@ -118,16 +118,16 @@
 
 % ml, meta-learning and few-shot
 Over the last few decades, the field of machine learning has developed rapidly both theoretically and as an engineering practice. Of particular interest is the field of learning and adapting quickly from only a few examples, which requires a balance between prior experience and new information in order to solve new tasks effectively without overfitting.
-One common approach to tackle this few-shot learning problem is that of meta-learning, where training data is used to create a prior conducive to the downstream task. This approach has shown promising empirical results in a variety of domains (see survey \citep{Hospedales2021}), especially for cases with few test examples.
+One common approach to tackle this few-shot learning problem is that of meta-learning, where training data is used to create a prior that is conducive to the downstream task. This approach has shown promising empirical results in a variety of domains (see survey \citep{Hospedales2021}), especially for cases with few test examples.
 
-As an illustrative example of the meta-learning problem, we might consider a visual classification system that must also be capable of identifying new categories of objects with very few examples. In order to effectively achieve this goal, the system must maintain prior knowledge on similar vision problems, and utilize this prior to adapt quickly to the new data.
+As an illustrative example of the meta-learning problem, we might consider a visual classification system that must also be capable of identifying new categories of objects with very few examples. In order to achieve this goal, the system must maintain prior knowledge on similar vision problems, and utilize this prior to adapt quickly to the new data.
 
-In order to better understand the generalization capabilities of classification methods and give upper bounds on the gap between the training and test performance, several theoretical frameworks have been devised.  Among these frameworks, methods based on PAC-Bayes bounds \citep{Mcallester} are of particular interest, as they result in practical optimization algorithms with potentially non-vacuous generalization guarantees with high probability. As such, it is not surprising that several works have extended the PAC-Bayes framework to the domain of meta-learning, such as \citet{Pentina2014}, \citet{Amit2018} and \citet{Rothfuss2020}.
+In order to better understand the generalization capabilities of classification methods and give upper bounds on the gap between the training and test performance, several theoretical frameworks have been devised.  Among these frameworks, methods based on PAC-Bayes bounds \citep{Mcallester} are of particular interest, as they result in practical optimization algorithms with potentially non-vacuous generalization guarantees with high probability. As such, it is not surprising that several works have extended the PAC-Bayes framework to the domain of meta-learning, such as \citet{Pentina2014}, \citet{Amit2018}, \citet{Rothfuss2020}, \citet{Liu2021} and \citet{Farid2021}.
 
-Several recent works established non-vacuous generalization bounds for practical deep learning problems, such as the methods suggested by \citet{Dziugaite2017} and later improved by \citet{Perez-Ortiz2021}. In both cases, the use of a data-dependent prior was shown to be a major component in achieving these impressive results. As such, data-dependent PAC-Bayes bounds such as those proposed in \citet{Rivasplata2020} may be of great interest for meta-learning.
+Several recent works have established non-vacuous generalization bounds for practical deep learning problems, such as the methods suggested by \citet{Dziugaite2017} and later improved by \citet{Perez-Ortiz2021}. In both cases, the use of a data-dependent prior was shown to be a major component in achieving these impressive results. As such, data-dependent PAC-Bayes bounds such as those proposed in \citet{Rivasplata2020} may be of great interest for meta-learning.
 
-In this work, we utilize data-dependent PAC-Bayes techniques to provide an upper bound on the generalization error during the meta-testing phase \RM{Need to define term} by adapting an existing distribution over priors to better fit the given test task. This approach allows us to use existing methods to meta-learn a distribution over training tasks and provides a potentially tighter guarantee for the new task.
-We compare our bounds to known bounds for a simple setting, and develop a practical algorithm for meta-testing and adaptation. We demonstrate the effectiveness of this meta-adaptation approach for classification on vision tasks.
+In this work, we utilize data-dependent PAC-Bayes techniques to provide an upper bound on the generalization error for new tasks by adapting an existing distribution over priors to better fit the given test task. This approach allows us to use existing methods to meta-learn a distribution over training tasks and provides a potentially tighter guarantee for the new task.
+We compare our bounds to known bounds for a simple setting, and develop a practical algorithm based on our bounds. We demonstrate the effectiveness of this meta-adaptation approach for classification on vision tasks.
 
 \section{Background}
 
@@ -135,48 +135,45 @@ We compare our bounds to known bounds for a simple setting, and develop a practi
 
 The common setting for learning consists of a set of independent examples $S=\{z_i\}_{i=1}^{m}\subset \mathcal{Z}^m$, drawn from an unknown distribution $z_i\sim \mathcal{D}$. We denote $S\sim \mathcal{D}^m$ the distribution over the samples. 
 For the common setting of classification, each example $z_i=(x_i,y_i)$ is a pair of data and label.
-Given a space of hypotheses $\mathcal{H}$ and a sample $S$, we would like to find a hypothesis $h\in \mathcal{H}$ that minimizes the \emph{expected loss} $\Expect{z\sim \mathcal{D}}{\ell(h,z)}$, where $l:\mathcal{Z}\rightarrow [a,b]$ is a bounded loss function (some PAC-Bayes bounds apply for unbounded losses with concentration properties such as sub-gamma and sub-Gaussian distributions).
+Given a space of hypotheses $\mathcal{H}$ and a sample $S$, we would like to find a hypothesis $h\in \mathcal{H}$ that minimizes the \emph{expected loss} $\Expect{z\sim \mathcal{D}}{\ell(h,z)}$, where $\ell:\mathcal{Z}\rightarrow [a,b]$ is a bounded loss function (some PAC-Bayes bounds apply for unbounded losses with concentration properties such as sub-gamma and sub-Gaussian distributions).
 Since $\mathcal{D}$ is unknown, we must use the training data $S$ to find a hypothesis that minimizes the expected loss with high probability, based on the sample of size $m$.
 
-The PAC-Bayes framework, as formulated by \citet{Mcallester}, takes as input the training data $S$ as well as an inductive bias in the form of a prior distribution $P$ over $\mathcal{H}$. These are then used to construct a \emph{posterior distribution} $Q$ over $\mathcal{H}$, and $h\sim Q$ is then sampled.
-
-We define the expected and empirical errors
+The PAC-Bayes framework, as formulated by \citet{Mcallester}, takes as input the training data $S$ as well as an inductive bias in the form of a prior distribution $P$ over $\mathcal{H}$. These are then used to construct a \emph{posterior distribution} $Q$ over $\mathcal{H}$, and $h\sim Q$ is then sampled. We define the expected and empirical errors
 \begin{equation*}
-    \mathcal{L}(h, \mathcal{D}) \triangleq \Expect{z\sim \mathcal{D}}{\ell(h,z)}\quad;\quad \hat{\mathcal{L}}(h, S)\triangleq \frac{1}{m}\sum_{i=1}^{m} \ell(h,z_i)
+    \mathcal{L}(h, \mathcal{D}) \triangleq \Expect{z\sim \mathcal{D}}{\ell(h,z)} ~;~ \hat{\mathcal{L}}(h, S)\triangleq \frac{1}{m}\sum_{i=1}^{m} \ell(h,z_i)
 \end{equation*}
-In the PAC-Bayes setting we sample $h\sim Q$ and estimate the expected performance over the posterior $Q\in \mathcal{M}(\mathcal{H})$ (the set of distributions over hypotheses). This process results in a randomized algorithm that allows one to estimate the expected and empirical errors for the posterior distributions, 
+In the PAC-Bayes setting we sample $h\sim Q$ and estimate the expected performance over the posterior $Q\in \mathcal{M}(\mathcal{H})$ (the set of distributions over hypotheses). This process results in a randomized algorithm that enables the estimation of the expected and empirical errors for the posterior distributions, 
 \begin{equation*}
-    \mathcal{L}(Q, \mathcal{D}) \triangleq \Expect{h\sim Q}\mathcal{L}(h, \mathcal{D}) ~~;~~ 
-    \hat{\mathcal{L}}(Q, S) \triangleq \Expect{h\sim Q}\hat{\mathcal{L}}(h, S).
+    \mathcal{L}(Q, \mathcal{D}) \triangleq \Expect{h\sim Q}{\mathcal{L}(h, \mathcal{D})} ~;~ 
+    \hat{\mathcal{L}}(Q, S) \triangleq \Expect{h\sim Q}{\hat{\mathcal{L}}(h, S)}
 \end{equation*}
-Following these definitions, one can derive a PAC-Bayes theorem for the single task setting, as formulated by \citet{Mcallester}:
-
-\begin{theorem} (McAllister's single task bound) \label{thm:classic-pb}
+Following these definitions, one can derive a PAC-Bayes theorem for the single task setting, as formulated by \citet{Mcallester}. 
+%
+\begin{theorem} (McAllester's single task bound) \label{thm:classic-pb}
 	Let $P\in \mathcal{M}(\mathcal{H})$ be some prior distribution over $\mathcal{H}$. Then, 
-	for any $\delta \in (0,1)$, uniformly for all posteriors $Q\in \mathcal{M}(\mathcal{H})$, with probability at least $1-\delta$ over the choice of $S$, \RM{I suggest you maintain this shortened phrasing all theorems}
-	$$\mathcal{L}(Q, \mathcal{D}) \leq \hat{\mathcal{L}}(Q, S)+\sqrt{\frac{D_{KL}(Q||P)+\log\frac{m}{\delta}}{2(m-1)}}, $$
+	for any $\delta \in (0,1)$, uniformly for all posteriors $Q\in \mathcal{M}(\mathcal{H})$, with probability at least $1-\delta$ over the choice of $S$, $$\mathcal{L}(Q, \mathcal{D}) \leq \hat{\mathcal{L}}(Q, S)+\sqrt{\frac{D_{KL}(Q||P)+\log\frac{m}{\delta}}{2(m-1)}}, $$
 	where $D_{KL}(Q||P)\triangleq \Expect{h\sim Q}{\log\frac{Q(h)}{P(h)}}$ is the Kullback-Leibler divergence.
 \end{theorem}
-
+%
 This theorem is commonly interpreted as the expected error being upper bounded by the empirical error plus a complexity term that depends on the probability parameter $\delta$, the sample size $m$, and the divergence of the posterior from the prior. Since this theorem holds uniformly over all $Q$, we can derive a practical learning algorithm that chooses $Q$ such that it minimizes the right-hand-side of this bound. Naturally, this bound is affected by the choice of $P$, as ideally we would like to have a prior that is close to posteriors that achieve low empirical error, thereby motivating the notion of data-dependent priors.
 
 \subsection{PAC-Bayes bounds for meta-learning} \label{sec:meta}
 
-The meta-learning setting assumes an input comprised of several training tasks from a single task environment. A meta-learning algorithm must extract the necessary common knowledge (in the form of a prior) to efficiently learn new tasks in the same environment. Following the formulation of PAC-Bayes bounds for lifelong learning \citep{Pentina2014} and meta-learning \citep{Amit2018}, we assume a shared sample space $\mathcal{Z}$, hypothesis space $\mathcal{H}$ and loss function $l:\mathcal{Z}\times \mathcal{H}\rightarrow [a,b]$, and a set of training datasets $\{S_1,...,S_N\}$ of size $m$ each\footnote{Training datasets may differ in size, but we assume equal sizes for simplicity.}. Each training dataset $S_i$ is assumed to come from an unknown distribution $S_i\sim \mathcal{D}^m_i$, and these distributions are sampled i.i.d.\ from a shared (and also unknown) task distribution $D_i\sim \tau$.
+The meta-learning setting assumes an input comprised of several training tasks from a single task environment. A meta-learning algorithm must extract the necessary common knowledge (in the form of a prior) to efficiently learn new tasks in the same environment. Following the formulation of PAC-Bayes bounds for lifelong learning \citep{Pentina2014} and meta-learning \citep{Amit2018}, we assume a shared sample space $\mathcal{Z}$, hypothesis space $\mathcal{H}$ and loss function $\ell:\mathcal{Z}\times \mathcal{H}\rightarrow [a,b]$, and a set of training datasets $\{S_1,...,S_N\}$ of size $m$ each (we assume equal sizes for simplicity of analysis). Each training dataset $S_i$ is assumed to come from an unknown distribution $S_i\sim \mathcal{D}^m_i$, and these distributions are sampled i.i.d.\ from a shared (and also unknown) task distribution $D_i\sim \tau$.
 
-The goal of a meta-learning algorithm is to construct a prior $P$ such that given samples $S_T$ from a new task $\mathcal{D}_T\sim \tau$, the base learner uses both to construct a posterior $Q(P, S_T)$ over the hypothesis space $\mathcal{H}$. In order to evaluate our constructed prior, we can consider its expected error:
-
+The goal of a meta-learning algorithm is to construct a prior $P$ such that given samples $S_T$ from a new task $\mathcal{D}_T\sim \tau$, the base learner uses both to construct a posterior $Q(P, S_T)$ over the hypothesis space $\mathcal{H}$. In order to evaluate our constructed prior, we can consider its expected error
+%
 \begin{equation}
-\mathcal{L}(P, \tau)\triangleq \Expect{\mathcal{D}\sim \tau}{\Expect{S\sim \mathcal{D}^m}{\Expect{h\sim Q(P, S)}{\mathcal{L}(h, \mathcal{D})}}}
+\mathcal{L}(P, \tau)\triangleq \Expect{\mathcal{D}\sim \tau}{\Expect{S\sim \mathcal{D}^m}{\Expect{h\sim Q(P, S)}{\mathcal{L}(h, \mathcal{D})}}} .
 \end{equation}
-
+%
 \begin{figure}[t]
 	\centering
 	\includegraphics[width=0.3\textwidth]{setup_ml.PNG}
 	\caption{A schematic description of the meta-learning setting. A hyper-prior $\mathcal{P}$ is adapted using training data $S_1,\ldots,S_N$ to construct a hyper-posterior $\mathcal{Q}$. This hyper-posterior is used to facilitate fast learning on the test task.}
 	\label{fig:meta-learning-setting}
 \end{figure}
-
+%
 The meta-learning PAC-Bayes framework can thus be seen as learning a hyper-posterior distribution $\mathcal{Q}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ over priors. Similarly to the single task setting, we assume access to a hyper-prior distribution $\mathcal{P}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$, as well as training datasets $\{S_1,...,S_N\}$.
 We would like to optimize over $\mathcal{Q}$ in order to minimize the expected \emph{transfer error} 
 $$
@@ -185,22 +182,21 @@ $$
 Since the true task distribution $\tau$ is unknown, we can use an estimate in the form of the empirical multi-task error $$\hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_N)\triangleq \Expect{P\sim \mathcal{H}}{\frac{1}{N}\sum_{i=1}^{N}\hat{\mathcal{L}}(Q(P, S_i), S_i)}$$
 A similar approach to the single task case leads us to PAC-Bayes bounds on the transfer error, such as the following.
 
-\RM{Do we need both the Amit and Rothfuss bounds? In the interest of saving space we may want to put them in the appendix, or refer to them directly in the original papers.} \LF{Removed one.}
 \begin{theorem} (Meta-learning bound \citep{Amit2018}) \label{thm:meta-pb}
-	Let $\mathcal{P}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ be some hyper-prior distribution, and let $Q: \mathcal{Z}^m\times\mathcal{M}(\mathcal{H})\rightarrow \mathcal{M}(\mathcal{H})$ be a given base learner. Let $l: \mathcal{H}\times \mathcal{Z}\rightarrow [0, 1]$ be a bounded loss function.
-	Then, for any $\delta \in (0,1)$, uniformly over all hyper-posteriors $\mathcal{Q}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$, with probability at least $1-\delta$ over the choice of $\mathcal{D}_1,...,\mathcal{D}_N\sim \tau, S_i\sim \mathcal{D}_i$:
-	
-	\begin{align} \label{eq:meta-pb-amit}
+	Let $\mathcal{P}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ be some hyper-prior distribution, and let $Q: \mathcal{Z}^m\times\mathcal{M}(\mathcal{H})\rightarrow \mathcal{M}(\mathcal{H})$ be a given base learner. Let $\ell: \mathcal{H}\times \mathcal{Z}\rightarrow [0, 1]$ be a bounded loss function.
+	Then, for any $\delta \in (0,1)$, uniformly over all hyper-posteriors $\mathcal{Q}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$, with probability at least $1-\delta$ over the choice of $\mathcal{D}_1,...,\mathcal{D}_N\sim \tau, S_i\sim \mathcal{D}_i$, 
+%	
+	\begin{align*} 
 	\begin{split}
-	&\mathcal{L}(\mathcal{Q}, \tau) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_N) \\
-	&+\sqrt{\frac{D_{KL}(\mathcal{Q}||\mathcal{P})+\log\frac{2N}{\delta}}{2(N-1)}} \\
-	&+\frac{1}{N}\sum_{i=1}^{N}\sqrt{\frac{D_{KL}(\mathcal{Q}||\mathcal{P})+\Expect{P\sim \mathcal{Q}}{D_{KL}(Q_i||P)}+\log\frac{2Nm}{\delta}}{2(m-1)}}
+	&\mathcal{L}(\mathcal{Q}, \tau) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_N) 
+	+\sqrt{\frac{D_{KL}(\mathcal{Q}||\mathcal{P})+\log\frac{2N}{\delta}}{2(N-1)}} \\
+	&+\frac{1}{N}\sum_{i=1}^{N}\sqrt{\frac{D_{KL}(\mathcal{Q}||\mathcal{P})+\Expect{P\sim \mathcal{Q}}{D_{KL}(Q_i||P)}+\phi}{2(m-1)}}
 	\end{split}
-	\end{align}
-	
+	\end{align*}
+	where $Q_i\triangleq Q(P,S_i)$ and $\phi\triangleq \log\frac{2Nm}{\delta}$.
 \end{theorem}
 
-Where $Q_i\triangleq Q(P,S_i)$. \RM{Choose a single notation, KL or $D_{KL}$}\LF{Fixed.} . This bound on the transfer error contains two complexity terms: an environment-level complexity term that decreases as $N\rightarrow \infty$, and a second task-level term that decreases as $m\rightarrow \infty$. 
+This bound on the transfer error contains two complexity terms: an environment-level term that decreases as $N\rightarrow \infty$, and a second task-level term that decreases as $m\rightarrow \infty$. 
 
 Both this bound as well as the one presented in \cite{Rothfuss2020} provide an upper bound on the expected loss for a randomly selected new task, that is
 $\Expect{\mathcal{D}\sim \tau}{\mathcal{L}(\mathcal{Q}, \mathcal{D})}$.
@@ -215,8 +211,8 @@ While these bounds provide us with useful and practical approaches to use the av
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.5\textwidth]{data_dependant_adaptation.PNG}
-	\caption{\RM{Isn't the part of $S_i\sim D_i$ missing. IN any event, it may be that these figures occupy too much space.} \LF{Improved, I omitted the $\mathcal{D}_i, \tau$ since they are already in Figure 1.} Flowchart of hyper-posterior construction settings detailing how the test data $S_T$ can be used. A hyper-prior $\mathcal{Q}_{1:N}$ is learned from the training data. Standard meta-learning bounds use the test data to adapt the sampled prior before sampling a specific hypothesis. Our approach using data-dependent bounds also applies $S_T$ to the hyper-prior, resulting in a data-dependent hyper-posterior $\mathcal{Q}_{1:N, T}$. }
+	\includegraphics[width=0.47\textwidth]{data_dependant_adaptation.PNG}
+	\caption{Flowchart of hyper-posterior construction settings detailing how the test data $S_T$ can be used. A hyper-prior $\mathcal{Q}_{1:N}$ is learned from the training data. Standard meta-learning bounds use the test data to adapt the sampled prior before sampling a specific hypothesis. Our approach using data-dependent bounds also applies $S_T$ to the hyper-prior, resulting in a data-dependent hyper-posterior $\mathcal{Q}_{1:N, T}$. }
 	\label{fig:data_dependant_bound}
 \end{figure}
 
@@ -234,40 +230,36 @@ As we have seen, the meta-learning framework provides us with an informative hyp
 	\end{equation}
 \end{theorem}
 
-An important but subtle distinguishing factor between this bound and classical PAC-Bayes bounds is that this bound applies to each individual posterior $Q_S$, but \emph{does not apply uniformly} to all posteriors. This seemingly minor difference means that the bound of Equation \ref{eq:ribasplata-pb} is not applicable for optimization over posteriors. Taking this limitation into account, this Theorem still provides an applicable upper bound on the expected loss for a given trained posterior.
+An important but subtle distinguishing factor between this bound and classical PAC-Bayes bounds is that this bound applies to each individual posterior $Q_S$, but \emph{does not apply uniformly} to all posteriors. This seemingly minor difference means that the bound of \eqref{eq:ribasplata-pb} is not applicable for optimization over posteriors. Taking this limitation into account, this Theorem still provides an applicable upper bound on the expected loss for a given trained posterior. 
 
 The term $\xi(P_S, \mathcal{D}, f)$ is known as the \emph{moment-generating function}, and when it exists, it is an alternative specification of the probability distribution for $f$.
 This moment-generating function intuitively quantifies the concentration of the function $f$ in the stochastic kernel $P\in{\cal K}({\cal Z}^m,{\cal H})$, and will be low if $f$ is well-concentrated.
 The term $\log\xi(P_S, \mathcal{D}, f)$ is commonly referred to as the \emph{log-moment} and we will also do so throughout the rest of this paper for convenience. 
 One simple setting where this term can be upper bounded is when the prior $P_S$ is data-free and $f(\cdot)\in[a,b]$. By switching the order of expectations (Fubini's theorem) and using Hoeffding's lemma, an upper bound for $f(S,h)=\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h, S))$ for any $\lambda\in \mathbb{R}$ would be
 
-\begin{align} \label{eq:bound-aml-datafree}
-\begin{split}
-\Expect{h\sim Q_S}{\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h, S))} &\leq D_{KL}(Q_S||P_S)\\
-&+\log\left (\frac{1}{\delta}\right ) + \frac{\lambda^2(b-a)^2}{8}
-\end{split}
+\begin{align} 
+    \mathbb{E}_{h\sim Q_S}&\left [\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h, S))\right ]
+     \leq D_{KL}(Q_S||P_S) \nonumber\\
+    &+\log\left (\frac{1}{\delta}\right ) + \frac{\lambda^2(b-a)^2}{8}
 \end{align}
-
 
 Notably, this bound is similar to that of \citet{Catoni2004}. Other choices of $f$ result in other traditional PAC-Bayes bounds such as that of \citet{Mcallester} via similar methods (see \citet{Rivasplata2020} for further detail). 
 One particularly appealing application of this general bound is for data-dependent priors with bounded log-moment terms, for example by conforming to certain algorithmic stability properties 
 As an example for this notion, \citet{Rivasplata2020} show that for any prior satisfying the differential privacy property $DP(\epsilon)$, the log-moment can be upper bounded by the log-moment of a data-free prior plus a term that depends on the privacy parameter $\epsilon$. 
 
-These data-dependent bounds can be applied to the meta-learning setting, giving us the following general result. \RM{Use Theorem rather than Proposition.}\LF{Fixed.}
-
+These data-dependent bounds can be applied to the meta-learning setting, giving us the following general result. 
+%
 \begin{theorem} \label{thm:main-result}
-	Let $\mathcal{Q}_{1:N}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ be a meta-learned hyper-posterior (e.g. the result of meta-training on $\{S_1,...,S_N\}$), and let $\mathcal{D}_T\sim \tau$ be a \emph{given} test task. Let $Q: \mathcal{Z}^m\times\mathcal{M}(\mathcal{H})\rightarrow \mathcal{M}(\mathcal{H})$ be a given base learner. Let $l: \mathcal{H}\times \mathcal{Z}\rightarrow [0, 1]$ be a bounded loss function.
+	Let $\mathcal{Q}_{1:N}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ be a meta-learned hyper-posterior (e.g. the result of meta-training on $\{S_1,...,S_N\}$), and let $\mathcal{D}_T\sim \tau$ be a \emph{given} test task. Let $Q: \mathcal{Z}^m\times\mathcal{M}(\mathcal{H})\rightarrow \mathcal{M}(\mathcal{H})$ be a given base learner. Let $\ell: \mathcal{H}\times \mathcal{Z}\rightarrow [0, 1]$ be a bounded loss function.
 	For any $\delta_T \in (0,1)$, for any hyper-posterior $\mathcal{Q}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$, and for all $\lambda>0$, with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$:
-	
+	%
 	\begin{align} \label{eq:main-result-generic}
 	\begin{split}
 	\mathcal{L}(\mathcal{Q}, \mathcal{D}_T) &\leq \hat{\mathcal{L}}(\mathcal{Q}, S_T) + \frac{1}{\lambda}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N})\\
-	&+\frac{1}{\lambda}\log\left ( \tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
+	&+\frac{1}{\lambda}\log\left ( \tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right ) ,
 	\end{split}
 	\end{align}
-	
-	
-	where 
+%
 	\begin{align*} 
 	\begin{split}
 	&\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq \\
@@ -278,36 +270,24 @@ These data-dependent bounds can be applied to the meta-learning setting, giving 
 
 \end{theorem}
 
-The full proof of Theorem \ref{thm:main-result} is in Appendix \ref{append:proof-main-result}, and follows quite straightforwardly from Theorem \ref{thm:rivasplata-pb} using a two-level prior hypothesis $(\mathcal{Q}_{1:N}, Q)$, meaning the distribution where we first sample $P\sim \mathcal{Q}_{1:N}$ and then sample $h\sim Q(P, S_T)$ to arrive at a hypothesis. This two-level prior is compared to a two-level posterior $(\mathcal{Q}, Q)$, \RM{for any $\mathcal{Q}$}. The proof itself applies even if the loss function $l$ is not bounded, but this assumption is very useful for providing bounds on the log-moment term.
+The full proof of Theorem \ref{thm:main-result} is in Appendix \ref{append:proof-main-result}, and follows from Theorem \ref{thm:rivasplata-pb} using a two-level prior hypothesis $(\mathcal{Q}_{1:N}, Q)$. Concretely, we first sample $P\sim \mathcal{Q}_{1:N}$ and then sample $h\sim Q(P, S_T)$ to arrive at a hypothesis. This two-level prior is compared to a two-level posterior $(\mathcal{Q}, Q)$, for any $\mathcal{Q}$. The proof itself applies even if the loss function $l$ is not bounded, but this assumption is very useful for providing bounds on the log-moment term.
 
-Since the bound allows for a data-dependent prior, it is possible to choose the same base learner $Q(P, S_T)$ for both prior and posterior, resulting in a bound with only an environment-level complexity term. 
-Notably, this differs significantly from a more traditional bound that would use a data-free two-level prior $(\mathcal{Q}_{1:N}, P)$, as this would result in a bound that contains two complexity terms
-
-\begin{align*}
+This bound differs significantly from more traditional bounds that utilize a data-free two-level prior $(\mathcal{Q}_{1:N}, P)$. Such bounds apply uniformly over hyper-posteriors and are therefore suitable for optimization, but contain additional complexity terms compared to \eqref{eq:main-result-generic} that result from using a data-free prior. An example of such a bound is
+%
+\begin{align} \label{eq:main-result-generic-datafree}
 \begin{split}
 \mathcal{L}(\mathcal{Q}, \mathcal{D}_T) &\leq \hat{\mathcal{L}}(\mathcal{Q}, S_T) 
 + \frac{1}{\lambda}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N}) \\
 &+ \frac{1}{\lambda}\Expect{P\sim \mathcal{Q}}{D_{KL}(Q(P,S_T)||P)}\\
-&+\frac{1}{\lambda}\log\frac{1}{\delta_T}+\frac{\lambda}{8m}
+&+\frac{1}{\lambda}\log\frac{1}{\delta_T}+\frac{\lambda}{8m} .
 \end{split}
-\end{align*}
+\end{align}
 
-This more traditional bound contains an additional complexity term between prior and posterior $D_{KL}(Q(P,S_T)||P)$, but since $P$ is independent from $S_T$, the moment-generating function can be easily bounded. This can be seen as a trade-off between the part of the bound that can be optimized by the choice of posterior $\mathcal{Q}$ and the term in the bound that results from the log-moment.
+%This more traditional bound contains an additional complexity term between prior and posterior $D_{KL}(Q(P,S_T)||P)$, but since $P$ is independent from $S_T$, the moment-generating function can be easily bounded. This can be seen as a trade-off between the part of the bound that can be optimized by the choice of posterior $\mathcal{Q}$ and the term in the bound that results from the log-moment.
 
-One immediate result of Equation \ref{eq:main-result-generic} is a useful bound on the expected error of the hyper-prior for the downstream task, achieved by picking $\mathcal{Q}=\mathcal{Q}_{1:N}$:
+One immediate result of \eqref{eq:main-result-generic} is a bound on the expected error of the hyper-prior for the downstream task, achieved by picking $\mathcal{Q}=\mathcal{Q}_{1:N}$, and appears in Corollary \ref{thm:corollary-base}.
 
-\begin{corollary} \label{thm:corollary-base}
-	Under the same conditions as Theorem \ref{thm:main-result},
-	for any $\delta_T \in (0,1)$, and for all $\lambda>0$, with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$
-	
-	$$\mathcal{L}(\mathcal{Q}_{1:N}, \mathcal{D}_T) \leq \hat{\mathcal{L}}(\mathcal{Q}_{1:N}, S_T)
-	+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )$$
-	
-	where 
-	$$\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq \Expect{S\sim \mathcal{D}_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T)-\hat{\mathcal{L}}(h, S)\right )}}$$
-\end{corollary}
-
-It is important to note that the log-moment term $\log\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)$ is a key term in both cases. This term will be low if the empirical losses are well concentrated around the expected loss for our data-dependent prior. One possible method of achieving this is by choosing a base learner $Q$ with algorithmic stability properties such as the empirical Gibbs posterior, as we will see in the next subsection.
+It is important to note that the log-moment term $\log\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)$ is a key term in both cases. It will be low if the empirical losses are well concentrated around the expected loss for our data-dependent prior. One possible method of achieving this is by choosing a base learner $Q$ with algorithmic stability properties such as the empirical Gibbs posterior, as we will see in the next subsection.
 
 %Unlike standard meta-learning bounds discussed in Section \ref{sec:meta}, the right-hand side for this bound contains the empirical loss on data from the test task, making straightforward comparison between these bounds effectively impossible. The bound in Corollary \ref{thm:corollary-base} can be thought of as a confidence bound for the expected loss whereas the bound in Theorem \ref{thm:meta-highprob} provides a PAC-Bayes bound based on the data-free hyper-prior and the average training loss.
 
@@ -317,38 +297,38 @@ It is important to note that the log-moment term $\log\tilde{\xi}(\lambda,\mathc
 One class of hyper-posteriors that is especially appealing for analysis given Theorem \ref{thm:main-result} is the class of Gibbs posteriors.
 
 \begin{defn} \label{defn:Gibbs}
-	The Gibbs distribution with parameter $\beta>0$ is defined as $$
-	Q^\beta(P,S)(h)=\frac{P(h)e^{-\beta \hat{\mathcal{L}}(h,S)}}{Z_\beta(S,P)}, 
-	$$ 
-	where $Z_\beta(S,P)=\Expect{h\sim P}{e^{-\beta\hat{\mathcal{L}}(h,S)}}.$
+	The Gibbs distribution with parameter $\beta>0$ is defined as 
+	$$
+	Q^\beta(P,S)(h)=\frac{P(h)e^{-\beta \hat{\mathcal{L}}(h,S)}}{\Expect{h\sim P}{e^{-\beta\hat{\mathcal{L}}(h,S)}}}.
+	$$
 \end{defn}
 
-It is well-known \citep{Catoni2004} that given a specific value for $\lambda$, using Donsker and Varadhan’s variational formula \citep{Donsker1975} provides the hyper-posterior that minimizes the right-hand side of Equation \ref{eq:main-result-generic}, given by
+It is well-known \citep{Catoni2004} that given a specific value for $\lambda$, using Donsker and Varadhan’s variational formula \citep{Donsker1975} provides the hyper-posterior that minimizes the right-hand side of \eqref{eq:main-result-generic}, given by
 %
 \begin{equation*}
     \mathcal{Q}^{\lambda}_{1:N,T}=\frac{\mathcal{Q}_{1:N}e^{-\lambda\hat{\mathcal{L}}(Q,S_T)}}{\Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\lambda\hat{\mathcal{L}}(Q,S_T)}}}
 \end{equation*}
-\RM{You used $\hat L$ above. I think you use $\hat{\mathcal{L}}$ throughout - verify this.} \LF{Fixed.} The meaning of this result is that given that we know the relative importance of the empirical loss and the KL-divergence, the optimal hyper-posterior that minimizes Equation \ref{eq:main-result-generic} is the Gibbs hyper-posterior $\mathcal{Q}^{\lambda}_{1:N,T}$.
+The meaning of this result is that given that we know the relative importance of the empirical loss and the KL-divergence, the optimal hyper-posterior that minimizes \eqref{eq:main-result-generic} is the Gibbs hyper-posterior $\mathcal{Q}^{\lambda}_{1:N,T}$.
 
 This property encourages further exploration of the Gibbs hyper-posterior for meta-adaptation. We define 
 \begin{equation} \label{eq:aml-post-defn}
 \mathcal{Q}^{\gamma}_{1:N,T}\triangleq \frac{\mathcal{Q}_{1:N}e^{-\gamma\hat{\mathcal{L}}(Q^\beta(P,S_T),S_T)}}{Z_\gamma(S_T, \mathcal{Q}_{1:N})}
 \end{equation} 
-as the Gibbs posterior for the meta-learned problem with meta-normalization term $$Z_\gamma(S_T, \mathcal{Q}_{1:N})=\Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\gamma\hat{\mathcal{L}}(Q^\beta(P,S_T),S_T)}}.$$
+as the Gibbs posterior for the meta-learned problem with meta-normalization term $$Z_\gamma(S_T, \mathcal{Q}_{1:N})\triangleq \Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\gamma\hat{\mathcal{L}}(Q^\beta(P,S_T),S_T)}}.$$
 
 We have 
 \begin{align*} 
 \begin{split}
 D_{KL}(\mathcal{Q}^{\gamma}_{1:N,T}||\mathcal{Q}_{1:N})&=
 -\gamma\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\\
-&-\log\Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\gamma\hat{\mathcal{L}}(Q^\beta(P,S_T),S_T)}}
+&-\log Z_\gamma(S_T, \mathcal{Q}_{1:N})
 \end{split}
 \end{align*}
 
-So plugging these values in Equation \ref{eq:main-result-generic} gives us
+So plugging these values in \eqref{eq:main-result-generic} gives us
 \begin{align*} 
 \begin{split}
-\mathcal{L}(\mathcal{Q}^{\gamma}_{1:N,T}, \mathcal{D}_T) & \leq \hat{\mathcal{L}}(\mathcal{Q}^{\gamma}_{1:N,T}, S_T) -\frac{\gamma}{\lambda}\hat{\mathcal{L}}(\mathcal{Q}^{\gamma}_{1:N,T}, S_T) \\ &- \frac{1}{\lambda}\log\Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\gamma\hat{\mathcal{L}}(Q^\beta(P,S_T),S_T)}}\\ &+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
+\mathcal{L}(\mathcal{Q}^{\gamma}_{1:N,T}, \mathcal{D}_T) & \leq \hat{\mathcal{L}}(\mathcal{Q}^{\gamma}_{1:N,T}, S_T) -\frac{\gamma}{\lambda}\hat{\mathcal{L}}(\mathcal{Q}^{\gamma}_{1:N,T}, S_T) \\ &- \frac{1}{\lambda}\log Z_\gamma(S_T, \mathcal{Q}_{1:N})\\ &+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
 \end{split}
 \end{align*}
 
@@ -377,10 +357,10 @@ For brevity, we will omit the $\gamma$ from $\mathcal{Q}^{\gamma}_{1:N,T}$ and $
 \end{split}
 \end{align*}
 
-By simplifying the third term using Jensen's inequality , we get to Equation \ref{eq:pb-adapt-multi} and the following theorem
+By simplifying the third term using Jensen's inequality , we arrive at the following theorem.
 
 \begin{corollary} \label{thm:main-result-gibbs}
-	Let $\mathcal{Q}_{1:N}$ be a hyper-posterior (e.g. the result of meta-training on $\{S_1,...,S_N\}$), and let $\mathcal{D}_T\sim \tau$ be a given test task. Define  $\mathcal{Q}_{1:N,T}$ as in Equation \ref{eq:aml-post-defn}. 
+	Let $\mathcal{Q}_{1:N}$ be a hyper-posterior (e.g. the result of meta-training on $\{S_1,...,S_N\}$), and let $\mathcal{D}_T\sim \tau$ be a given test task. Define  $\mathcal{Q}_{1:N,T}$ as in \eqref{eq:aml-post-defn}. 
 	For all $\lambda>0, \gamma>0$, 
 	with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$:
 	
@@ -395,31 +375,22 @@ By simplifying the third term using Jensen's inequality , we get to Equation \re
 
 In order to better understand the impact of the log-moment term, we remark that \citet{Rivasplata2020} have shown that for $\lambda=\sqrt{m}$ and given that the base learner is the empirical Gibbs posterior $Q^\beta$ and the loss is bounded,
 
-$$\log\tilde{\xi}(\sqrt{m},\mathcal{Q}_{1:N},\mathcal{D}_T) \leq 2+\log(1+\sqrt{e})+\frac{2\beta}{\sqrt{m}} $$
+$$\log\tilde{\xi}(\sqrt{m},\mathcal{Q}_{1:N},\mathcal{D}_T) \leq 2+\log(1+\sqrt{e})+\frac{2\beta}{\sqrt{m}} .$$
 
 As a consequence of this, choosing $\beta=\sqrt{m}$ would result 
 in the log-moment to be bounded by a constant $C$. Consequentially, the bound takes the form
-$$\mathcal{L}(\mathcal{Q}_{1:N,T}, \mathcal{D}_T) \leq \hat{\mathcal{L}}_{\mathrm{aml}} +
-\frac{\gamma}{\sqrt{m}}(\hat{\mathcal{L}}_{\mathrm{ml}}-\hat{\mathcal{L}}_{\mathrm{aml}}) 
-+\frac{1}{\sqrt{m}}\log\frac{1}{\delta_T}+\frac{C}{\sqrt{m}}$$
-Evidently from this bound, the generalization gap (the difference $\mathcal{L}(\mathcal{Q}_{1:N,T}, \mathcal{D}_T)-\hat{\mathcal{L}}_{\mathrm{aml}}$) is of rate $O\left (\frac{1}{\sqrt{m}}\right )$.
+    \begin{align*}
+    \begin{split}
+    \mathcal{L}(\mathcal{Q}_{1:N,T}, \mathcal{D}_T) &\leq \hat{\mathcal{L}}_{\mathrm{aml}} +
+    \frac{\gamma}{\sqrt{m}}(\hat{\mathcal{L}}_{\mathrm{ml}}-\hat{\mathcal{L}}_{\mathrm{aml}}) \\
+&+\frac{1}{\sqrt{m}}\log\frac{1}{\delta_T}+\frac{C}{\sqrt{m}} .
+    \end{split}
+    \end{align*}
+%Evidently from this bound, the generalization gap (the difference $\mathcal{L}(\mathcal{Q}_{1:N,T}, \mathcal{D}_T)-\hat{\mathcal{L}}_{\mathrm{aml}}$) is of rate $O\left (\frac{1}{\sqrt{m}}\right )$.
 
 
 Corollary \ref{thm:main-result-gibbs} provides an upper bound on the expected error for a given test task that depends on the empirical errors of the hyper-prior $\hat{\mathcal{L}}_{\mathrm{ml}}$ and the hyper-posterior $\hat{\mathcal{L}}_{\mathrm{aml}}$. 
-Since the bound applies uniformly for all $\gamma>0,\beta>0,\lambda>0$, this bound can be further optimized by choosing optimal values for $\gamma, \beta, \lambda$. This can be done by deriving the right-hand-side of Equation \ref{eq:pb-adapt-multi} and comparing to zero. 
-These derivations are available in Appendix \ref{append:optimiziation}. 
-%We show the derivation itself in Appendix \ref{append:optimiziation}, and provide the end result here.
-%\begin{align}
-%    \gamma &= \lambda+\frac{\hat{\mathcal{L}}_{\mathrm{ml}}-\hat{\mathcal{L}}_{\mathrm{aml}}}{\frac{d}{d\gamma}\hat{\mathcal{L}}_{\mathrm{aml}}} \label{eq:meta-pb-gamma-paper}\\
-%    \lambda &= \frac{\gamma(\hat{\mathcal{L}}_{\mathrm{ml}}-\hat{\mathcal{L}}_{\mathrm{aml}})+\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )}{\frac{d}{d\lambda}\log\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)} \label{eq:meta-pb-lambda-paper} 
-%\end{align}
-
-%Equation \ref{eq:meta-pb-gamma-paper} encourages an equilibrium for $\gamma$, as a negative value of $\hat{\mathcal{L}}_{\mathrm{ml}}-\hat{\mathcal{L}}_{\mathrm{aml}}$ (meaning the meta-adaptation is harmful) encourages increasing $\gamma$, and a positive value encourages lowering $\gamma$.
-%This result aligns well with Equation \ref{eq:pb-adapt-multi}, since if the adapted loss is low we are encouraged to decrease $\gamma$ to tighten the bound, but that would lead to the hyper-posterior to be more similar to the hyper-prior, and similarly if the base loss $\hat{\mathcal{L}}_{\mathrm{ml}}$ is low we are encouraged to increase $\gamma$ in order to tighten the bound.
-
-%Equation \ref{eq:meta-pb-lambda-paper} contains the log-moment term, thereby preventing the choice of a large $\lambda$ that would cause the moment to diverge. Aside from that term, 
-%the first term of the numerator serve encourages a lower value for $\lambda$ if there is a positive prediction gain from meta-adaptation $\hat{\mathcal{L}}_{\mathrm{aml}}<\hat{\mathcal{L}}_{\mathrm{ml}}$.
-%\RM{Let's discuss these interpretations carefully, as we have the derivative terms that are unclear}
+Since the bound applies uniformly for all $\gamma>0,\beta>0,\lambda>0$, this bound can be further improved by choosing optimal values for $\gamma, \beta, \lambda$ through optimization algorithms such as gradient descent w.r.t.\! these parameters.
 
 \subsection{Tighter bounds for the low error setting}
 % seeger
@@ -438,48 +409,30 @@ Doing so gives the upper bound
 
 where $\bar{\xi}_{\mathrm{kl}}\triangleq \bar{\xi}(\mathcal{Q}_{1:N}, \mathcal{D}_T,\lambda, \mathrm{kl}) $
 
-%One useful inequality for converting this bound to one with a more similar structure to previously discussed bounds is an inequality used by \citet{Tolstikhin2013}:
-%
-%\begin{lemma} \citep{Tolstikhin2013} \label{thm:kl-inverse}
-%	For $p,q \in [0, 1]$,
-%	$$\mathrm{kl}^{-1}(q||p)\leq q + \sqrt{2qp}+2p$$
-%\end{lemma}
-
-%Using Lemma \ref{thm:kl-inverse} on the upper bound gives
-%\begin{align} \label{eq:tolstikhin-kl-bound}
-%\begin{split}
-%&\mathcal{L}(\mathcal{Q},\mathcal{D}_T) \leq \hat{\mathcal{L}}(\mathcal{Q}, S_T) + %\frac{2}{\lambda}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N})+\frac{2}{\lambda}\\
-%&+\log\left (\bar{\xi}_{\mathrm{kl}}/\delta_T\right )\\
-%&+\sqrt{\frac{2}{\lambda}\hat{\mathcal{L}}(\mathcal{Q}, S_T)\left %(D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N})+\log\left %(\bar{\xi}_{\mathrm{kl}}/\delta_T\right )\right )}. 
-%\end{split}
-%\end{align}
-
-If the base learner $Q$ is the Gibbs posterior, the moment term of Equation \ref{eq:generic-kl-bound} can be meaningfully bounded. To do so, we make use of the differential privacy (See appendix for the definition of differential privacy) traits of the Gibbs posterior.
-\RM{The discussion of differential privacy should be shortened. Perhaps put the formal definitions in the appendix for completeness, and refer to them, or directly to the papers you cite.}\LF{Moved to appendix.}
+If the base learner $Q$ is the Gibbs posterior, the moment term of  \eqref{eq:generic-kl-bound} can be meaningfully bounded. To do so, we make use of the notion of differential privacy at scale $\epsilon$, $DP(\epsilon)$ (see Definition \ref{def:diff_privacy} in the appendix).
 
 It has been proven \citep{McSherry2007, Rivasplata2020} that the Gibbs posterior $Q(P, S)(h)\propto P(h)e^{-\beta\hat{\mathcal{L}}(h, S)}$ is $DP\left (\frac{2\beta}{m}\right )$.
 This result can be extended to the meta-learning setting as follows. 
 %
 \begin{proposition} \label{thm:pair-is-dp}
 	Let $\mathcal{P}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ be a hyper-prior.
-	Let $l:\mathcal{H}\times \mathcal{Z}\rightarrow [0,1]$ be a bounded loss function. If the base learner $Q\in \mathcal{M}(\mathcal{H})$ is the Gibbs posterior $Q(P, S)(h)\propto P(h)e^{-\beta\hat{\mathcal{L}}(h, S)}$, 
+	Let $\ell:\mathcal{H}\times \mathcal{Z}\rightarrow [0,1]$ be a bounded loss function. If the base learner $Q\in \mathcal{M}(\mathcal{H})$ is the Gibbs posterior $Q(P, S)(h)\propto P(h)e^{-\beta\hat{\mathcal{L}}(h, S)}$, 
 	then the pair hypothesis $(\mathcal{P}, Q)$ that samples $P\sim\mathcal{P}$ and $h\sim Q(P, S)$ satisfies $DP\left (\frac{2\beta}{m}\right )$.
 \end{proposition}
 
-The proof of Proposition \ref{thm:pair-is-dp} is in Appendix \ref{append:proof-dp}. This  allows us to extend an existing result for PAC-Bayes with private data-dependent priors:
-
-By making use of Theorem 4.2 in \citet{Dziugaite2018} as well as Equation \ref{eq:generic-kl-bound} with $\lambda=m$, we get the following Theorem.
+The proof of Proposition \ref{thm:pair-is-dp} is in Appendix \ref{append:proof-dp}. This  allows us to extend an existing result for PAC-Bayes with private data-dependent priors.
+By making use of Theorem 4.2 in \citet{Dziugaite2018} as well as  \eqref{eq:generic-kl-bound} with $\lambda=m$, we get the following Theorem.
 
 \begin{theorem} \label{thm:kl-main-result}
-	Let $l:\mathcal{H}\times \mathcal{Z}\rightarrow [0,1]$ be a bounded loss function.
+	Let $\ell:\mathcal{H}\times \mathcal{Z}\rightarrow [0,1]$ be a bounded loss function.
 	Let $\mathcal{Q}_{1:N}$ be a hyper-posterior (e.g. the result of meta-training on $\{S_1,...,S_N\}$), and let $\mathcal{D}_T\sim \tau$ be a given test task. 
 	If the base learner $Q\in \mathcal{M}(\mathcal{H})$ is the Gibbs posterior $Q(P, S)(h)\propto P(h)e^{-\beta\hat{\mathcal{L}}(h, S)}$, 
 	for any $\delta\in(0,1)$, uniformly for all hyper-posteriors $\mathcal{Q}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$, with probability at least $1-\delta$ over the draw of $S_T\sim \mathcal{D}_T$,
-	
+%
 	\begin{align*} 
 	\begin{split}
-	\mathrm{kl}(\hat{\mathcal{L}}(\mathcal{Q},S)||\mathcal{L}(\mathcal{Q},S))&\leq \frac{1}{m}\left (D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N})+\log\frac{4\sqrt{m}}{\delta_T} \right )\\
-	& +2\frac{\beta^2}{m^2}+\frac{\beta}{m}\sqrt{\frac{2\log (4/\delta_T)}{m}}
+	\mathrm{kl}(\hat{\mathcal{L}}(\mathcal{Q},S)||\mathcal{L}(\mathcal{Q},S&))\leq \frac{2\beta^2}{m^2}+\frac{\beta}{m}\sqrt{\frac{2\log (4/\delta_T)}{m}} \\
+	&+\frac{1}{m}\left (D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N})+\log\frac{4\sqrt{m}}{\delta_T} \right )
 	\end{split}
 	\end{align*}
 	
@@ -487,19 +440,14 @@ By making use of Theorem 4.2 in \citet{Dziugaite2018} as well as Equation \ref{e
 
 \subsection{Empirical evaluation}
 
-Since Corollary \ref{thm:main-result-gibbs} does not apply uniformly over hyper-posteriors, we cannot derive a practical optimization algorithm just by minimizing the right-hand side of  Equation \ref{eq:pb-adapt-multi}. 
-One way to resolve this issue is to add a base-learner complexity term $\frac{1}{\lambda}\Expect{P\sim \mathcal{Q}}{D_{KL}(Q||P)}$ to Equation \ref{eq:main-result-generic} and derive meta-adaptation bounds based on data-free priors.
+Since Theorem \ref{thm:main-result} does not apply uniformly over hyper-posteriors, we cannot derive a practical optimization algorithm just by minimizing the right-hand side of  \eqref{eq:main-result-generic}. 
+One way to resolve this issue is to add a base-learner complexity term $\frac{1}{\lambda}\Expect{P\sim \mathcal{Q}}{D_{KL}(Q||P)}$ to  \eqref{eq:main-result-generic}, thus arriving at \eqref{eq:main-result-generic-datafree} that applies to data-free priors, and derive optimizable meta-adaptation bounds based on it.
 Another method to address this issue is to use bounds such as Theorem 4.2 of \citet{Dziugaite2018} that apply uniformly for all posteriors, but only for specific classes of data-dependent priors, in this case differentially-private ones.
-Another potential solution to this issue is to separate the provided data $S_T$ into disjoint adaptation and evaluation sets $S_{\mathrm{adapt}},S_{\mathrm{eval}}$ during the meta-adaptation phase and learn the posterior $Q$ based on the adaptation set $S_{\mathrm{adapt}}$ alone. Since this is already common practice in meta-learning algorithms (e.g.\ sampling different data points for the meta-update step in \citet{Finn2017} ), we chose to do so for our empirical evaluation. Future work will consider and compare these solutions.
+Another potential solution to this issue is to split the provided data $S_T$ into disjoint adaptation and evaluation sets, $S_{\mathrm{adapt}}$ and $S_{\mathrm{eval}}$, during the meta-adaptation phase and learn the posterior $Q$ based on the adaptation set $S_{\mathrm{adapt}}$ alone. Since this is already common practice in meta-learning algorithms (e.g.\ sampling different data points for the meta-update step \shortcite{Finn2017}), we chose to do so for our empirical evaluation. %Future work will consider and compare these solutions.
 
-We use stochastic neural networks \citep{Graves2011, Blundell2015} similarly to the MLAP \citep{Amit2018} algorithm, and consider meta-adaptation with three different hyper-priors: 
-\begin{itemize}
-	\item The meta-learned hyper-prior $\mathcal{Q}_{1:N}$
-	\item A zero-centered stochastic neural network
-	\item A changing hyper-prior based on the last optimization loop
-\end{itemize} 
+We use stochastic neural networks \citep{Graves2011, Blundell2015} similarly to the MLAP \citep{Amit2018} algorithm, and consider meta-adaptation with three different hyper-priors. \emph{(i)} The meta-learned hyper-prior $\mathcal{Q}_{1:N}$. \emph{(ii)} A zero-centered stochastic neural network. \emph{(iii)}  An adaptive hyper-prior based on the last optimization loop, as described in \ref{alg1}, and in more detail in  Appendix \ref{append:hyper-params}. 
 
-Algorithm \ref{alg1} describes the meta-adaption process with a changing hyper-prior, as it is the most complex of these settings, and the other options compare the hyper-posterior to a predefined (data-free) given hyper-prior. The standard meta-testing algorithm is described in Appendix \ref{append:hyper-params}.
+Algorithm \ref{alg1} describes the meta-adaption process with an adaptive hyper-prior, as it is the most complex of these settings, and the other options compare the hyper-posterior to a predefined (data-free) given hyper-prior. The standard meta-testing algorithm that is used to adapt a sampled prior to a given task is described in Appendix \ref{append:hyper-params}.
 
 \begin{algorithm}[H]
 	\caption{Meta-adaptation}
@@ -528,76 +476,60 @@ Algorithm \ref{alg1} describes the meta-adaption process with a changing hyper-p
 		\EndWhile
 		\State \Return $\hat{\mathcal{Q}}_{1:N, T}$
 		\EndFunction
-		
-		%\Function{Meta-test}{$\mathcal{Q}_{1:N,T}$, $S_T\sim \mathcal{D}_T$, $\lambda$} 
-		%\State Sample $P\sim \hat{\mathcal{Q}}_{1:N, T}$
-		%\State Set $\hat{Q}=P$
-		%\While {Not converged} \Comment Or limit number of epochs
-		%	\State losses $\leftarrow \emptyset$
-		%	\For {each Monte-Carlo estimation} 
-		%		\State Sample $h\sim \hat{Q}$
-		%		\State Calculate $\hat{\mathcal{L}}(h,S_{\mathrm{eval}})$ and add to losses
-		%	\EndFor
-		%	\State $J=\textrm{mean(losses)}+\frac{1}{\lambda} D_{KL}(\hat{Q}||P)$
-		%	\State Run SGD step w.r.t $\hat{Q}$ on $J$
-		%\EndWhile
-		%\State Estimate the 0-1 loss using held-out test set $S\sim \mathcal{D}_T$
-		%\State \Return accuracy
-		%\EndFunction
 	\end{algorithmic}
 \end{algorithm}
 
-Since we tested our approach on neural networks, the hypothesis space is defined as $\{h_w|w\in \mathbb{R}^d\}$ where the weights $w$ serve as the parameters of each hypothesis.
+Since we tested our approach on neural networks, the hypothesis space is defined as $\{h_w|w\in \mathbb{R}^d\}$, where the weights $w$ serve as the parameters of each hypothesis.
 For image classification tasks, $x$ represents an image, and $y$ a class label. 
-We use the cross-entropy loss during adaptation, despite the fact that it is not bounded. We note that a clipped variation of this loss does exist and conforms to theoretical guarantees, and in practice the cross-entropy loss tends to be low.
+We use the cross-entropy loss during adaptation, despite the fact that it is not bounded. We note that a clipped variation of this loss does exist, and conforms to theoretical guarantees, and in practice the cross-entropy loss tends to be low.
 
 We conduct experiments on a task environment based on the MNIST dataset \citep{LeCun1998}, where each task was created by performing a random permutation on some of the image pixels. The number of pixels to be shuffled and the total number of classes (referred to as ``ways'') was chosen in advance. In order to obtain a reasonable hyper-prior on downstream tasks, it makes sense to run standard meta-training methods on the training data.
-We used the MLAP \citep{Amit2018}  algorithm to do so. We ran MLAP-M for 100 meta-training iterations on randomly sampled training tasks, with 100 examples from each class. The resulting network means and variances were then used as the final meta-training hyper-prior $\mathcal{Q}_{1:N}$. We used the same convolutional neural network (CNN) architecture used by \citet{Vinyals2016} for the Omniglot dataset, as it has similar dimensions. 
+We used the MLAP \citep{Amit2018} algorithm to do so. We ran MLAP-M for 100 meta-training iterations on randomly sampled training tasks, with 100 examples from each class. The resulting network means and variances were then used as the final meta-training hyper-prior $\mathcal{Q}_{1:N}$. We used the same convolutional neural network (CNN) architecture used by \citet{Vinyals2016} for the Omniglot dataset.
 
 We perform our tests on two sets of problems, tasks with $100$ shuffled pixels, and tasks with permuted labels instead of pixels.
-For standard meta-testing, we use SGD with the Adam optimizer \citep{Kingma2015}, and perform 1000 adaptation steps given the labeled adaptation dataset $S_T$ in order to achieve convergence. For our meta-adaptation method, we first perform several steps of meta-adaptation as detailed in Algorithm \ref{alg1}, and then use 50 SGD steps of standard meta-testing on the adapted hyper-posterior. See appendix \ref{append:hyper-params} for a full list of hyper-parameters and implementation details.
+For standard meta-testing, we sample a prior $P\sim \mathcal{Q}_{1:N}$ and perform $1000$ adaptation steps given the labeled adaptation dataset $S_T$ in order to achieve convergence. For our meta-adaptation method, we initialize the hyper-posterior as the meta-training hyper-prior $\mathcal{Q}_{1:N}$ and
+ perform several steps of meta-adaptation as detailed in Algorithm \ref{alg1}. Following that, we sample a prior $P\sim \mathcal{Q}_{1:N,T}$ and perform  $50$ SGD steps of standard meta-testing. Since the meta-adaptation process itself includes computational costs, we use far fewer update steps for the sampled prior in order to have a fairer comparison.
+See appendix \ref{append:hyper-params} for a full list of hyper-parameters and implementation details.
 
-For both the shuffled pixels and permuted label tasks, we compare standard-meta testing (referred to as baseline) to adaptive meta-testing with a variable number of adaptation examples per class, commonly referred to as the number of ``shots".
-\RM{I'm not certain I understand the algorithms compared in figures 3 and 4. What is ``meta-testing, 50 epochs" versus (say) ``40 adapt steps". It seems that the algorithm with a fixed hyper-prior is better than the one we learned through meta-learning, or am I missing something?}
-\LF{The ``standard" method here is to apply the META-TEST function directly on the meta-training result for some number of epochs (50 or 1000). Both presented alternatives perform some number (e.g. 40) of the META-ADAPT algorithm before running meta-testing (with 50 epochs). Notably the initialization is the hyper-prior we learned in training in both cases. The fixed hyper-prior (essentially regularization) did perform better in terms of test accuracy, but also had higher KL-Divergence to the meta-learned hyper-prior, and I suspect that it would have a higher forgetting score compared to the adaptive hyper-prior.}
+For both the shuffled pixels and permuted label tasks, we compare standard-meta testing (referred to as baseline) to adaptive meta-testing with a variable number of adaptation examples per class, also known as the number of ``shots".
 
-Figure \ref{fig:results-pixels} shows the test accuracy averaged over 10 meta-testing seeds for the shuffled pixels task with both a constant hyper-prior $N(0,\sigma I_d)$ (subfigure a) as well as a hyper-prior that changes on each meta-adaptation iteration. Figure \ref{fig:results-labels} shows a similar plot for the permuted labels task. 
+Figure \ref{fig:results-pixels} shows the test accuracy averaged over $10$ meta-testing seeds for the shuffled pixels task with both a constant hyper-prior $N(0,\sigma I_d)$ (subfigure a) as well as a hyper-prior that changes on each meta-adaptation iteration. Figure \ref{fig:results-labels} shows a similar plot for the permuted labels task. 
 Numerical values for both tasks as well as standard error are reported in Table \ref{table:gamma}.
 
 
 \begin{figure}[h!]
 	\centering
-	\begin{subfigure}[b]{0.45\textwidth}
+	\begin{subfigure}[b]{0.4\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{test_accuracies_pixels_const}
 		\caption{Adaptation with a constant hyper-prior}
 	\end{subfigure}
 	\hfill
-	\begin{subfigure}[b]{0.45\textwidth}
+	\begin{subfigure}[b]{0.4\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{test_accuracies_pixels_var}
-		\caption{Adaptation with a changing hyper-prior}	 	
+		\caption{Adaptation with an adaptive hyper-prior}	 	
 	\end{subfigure}
 	\hfill
-	\caption{Average test accuracies on the shuffled pixels task, for meta-adaptation with varying gradient updates. Error bars represent standard errors from the average over 10 runs.}	 
+	\caption{Average test accuracies on the shuffled pixels task, for meta-adaptation with varying gradient updates. Error bars represent standard errors from the average over $10$ runs.}	 
 	\label{fig:results-pixels}
 \end{figure}
 
 \begin{figure}[ht!]
 	\centering
-	\begin{subfigure}[b]{0.45\textwidth}
+	\begin{subfigure}[b]{0.4\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{test_accuracies_labels_const}
 		\caption{Adaptation with a constant hyper-prior}
 	\end{subfigure}
 	\hfill
-	\begin{subfigure}[b]{0.45\textwidth}
+	\begin{subfigure}[b]{0.4\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{test_accuracies_labels_var}
-		\caption{Adaptation with a changing hyper-prior}	 	
+		\caption{Adaptation with an adaptive hyper-prior}	 	
 	\end{subfigure}
 	\hfill
-	\caption{Average test accuracies on the permuted labels task, for meta-adaptation with varying gradient updates. Error bars represent standard errors from the average over 10 runs.}	 
+	\caption{Average test accuracies on the permuted labels task, for meta-adaptation with varying gradient updates. Error bars represent standard errors from the average over $10$ runs.}	 
 	\label{fig:results-labels}
 \end{figure}
 
@@ -608,39 +540,42 @@ Numerical values for both tasks as well as standard error are reported in Table 
 		\toprule
 		Method   & n\_shots  & Shuffled-pixels & Permuted-labels  \\
 		\midrule
-		Standard & 2   & $0.355\pm 0.049 $   & $0.2\pm 0 $   \\
-		Adaptive, constant hyper-prior & 2   & $0.433\pm 0.067 $ & $0.303\pm 0.066 $ \\
-		Adaptive, variable hyper-prior & 2   & $0.35\pm 0.045 $ & $0.2\pm 0 $ \\
+		%Standard & $2$   & $0.355\pm 0.049 $   & $0.2\pm 0 $   \\
+		%Constant hyper-prior & $2$   & $0.433\pm 0.067 $ & $0.303\pm 0.066 $ \\
+		%Adaptive hyper-prior & $2$   & $0.35\pm 0.045 $ & $0.2\pm 0 $ \\
+		%\midrule
+		Standard & $5$   & $0.528\pm 0.04 $   & $0.2\pm 0 $   \\
+		Constant hyper-prior & $5$   & $0.681^*\pm 0.062 $ & $0.505^*\pm 0.095 $ \\
+		Adaptive hyper-prior & $5$   & $0.515\pm 0.043 $ & $0.212\pm 0.01 $ \\
 		\midrule
-		Standard & 5   & $0.528\pm 0.04 $   & $0.2\pm 0 $   \\
-		Adaptive, constant hyper-prior & 5   & $0.681^*\pm 0.062 $ & $0.505^*\pm 0.095 $ \\
-		Adaptive, variable hyper-prior & 5   & $0.515\pm 0.043 $ & $0.212\pm 0.01 $ \\
+		Standard & $10$   & $0.7\pm 0.038 $   & $0.2\pm 0.0 $   \\
+		Constant hyper-prior & $10$   & $0.826^*\pm 0.016 $ & $0.461\pm 0.106 $ \\
+		Adaptive hyper-prior & $10$   & $0.745\pm 0.025 $ & $0.22\pm 0.014 $ \\
 		\midrule
-		Standard & 10   & $0.7\pm 0.038 $   & $0.2\pm 0.0 $   \\
-		Adaptive, constant hyper-prior & 10   & $0.826^*\pm 0.016 $ & $0.461\pm 0.106 $ \\
-		Adaptive, variable hyper-prior & 10   & $0.745\pm 0.025 $ & $0.22\pm 0.014 $ \\
+		Standard & $20$   & $0.79\pm 0.021 $   & $0.2\pm 0.0 $   \\
+		Constant hyper-prior & $20$   & $0.8986^*\pm 0.012 $ & $0.754^*\pm 0.093 $ \\
+		Adaptive hyper-prior & $20$   & $0.834^*\pm 0.023 $ & $0.383\pm 0.094 $ \\
 		\midrule
-		Standard & 20   & $0.79\pm 0.021 $   & $0.2\pm 0.0 $   \\
-		Adaptive, constant hyper-prior & 20   & $0.8986^*\pm 0.012 $ & $0.754^*\pm 0.093 $ \\
-		Adaptive, variable hyper-prior & 20   & $0.834^*\pm 0.023 $ & $0.383\pm 0.094 $ \\
-		\midrule
-		Standard & 50   & $0.87\pm 0.01 $   & $0.477\pm 0.113 $   \\
-		Adaptive, constant hyper-prior & 50   & $0.93^*\pm 0.007 $ & $0.86^*\pm 0.074 $ \\
-		Adaptive, variable hyper-prior & 50   & $0.915^*\pm 0.01 $ & $0.542\pm 0.114 $ \\
+		Standard & $50$   & $0.87\pm 0.01 $   & $0.477\pm 0.113 $   \\
+		Constant hyper-prior & $50$   & $0.93^*\pm 0.007 $ & $0.86^*\pm 0.074 $ \\
+		Adaptive hyper-prior & $50$   & $0.915^*\pm 0.01 $ & $0.542\pm 0.114 $ \\
 		\midrule
 		\bottomrule
 	\end{tabular}
-	\caption{Test accuracies for the meta-MNIST dataset with 100 shuffled pixels or permuted labels. All accuracies are averaged over 10 seeds and reported with standard error. Statistically significant ($p<0.05$) improvements over the standard meta-testing approach are marked with *.}
+	\caption{Test accuracies for the meta-MNIST dataset with $100$ shuffled pixels or permuted labels. All accuracies are averaged over $10$ seeds and reported with standard error. Statistically significant ($p<0.05$) improvements over the standard meta-testing approach are marked with $*$.}
 	\label{table:gamma}
 \end{table*}
 
-As we can see from Figure \ref{fig:results-pixels}, for the shuffled-pixels task, meta-adaptation with respect to a constant hyper-prior $N(0,\sigma I_d)$ yields a hyper-posterior that is both better in terms of overall test accuracy, as well as the number of gradient steps required to achieve said accuracy. Analysis of the mean variance in each layer for the 50 shot case shows that the variance of the input layer decreases and the variance of the linear output layer increases.
-A possible explanation of this phenomenon is that the adaptation data was used to calibrate the input convolution layer to the specific subtask, resulting in less uncertainty. The output layer likely became more uncertain due to the higher variance inherent to the sub-sampling process.
-Additionally, for the shuffled-pixels task with a varying hyper-prior that is initialized as the meta-training hyper-prior, we can see similar levels of improvement, but only for larger sample sizes for the adaptation set $S_T$. The large improvement in accuracy between 5 and 40 meta-adaptation steps suggests that given a larger number of meta-adaptation steps, an even better hyper-posterior can be found.
+As we can see from Figure \ref{fig:results-pixels}, for the shuffled-pixels task, meta-adaptation with respect to a constant hyper-prior $N(0,\sigma I_d)$ yields a hyper-posterior that is both better in terms of overall test accuracy, and the number of gradient steps required to achieve said accuracy. A disadvantage of the constant hyper-prior is that $D_{KL}(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})$ in \eqref{eq:main-result-generic} is higher compared to meta-adaptation with a variable hyper-prior that originates from $\mathcal{Q}_{1:N}$, thereby significantly increasing the bound.
 
-The results for the permuted-labels task are largely similar, but there is a far more pronounced gap in performance for few-shot cases, where standard meta-testing fails to adapt and our meta-adaptation approaches create a better suited hyper-posterior without access to additional data compared to standard meta-testing.
+Analysis of the mean variance in each layer for the $50$ shot case shows that optimization w.r.t.\! the constant hyper-prior caused the overall variance of the input layer to decrease significantly.
+A possible explanation of this phenomenon is that the adaptation data was used to calibrate the input convolution layer to the specific subtask, resulting in less uncertainty.
+For both versions of meta-adaptation, 
+ the large improvement in accuracy between $5$ and $40$ meta-adaptation steps suggests that given a larger number of meta-adaptation steps, an even better hyper-posterior can be found.
 
-We note that we also ran meta-adaptation experiments comparing the hyper-posterior to the meta-trained hyper-prior without changing it between meta-adaptation steps, but this resulted in non-significant improvements over standard meta-testing. Observations of the KL divergence for each layer individually show minor changes in the input layer that are likely insufficient compared to the variable hyper-prior approach.
+The results for the permuted-labels task are largely similar, but there is a far more pronounced gap in performance for few-shot cases, where standard meta-testing fails to adapt and our meta-adaptation approaches create a better suited hyper-posterior. This task has higher variance between random seeds compared to the shuffled-pixels task, a phenomenon that has also occurred when using the MLAP \citep{Amit2018} algorithm.
+
+We note that we also ran meta-adaptation experiments comparing the hyper-posterior to the meta-trained hyper-prior without adapting it between meta-adaptation steps, but this resulted in non-significant improvements over standard meta-testing. Observations of the KL divergence for each layer individually show minor changes in the input layer that are likely insufficient compared to the variable hyper-prior approach.
 
 \section{Discussion and Future Work}
 
@@ -653,19 +588,22 @@ The first issue is that our approach requires the use of stochastic models, whic
 The second issue is to consider our meta-adaptation algorithm in the context of continual learning \citep{Kirkpatrick2017}. Recent work by \citet{Haddouche2022} used data-dependent PAC-Bayes bounds in the context of online learning, and it would be of interest to extend these results to the continual setting and derive bounds that provide a clearer tradeoff between low generalization error and avoiding catastrophic forgetting
 
 %\clearpage
-\bibliographystyle{plainnat}
+%\bibliographystyle{aaai23}
 \bibliography{library}
 
 \clearpage
-\appendix
-\section{Hyper-parameters and implementation details} \label{append:hyper-params}
+\appendix 
+\section{Appendix}
+\label{sec:appendix}
+
+\subsection{Hyper-parameters and implementation details} \label{append:hyper-params}
 
 \begin{algorithm}[H]
-	\caption{Meta-testing}
+	\caption{Standard Meta-testing}
 	\small
 	\begin{algorithmic}
 		\Function{Meta-test}{$\mathcal{Q}_{1:N,T}$, $S_T\sim \mathcal{D}_T$, $\lambda$} 
-		\State Sample $P\sim \hat{\mathcal{Q}}_{1:N, T}$
+		\State Sample $P\sim \mathcal{Q}_{1:N, T}$
 		\State Set $\hat{Q}=P$
 		\While {Not converged} \Comment Or limit number of epochs
 			\State losses $\leftarrow \emptyset$
@@ -674,7 +612,7 @@ The second issue is to consider our meta-adaptation algorithm in the context of 
 				\State Calculate $\hat{\mathcal{L}}(h,S_{\mathrm{eval}})$ and add to losses
 			\EndFor
 			\State $J=\textrm{mean(losses)}+\frac{1}{\lambda} D_{KL}(\hat{Q}||P)$
-			\State Run SGD step w.r.t $\hat{Q}$ on $J$
+			\State Run SGD step w.r.t.\ $\hat{Q}$ on $J$
 		\EndWhile
 		\State Estimate the 0-1 loss using held-out test set $S\sim \mathcal{D}_T$
 		\State \Return accuracy
@@ -682,69 +620,74 @@ The second issue is to consider our meta-adaptation algorithm in the context of 
 	\end{algorithmic}
 \end{algorithm}
 
-The network architecture used for classification on the permuted MNIST dataset is identical to that used for the Omniglot dataset by \citet{Vinyals2016}: 4 layers of 2D 3x3 convolution layers followed by batch norm and max pooling each. These are followed by a linear classification layer with 5 (number of ways) outputs. The training loss used was standard cross-entropy loss. We used the Adam optimizer for meta-training and meta-testing. Code to reproduce the experiments is available at https://github.com/lioritan/meta-adapt-pb.
+In the adaptive hyper-posterior version of the meta-adaptation algorithm, we first initialize the hyper-posterior $\hat{\mathcal{Q}}_{1:N, T}$ to the meta-training hyper-prior $\mathcal{Q}_{1:N}$. In each adaptation step, we optimize \eqref{eq:main-result-generic-datafree} w.r.t.\! $\hat{\mathcal{Q}}_{1:N, T},\hat{Q}$ and perform gradient updates on the hyper-posterior. We then set the hyper-prior for the next adaptation step as the current hyper-posterior.
+In the constant hyper-prior version of the meta-adaptation algorithm, the hyper-prior remains the same throughout the meta-adaptation process.
 
-\begin{table*}[t]	
+The network architecture used for classification on the permuted MNIST dataset is identical to that used for the Omniglot dataset by \citet{Vinyals2016}: $4$ layers of $2$D $3\times 3$ convolution layers followed by batch norm and max pooling each. These are followed by a linear classification layer with $5$ classes (commonly referred to as number of ways). The training loss used was standard cross-entropy loss. We used the Adam optimizer \citep{Kingma2015} for meta-training and meta-testing. 
+Code to reproduce the experiments will be made available after publication.
+%Code to reproduce the experiments is available at https://github.com/lioritan/meta-adapt-pb.\RM{Should be anonymous. Promise to provide after publication.}
+
+\begin{table*}[ht]	
 	
 	\centering
 	\begin{tabular}{lll}
 		\toprule
 		Notation   & Description  & Value/s   \\
 		\midrule
-		\#Training epochs & Number of training epochs for hyper-prior   & 100      \\
+		\#Training epochs & Number of training epochs for hyper-prior   & $100$      \\
 		\midrule
-		Training Sample size & Number of training examples per class per epoch   & 100      \\
+		Train Sample size & \# of training examples per class per epoch   & $100$      \\
 		\midrule
-		\#Test epochs & Number of meta-test gradient updates on a specific task   & 50/1000      \\
+		\#Test epochs & Number of base learner gradient updates   & $50,1000$      \\
 		\midrule
 		$\eta_{\alpha}$  & Learning rate for the meta-learner   & $0.01$      \\
 		\midrule
 		$\eta_{\beta}$  & Learning rate for the base learner   & $0.1$      \\
 		\midrule
-		\#Adaptation steps  & Number of training epochs for hyper-posterior   & 5/40      \\
+		\#Adaptation steps  & Number of training epochs for hyper-posterior   & $5,40$      \\
 		\midrule
-		Test permutations  & Number of pixels permuted on each test image   & 100      \\
+		MC-iterations & Number of Monte-Carlo samples to average & $3$\\
 		\midrule
-		\#ways & Number of classes in classification & 5\\
+		Test permutations  & Number of pixels permuted on each test image   & $100$      \\
 		\midrule
-		\#shots & Number of samples per class in $S_T$ & 2/5/10/15/20/30/40/50\\
+		\#ways & Number of classes in classification & $5$\\
 		\midrule
-		seed & Random seed, chosen arbitrarily & 42/1337/7/13/999/752/56789/145790/11/306050\\
+		\#shots & Number of samples per class in $S_T$ & $2,5,10,15,20,30,40,50$\\
+		\midrule
+		seed & Random seed, chosen arbitrarily & $42,1337,7,13,999,752,56789,145790,11,306050$\\
 		\bottomrule
 	\end{tabular}
 	\caption{Hyper-parameter choices}
 	\label{table:hyper-params}
 \end{table*}
 
+\subsection{Proof of the generic meta-adaptation bound} \label{append:proof-main-result}
 
-\section{Proof of the generic meta-adaptation bound} \label{append:proof-main-result}
-
-We restate the result for stochastic kernels:
+We restate Theorem \ref{thm:rivasplata-pb} for stochastic kernels. 
 
 \begin{theorem} (PAC-Bayes for stochastic kernels - adapted from Theorem 2 in \citet{Rivasplata2020}) \label{thm:rivasplata-pb-appendix}
-	Let $P\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ be a stochastic kernel (Namely, the prior may depend on the sample data $S$), let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
-	Define $f\triangleq F\circ A$, and let 
-	$$\xi(P_S, \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{f(S, h)}P_S(dh)\mathcal{D}(dS)$$
-	Such that $P_S$ is the distribution over $\mathcal{H}$ corresponding to the sampled $S$.
-	
-	Assuming $\xi(P_S, \mathcal{D}, f)$ is finite, for any $\delta \in (0,1)$, the following inequality holds uniformly for all posteriors $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ with probability at least $1-\delta$ over the choice of $S\sim \mathcal{D}$:
-	
+	Let $P\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ be a stochastic kernel (namely, the prior may depend on the sample data $S$), let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
+	Define $f\triangleq F\circ A$, and  
+	$$
+	\xi(P_S, \mathcal{D}, f)=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{f(S, h)}P_S(dh)\mathcal{D}(dS) , 
+	$$
+	such that $P_S$ is the distribution over $\mathcal{H}$ corresponding to the sampled $S$. Assuming $\xi(P_S, \mathcal{D}, f)$ is finite, then for any $\delta \in (0,1)$ and any posterior $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$, with probability at least $1-\delta$ over the choice of $S\sim \mathcal{D}$,
 	\begin{equation} \label{eq:ribasplata-pb-appendix}
 	\Expect{h\sim Q_S}{f(S, h)} \leq D_{KL}(Q_S||P_S)+\log\left (\xi(P_S, \mathcal{D}, f)/\delta\right )
 	\end{equation}
 \end{theorem}
-
-\begin{theorem}
-	Let $\mathcal{Q}_{1:N}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ be a meta-learned hyper-posterior (e.g. the result of meta-training on $\{S_1,...,S_N\}$), and let $\mathcal{D}_T\sim \tau$ be a \emph{given} test task. Let $Q: \mathcal{Z}^m\times\mathcal{M}(\mathcal{H})\rightarrow \mathcal{M}(\mathcal{H})$ be a given base learner. Let $l: \mathcal{H}\times \mathcal{Z}\rightarrow [0, 1]$ be a bounded loss function.
-	For any $\delta_T \in (0,1)$, and for all $\lambda>0$, the following inequality holds uniformly for all hyper-posteriors $\mathcal{Q}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$:
-	
+%
+Next, we restate and prove Theorem \ref{thm:main-result}. 
+\begin{theorem} 
+	Let $\mathcal{Q}_{1:N}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ be a meta-learned hyper-posterior (e.g. the result of meta-training on $\{S_1,...,S_N\}$), and let $\mathcal{D}_T\sim \tau$ be a \emph{given} test task. Let $Q: \mathcal{Z}^m\times\mathcal{M}(\mathcal{H})\rightarrow \mathcal{M}(\mathcal{H})$ be a given base learner. Let $\ell: \mathcal{H}\times \mathcal{Z}\rightarrow [0, 1]$ be a bounded loss function.
+	For any $\delta_T \in (0,1)$, any hyper-posterior $\mathcal{Q}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$, and for all $\lambda>0$, with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$
+%	
 	\begin{align}
 	\begin{split}
 	\mathcal{L}(\mathcal{Q}, \mathcal{D}_T) &\leq \hat{\mathcal{L}}(\mathcal{Q}, S_T) + \frac{1}{\lambda}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N})\\
 	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
 	\end{split}
 	\end{align}
-	
 	
 	where 
 	\begin{align} \label{eq:tilde_xi}
@@ -756,22 +699,20 @@ We restate the result for stochastic kernels:
 \end{theorem}
 
 \begin{proof}
-	First, we consider the setting of Theorem \ref{thm:rivasplata-pb-appendix} and extend it to meta-learning:
+	First, we consider the setting of Theorem \ref{thm:rivasplata-pb-appendix} and extend it to meta-learning. We define a stochastic kernel for the $2$-level hypothesis case as a pair $(\mathcal{P},P)\in \mathcal{K}(\mathcal{Z}^m, \mathcal{M}(\mathcal{H})\times \mathcal{H})$ such that for a given sample $S\in \mathcal{Z}^m$,  $(\mathcal{P},P')(S)$ is the distribution over $\mathcal{H}$ corresponding to sampling from the hyper-prior $P\sim \mathcal{P}(S)$ corresponding to $S$ and then sampling from $h\sim P'(S, P)$. For clarity, we denote these as distributions as $\mathcal{P}_S$ and $P'_{S,P}$. 
 	
-	We define a stochastic kernel for the 2-level hypothesis case as a pair $(\mathcal{P},P)\in \mathcal{K}(\mathcal{Z}^m, \mathcal{M}(\mathcal{H})\times \mathcal{H})$ such that for a given sample $S\in \mathcal{Z}^m$,  $(\mathcal{P},P')(S)$ is the distribution over $\mathcal{H}$ corresponding to sampling from the hyper-prior $P\sim \mathcal{P}(S)$ corresponding to $S$ and then sampling from $h\sim P'(S, P)$. For clarity, we denote these as distributions as $\mathcal{P}_S$ and $P'_{S,P}$
-	
-	Let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$ and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ be a convex function.
-	Define $f\triangleq F\circ A$, and let 
+	Let $A: \mathcal{Z}^m\times \mathcal{H}\rightarrow \mathbb{R}^k$ be a measurable function for some positive integer $k$, and $F:\mathbb{R}^k\rightarrow \mathbb{R}$ a convex function.
+	For $f\triangleq F\circ A$ let 
 	\begin{align*} 
 	\begin{split}
 	&\xi((\mathcal{P}_S,P'_S), \mathcal{D}, f)=\\
-	&\int_{\mathcal{Z}^m}\int_{\mathcal{M}(\mathcal{H})\times\mathcal{H}}e^{f(S, h)}\mathcal{P}_S\times P'_{S,P}(dP,dh)\mathcal{D}(dS)
+	&\int_{\mathcal{Z}^m}\int_{\mathcal{M}(\mathcal{H})\times\mathcal{H}}e^{f(S, h)}\left(\mathcal{P}_S\times P'_{S,P}\right)(dP,dh)\mathcal{D}(dS) .
 	\end{split}
 	\end{align*}
-	
-	Using Equation \ref{eq:ribasplata-pb-appendix} with $f(S,(P,h))=\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h,S))$, a 2-level posterior $(\mathcal{Q}_S, Q_S)$ and a 2-level prior $(\mathcal{Q}_{1:N}, Q_S)$,
-	we have that for any $\delta_T \in (0,1)$, the following inequality holds uniformly for all posteriors $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ with probability at least $1-\delta_T$ over the choice of $S_T\sim \mathcal{D}_T$:
-	
+%	
+	Using \eqref{eq:ribasplata-pb-appendix} with $f(S,(P,h))=\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h,S))$, a $2$-level posterior $(\mathcal{Q}_S, Q_S)$ and a $2$-level prior $(\mathcal{Q}_{1:N}, Q_S)$,
+	we have that for any $\delta_T \in (0,1)$, the following inequality holds uniformly for all posteriors $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$ with probability at least $1-\delta_T$ over the choice of $S_T\sim \mathcal{D}_T$,
+%	
 	\begin{equation} \label{eq:appendix-proof-eq}
 	\begin{split}
 	&\Expect{h\sim (\mathcal{Q}_{S_T}, Q_{S_T})}{\lambda(\mathcal{L}(h,\mathcal{D}_T)-\hat{\mathcal{L}}(h,S_T))} \leq \\ &D_{KL}((\mathcal{Q}_{S_T}, Q_{S_T})||(\mathcal{Q}_{1:N}, Q_{S_T}))\\
@@ -781,29 +722,29 @@ We restate the result for stochastic kernels:
 	
 	It is important to note that the only assumption we make here is that the hyper-prior $\mathcal{Q}_{1:N}$ is data-free with respect to the new data $S_T\sim \mathcal{D}_T$. Since we consider meta-learned distributions over priors, this is a reasonable assumption, as it is satisfied if we have not seen $S_T$ during meta-training.
 	
-	First, let us make sure that the moment terms are equivalent. We note here that since the hyper-prior does not depend on $S_T$, the expectation can be easily decomposed as follows:
+	First, let us make sure that the moment terms are equivalent. We note here that since the hyper-prior $\mathcal{Q}_{1:N}$ does not depend on $S_T$, the expectation can be easily decomposed.
 	
 	\begin{align*}
 	\begin{split}
-		&\xi\left ((\mathcal{Q}_{1:N}, Q_S), \mathcal{D}_T, \lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h,S))\right )\\
-		&=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T)-\hat{\mathcal{L}}(h, S)\right )}\mathcal{Q}_{1:N}(dP)Q(P,S)(dh)\mathcal{D}_T(dS)\\
-		&=\Expect{S\sim \mathcal{D}_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T)-\hat{\mathcal{L}}(h, S)\right )}}\\
-		&\triangleq \tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)
+		&\xi\left ((\mathcal{Q}_{1:N}, Q_S), \mathcal{D}_T, f=\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h,S))\right )\\
+		&=\int_{\mathcal{Z}^m}\int_{\mathcal{H}}e^{f(S,h)}\mathcal{Q}_{1:N}(dP)Q(P,S)(dh)\mathcal{D}_T(dS) ,\\
+		&=\Expect{S\sim \mathcal{D}_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T)-\hat{\mathcal{L}}(h, S)\right )}} ,\\
+		&\triangleq \tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T) .
 	\end{split}
 	\end{align*}
 	
-	Substituting this in Equation \ref{eq:appendix-proof-eq} and moving terms, we get (with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$):
-	
+	Substituting this in \eqref{eq:appendix-proof-eq} and moving terms, we get (with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$),
+	%
 	\begin{equation} 
 	\begin{split}
-	\Expect{h\sim (\mathcal{Q}_{S_T}, Q_{S_T})}{\mathcal{L}(h,\mathcal{D}_T)} &\leq \Expect{h\sim (\mathcal{Q}_{S_T}, Q_{S_T})}{\hat{\mathcal{L}}(h,S_T)}\\
+	&\Expect{h\sim (\mathcal{Q}_{S_T}, Q_{S_T})}{\mathcal{L}(h,\mathcal{D}_T)} \leq \Expect{h\sim (\mathcal{Q}_{S_T}, Q_{S_T})}{\hat{\mathcal{L}}(h,S_T)}\\
 	&+\frac{1}{\lambda} D_{KL}((\mathcal{Q}_{S_T}, Q_{S_T})||(\mathcal{Q}_{1:N}, Q_{S_T}))\\
 	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
 	\end{split}
 	\end{equation}
 	
-	By definition, this is equivalent to writing:
-	
+	By definition, this is equivalent to writing
+%	
 	\begin{equation} \label{eq:appendix-proof-eq-2}
 	\begin{split}
 	\mathcal{L}(\mathcal{Q}_{S_T},\mathcal{D}_T) &\leq \hat{\mathcal{L}}(\mathcal{Q}_{S_T},S_T)\\ &+\frac{1}{\lambda} D_{KL}((\mathcal{Q}_{S_T}, Q_{S_T})||(\mathcal{Q}_{1:N}, Q_{S_T})) \\
@@ -811,8 +752,8 @@ We restate the result for stochastic kernels:
 	\end{split}
 	\end{equation}
 	
-	For the KL-divergence expression, we apply a standard KL decomposition:
-	
+	For the KL-divergence expression, we apply a standard KL decomposition
+%	
 	\begin{align*}
 	\begin{split}
 	&D_{KL}((\mathcal{Q}_{S_T}, Q_{S_T})||(\mathcal{Q}_{1:N}, Q_{S_T}))\\
@@ -823,7 +764,7 @@ We restate the result for stochastic kernels:
 	\end{split}
 	\end{align*}
 	
-	Finally, combining this result with Equation \ref{eq:appendix-proof-eq-2} gives us the final inequality:
+	Finally, combining this result with \eqref{eq:appendix-proof-eq-2} gives us the final inequality:
 	
 	For any $\delta_T \in (0,1)$, the following holds uniformly for all hyper-posteriors $\mathcal{Q}_{S_T}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$:
 	
@@ -834,156 +775,66 @@ We restate the result for stochastic kernels:
 	\end{split}
 	\end{align*}
 	\end{proof}
-
-\section{Optimal hyper-parameters for Gibbs meta-adaptation} \label{append:optimiziation}
-
-\subsubsection{Optimizing $\gamma$}
-
-Deriving Equation \ref{eq:pb-adapt-multi} by $\gamma$ gets us:
-
-\begin{equation} \label{eq:gamma-deriv}
-(1-\frac{\gamma}{\lambda})\frac{d}{d\gamma}\hat{\mathcal{L}}_{\mathrm{aml}} -\frac{1}{\lambda}\hat{\mathcal{L}}_{\mathrm{aml}} +\frac{1}{\lambda}\hat{\mathcal{L}}_{\mathrm{ml}} =0
-\end{equation}
-
-We must calculate the derivative of the expected loss (we mark $Q\triangleq Q(P,S_T), M\triangleq e^{-\gamma\hat{\mathcal{L}}(Q,S_T)},\hat{\mathcal{L}}\triangleq \hat{\mathcal{L}}(Q,S_T)$ for brevity): 
-
-\begin{align*}
-\begin{split}
-&\frac{d}{d\gamma}\hat{\mathcal{L}}_{\mathrm{aml}}=\int \frac{d}{d\gamma}\mathcal{Q}_{1:N,T}(P)\hat{\mathcal{L}}(Q, S_T)dP\\
-&=\int \mathcal{Q}_{1:N}(P)\hat{\mathcal{L}}(Q, S_T)\frac{d}{d\gamma}
-\frac{e^{-\gamma\hat{\mathcal{L}}(Q,S_T)}}{\Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\gamma\hat{\mathcal{L}}(Q,S_T)}}}dP
-\end{split}
-\end{align*}
-
-\begin{align*}
-\begin{split}
-=\int \mathcal{Q}_{1:N}(P)M\hat{\mathcal{L}}\frac{-\hat{\mathcal{L}}\Expect{P\sim \mathcal{Q}_{1:N}}{M}
-	-\Expect{P\sim \mathcal{Q}_{1:N}}{-\hat{\mathcal{L}}M}}{\Expect{P\sim \mathcal{Q}_{1:N}}{M}^2}dP
-\end{split}
-\end{align*}
-
-\begin{align*}
-\begin{split}
-=\int \mathcal{Q}_{1:N,T}(P)\hat{\mathcal{L}}\left (-\hat{\mathcal{L}}-
-\frac{\Expect{P\sim \mathcal{Q}_{1:N}}{-\hat{\mathcal{L}}M }}{\Expect{P\sim \mathcal{Q}_{1:N}}{M}}\right)dP
-\end{split}
-\end{align*}
-
-To conclude our calculation of the derivative, we get:
-
-\begin{align*}
-\begin{split}
-&\frac{d}{d\gamma}\hat{\mathcal{L}}_{\mathrm{aml}}
-=-\Expect{P\sim \mathcal{Q}_{1:N,T}}{\hat{\mathcal{L}}(Q,S_T)^2}\\&-\frac{\Expect{P\sim \mathcal{Q}_{1:N}}{-\hat{\mathcal{L}}(Q,S_T)e^{-\gamma\hat{\mathcal{L}}(Q,S_T)} }}{\Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\gamma\hat{\mathcal{L}}(Q,S_T)}} }\hat{\mathcal{L}}_{\mathrm{aml}}
-\end{split}
-\end{align*}
-
-Marking $R(\gamma)=\frac{\Expect{P\sim \mathcal{Q}_{1:N}}{\hat{\mathcal{L}}(Q,S_T)e^{-\gamma\hat{\mathcal{L}}(Q,S_T)} }}{\Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\gamma\hat{\mathcal{L}}(Q,S_T)}} }$ for convenience, we use Equation \ref{eq:gamma-deriv} and replace the derivatives with this expression to find the optimal value of $\gamma$: 
-
-\begin{align*} 
-\begin{split}
-&(\lambda-\gamma)\left (-\Expect{P\sim \mathcal{Q}_{1:N,T}}{\hat{\mathcal{L}}(Q,S_T)^2}+R(\gamma)\hat{\mathcal{L}}_{\mathrm{aml}}\right )\\& - \hat{\mathcal{L}}_{\mathrm{aml}}+\hat{\mathcal{L}}_{\mathrm{ml}} = 0
-\end{split}
-\end{align*}
-
-\begin{align*} 
-\begin{split}
--(\lambda-\gamma) = \frac{\hat{\mathcal{L}}_{\mathrm{aml}}-\hat{\mathcal{L}}_{\mathrm{ml}}}{\Expect{P\sim \mathcal{Q}_{1:N,T}}{\hat{\mathcal{L}}(Q,S_T)^2}-R(\gamma)\hat{\mathcal{L}}_{\mathrm{aml}}}
-\end{split}
-\end{align*}
-
-\begin{align} \label{eq:meta-pb-gamma}
-\begin{split}
-\gamma = \lambda+\frac{\hat{\mathcal{L}}_{\mathrm{aml}}-\hat{\mathcal{L}}_{\mathrm{ml}}}{\Expect{P\sim \mathcal{Q}_{1:N,T}}{\hat{\mathcal{L}}(Q,S_T)^2}-R(\gamma)\hat{\mathcal{L}}_{\mathrm{aml}}}
-\end{split}\hfill
-\end{align}
-
-\subsubsection{Optimizing $\lambda$}
-
-Deriving Equation \ref{eq:pb-adapt-multi} by $\lambda$ gets us:
-
-\begin{align*} 
-\begin{split}
-&\frac{\gamma}{\lambda^2} \hat{\mathcal{L}}_{\mathrm{aml}}-\frac{\gamma}{\lambda^2}\hat{\mathcal{L}}_{\mathrm{ml}}
--\frac{1}{\lambda^2}\log\frac{\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)}{\delta_T}\\
-&+\frac{1}{\lambda}\frac{d}{d\lambda}\log\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)=0
-\end{split}
-\end{align*}
-
-
-Multiplying by $\lambda^2$ gives:
-
-\begin{align*} 
-\begin{split}
-&\gamma \hat{\mathcal{L}}_{\mathrm{aml}}-\gamma\hat{\mathcal{L}}_{\mathrm{ml}}-\log\frac{\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)}{\delta_T}\\
-&+\lambda\frac{d}{d\lambda}\log\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)=0
-\end{split}
-\end{align*}
-
-
-By marking 
-\begin{align*} 
-\begin{split}
-\frac{d}{d\lambda}\log\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq R_\xi(\lambda)
-\end{split}
-\end{align*}
-
-We can write the above equation as:
-
-$$\gamma(\hat{\mathcal{L}}_{\mathrm{aml}}-\hat{\mathcal{L}}_{\mathrm{ml}})-\log\frac{\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)}{\delta_T}=-\lambda R_\xi(\lambda)$$
-
-meaning,
-
-\begin{align} \label{eq:meta-pb-lambda}
-\begin{split}
-\lambda = \frac{\gamma(\hat{\mathcal{L}}_{\mathrm{ml}}-\hat{\mathcal{L}}_{\mathrm{aml}})+\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )}{R_\xi(\lambda)}
-\end{split}
-\end{align}
-
-We note that this Equation cannot be estimated in general, since both the moment term and $ R_\xi(\lambda)$ depend on the unknown data distribution $\mathcal{D}_T$. 
-
-\section{Hyper-priors with Gibbs base learners are differentially-private} \label{append:proof-dp}
-
-\begin{defn} (Differential privacy)
-	Let $S,S'\in \mathcal{Z}^m$ be datasets that differ by a single element.
-	A randomized algorithm $\mathcal{A}$ is called  $\epsilon$-differentially private, marked $DP(\epsilon)$, if for any $I\subset \mathrm{image}(\mathcal{A})$:
 	
-	$$\mathrm{Pr}(\mathcal{A}(S)\in I)\leq e^\epsilon \mathrm{Pr}(\mathcal{A}(S')\in I)$$
-\end{defn}
+\subsection{Test task bound for a meta-learned hyper-prior} \label{append:corollary-bound}
+\begin{corollary} \label{thm:corollary-base}
+	Under the same conditions as Theorem \ref{thm:main-result},
+	for any $\delta_T \in (0,1)$, and for all $\lambda>0$, with probability at least $1-\delta_T$ over the draw of $S_T\sim \mathcal{D}_T$
+%	
+    \begin{align} \label{eq:corollary-bound}
+    \begin{split}
+    \mathcal{L}(\mathcal{Q}_{1:N}, \mathcal{D}_T) &\leq \hat{\mathcal{L}}(\mathcal{Q}_{1:N}, S_T)\\
+	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
+    \end{split}
+    \end{align}
+	where $\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)$ is as defined in  Theorem \ref{thm:main-result}.
+\end{corollary}
+%
+\begin{proof}
+    Since Theorem \ref{thm:main-result} applies for any hyper-posterior, it specifically applies for $\mathcal{Q}=\mathcal{Q}_{1:N}$.
+    Making this substitution in \eqref{eq:main-result-generic} arrives at \eqref{eq:corollary-bound}.
+\end{proof}
 
-An equivalent definition for stochastic kernels that is easier to understand for our setting is:
+\subsection{Hyper-priors with Gibbs base learners are differentially-private} \label{append:proof-dp}
 
+\begin{defn} (Differential privacy) \citep{Dwork2006}
+	Let $S,S'\in \mathcal{Z}^m$ be datasets that differ by a single element.
+	A randomized algorithm $\mathcal{A}$ is called  $\epsilon$-differentially private, denoted $DP(\epsilon)$, if for any $I\subset \mathrm{image}(\mathcal{A})$
+%	
+	$$
+	\mathrm{Pr}(\mathcal{A}(S)\in I)\leq e^\epsilon \mathrm{Pr}(\mathcal{A}(S')\in I) .
+	$$
+\end{defn}\label{def:diff_privacy}
+
+An equivalent definition for stochastic kernels that is easier to understand for our setting is the following. 
+%
 \begin{defn} (Differential privacy)
 	Let $S,S'\in \mathcal{Z}^m$ be datasets that differ by a single element.
 	Let $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{M}(\mathcal{H}))$ be a stochastic kernel.
 	$Q$ is $DP(\epsilon)$ if 
-	
+%	
 	$$\frac{Q(S, A)}{Q(S', A)} \leq e^\epsilon, \;\;\;\; \forall A\in  \mathcal{M}(\mathcal{H})$$
 \end{defn}
 
 \begin{proposition} \label{thm:pair-is-dp-appendix}
 	Let $\mathcal{P}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ be a hyper-prior.
-	Let $l:\mathcal{H}\times \mathcal{Z}\rightarrow [0,1]$ be a bounded loss function.
-	
-	If the base learner $Q\in \mathcal{M}(\mathcal{H})$ is the Gibbs posterior $Q(P, S)(h)\propto P(h)e^{-\beta\hat{\mathcal{L}}(h, S)}$, 
+	Let $\ell:\mathcal{H}\times \mathcal{Z}\rightarrow [0,1]$ be a bounded loss function. If the base learner $Q\in \mathcal{M}(\mathcal{H})$ is the Gibbs posterior $Q(P, S)(h)\propto P(h)e^{-\beta\hat{\mathcal{L}}(h, S)}$, 
 	then the pair hypothesis $(\mathcal{P}, Q)$ satisfies $DP\left (\frac{2\beta}{m}\right )$.
 \end{proposition}
 
 \begin{proof}
-	From Theorem 6 in \citet{McSherry2007}, the Gibbs posterior $Q(P, S)(h)$ satisfies $DP\left (2\beta\Delta L\right )$, where $\Delta L$ is the the largest possible difference  $sup_{h\in\mathcal{H}}\hat{\mathcal{L}}(h,S)-\hat{\mathcal{L}}(h,S')$ for $S,S'$ that differ by one example. Since the loss is bounded in $[0,1]$ and $S,S'$ are of size $m$, we have $\Delta L\leq \frac{1}{m}$, and so the base learner $Q(P, S)(h)$ satisfies $DP\left (\frac{2\beta}{m}\right )$.
-	
+	From Theorem 6 in \citet{McSherry2007}, the Gibbs posterior $Q(P, S)(h)$ satisfies $DP\left (2\beta\Delta L\right )$, where $\Delta L$ is the the largest possible difference  $\sup_{h\in\mathcal{H}}[\hat{\mathcal{L}}(h,S)-\hat{\mathcal{L}}(h,S')]$ for $S,S'$ that differ by one example. Since the loss is bounded in $[0,1]$ and $S,S'$ are of size $m$, we have $\Delta L\leq \frac{1}{m}$, and so the base learner $Q(P, S)(h)$ satisfies $DP\left (\frac{2\beta}{m}\right )$.
 	
 	It remains to prove that for all $(A_1,A_2)\in (\mathcal{M}(\mathcal{M}(\mathcal{H})), \mathcal{M}(\mathcal{H}))$, 
-	$$ \frac{\mathcal{P}(S, A_1)Q(S,A_2)}{\mathcal{P}(S', A_1)Q(S',A_2)}\leq e^{\frac{2\beta}{m}}$$
+	$$ \frac{\mathcal{P}(S, A_1)Q(S,A_2)}{\mathcal{P}(S', A_1)Q(S',A_2)}\leq e^{\frac{2\beta}{m}} .$$
 	
 	From the DP property, 
-	
+%	
 	$$ \frac{\mathcal{P}(S, A_1)Q(S,A_2)}{\mathcal{P}(S', A_1)Q(S',A_2)}\leq \frac{\mathcal{P}(S, A_1)}{\mathcal{P}(S', A_1)}e^{\frac{2\beta}{m}}$$
 	
 	Since $\mathcal{P}$ is a hyper-prior, we assume it is data-free with respect to $S$, and so 
 	$$\mathcal{P}(S, A_1)=\mathcal{P}(S', A_1)=\mathcal{P}(A_1)$$
 	
 \end{proof}
-
 
 \end{document}
