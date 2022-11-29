@@ -140,7 +140,7 @@ Since $\mathcal{D}$ is unknown, we must use the training data $S$ to find a hypo
 
 The PAC-Bayes framework, as formulated by \citet{Mcallester}, takes as input the training data $S$ as well as an inductive bias in the form of a prior distribution $P$ over $\mathcal{H}$. These are then used to construct a \emph{posterior distribution} $Q$ over $\mathcal{H}$, and $h\sim Q$ is then sampled. We define the expected and empirical errors
 \begin{equation*}
-    \mathcal{L}(h, \mathcal{D}) \triangleq \Expect{z\sim \mathcal{D}}{\ell(h,z)} ~;~ \hat{\mathcal{L}}(h, S)\triangleq \frac{1}{m}\sum_{i=1}^{m} \ell(h,z_i)
+    \mathcal{L}(h, \mathcal{D}) \triangleq \Expect{z\sim \mathcal{D}}{\ell(h,z)} ~;~ \hat{\mathcal{L}}(h, S)\triangleq \frac{1}{m}\sum_{i=1}^{m} \ell(h,z_i) .
 \end{equation*}
 In the PAC-Bayes setting we sample $h\sim Q$ and estimate the expected performance over the posterior $Q\in \mathcal{M}(\mathcal{H})$ (the set of distributions over hypotheses). This process results in a randomized algorithm that enables the estimation of the expected and empirical errors for the posterior distributions, 
 \begin{equation*}
@@ -177,9 +177,9 @@ The goal of a meta-learning algorithm is to construct a prior $P$ such that give
 The meta-learning PAC-Bayes framework can thus be seen as learning a hyper-posterior distribution $\mathcal{Q}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$ over priors. Similarly to the single task setting, we assume access to a hyper-prior distribution $\mathcal{P}\in \mathcal{M}(\mathcal{M}(\mathcal{H}))$, as well as training datasets $\{S_1,...,S_N\}$.
 We would like to optimize over $\mathcal{Q}$ in order to minimize the expected \emph{transfer error} 
 $$
-\mathcal{L}(\mathcal{Q}, \tau) \triangleq \Expect{P\sim \mathcal{Q}}{\mathcal{L}(P, \tau)}
+\mathcal{L}(\mathcal{Q}, \tau) \triangleq \Expect{P\sim \mathcal{Q}}{\mathcal{L}(P, \tau)} .
 $$
-Since the true task distribution $\tau$ is unknown, we can use an estimate in the form of the empirical multi-task error $$\hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_N)\triangleq \Expect{P\sim \mathcal{H}}{\frac{1}{N}\sum_{i=1}^{N}\hat{\mathcal{L}}(Q(P, S_i), S_i)}$$
+Since the true task distribution $\tau$ is unknown, we can use an estimate in the form of the empirical multi-task error $$\hat{\mathcal{L}}(\mathcal{Q}, S_1,...,S_N)\triangleq \Expect{P\sim \mathcal{H}}{\frac{1}{N}\sum_{i=1}^{N}\hat{\mathcal{L}}(Q(P, S_i), S_i)} .$$
 A similar approach to the single task case leads us to PAC-Bayes bounds on the transfer error, such as the following.
 
 \begin{theorem} (Meta-learning bound \citep{Amit2018}) \label{thm:meta-pb}
@@ -226,7 +226,7 @@ As we have seen, the meta-learning framework provides us with an informative hyp
 	$$
 	such that the data-dependent $P_S$ is the distribution over $\mathcal{H}$ corresponding to the sampled $S$. Assuming $\xi(P_S, \mathcal{D}, f)$ is finite (see below), then for any posterior $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$, with probability at least $1-\delta$ over the choice of $S\sim \mathcal{D}$
 	\begin{equation} \label{eq:ribasplata-pb}
-	\Expect{h\sim Q_S}{f(S, h)} \leq D_{KL}(Q_S||P_S)+\log\left (\xi(P_S, \mathcal{D}, f)/\delta\right )
+	\Expect{h\sim Q_S}{f(S, h)} \leq D_{KL}(Q_S||P_S)+\log\left (\xi(P_S, \mathcal{D}, f)/\delta\right ) .
 	\end{equation}
 \end{theorem}
 
@@ -240,7 +240,7 @@ One simple setting where this term can be upper bounded is when the prior $P_S$ 
 \begin{align} 
     \mathbb{E}_{h\sim Q_S}&\left [\lambda(\mathcal{L}(h,\mathcal{D})-\hat{\mathcal{L}}(h, S))\right ]
      \leq D_{KL}(Q_S||P_S) \nonumber\\
-    &+\log\left (\frac{1}{\delta}\right ) + \frac{\lambda^2(b-a)^2}{8}
+    &+\log\left (\frac{1}{\delta}\right ) + \frac{\lambda^2(b-a)^2}{8} .
 \end{align}
 
 Notably, this bound is similar to that of \citet{Catoni2004}. Other choices of $f$ result in other traditional PAC-Bayes bounds such as that of \citet{Mcallester} via similar methods (see \citet{Rivasplata2020} for further detail). 
@@ -263,7 +263,7 @@ These data-dependent bounds can be applied to the meta-learning setting, giving 
 	\begin{align*} 
 	\begin{split}
 	&\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq \\
-	&\;\;\;\; \Expect{S\sim \mathcal{D}_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T)-\hat{\mathcal{L}}(h, S)\right )}}
+	&\;\;\;\; \Expect{S\sim \mathcal{D}_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T)-\hat{\mathcal{L}}(h, S)\right )}} .
 	\end{split}
 	\end{align*}
 	
@@ -306,7 +306,7 @@ One class of hyper-posteriors that is especially appealing for analysis given Th
 It is well-known \citep{Catoni2004} that given a specific value for $\lambda$, using Donsker and Varadhan’s variational formula \citep{Donsker1975} provides the hyper-posterior that minimizes the right-hand side of \eqref{eq:main-result-generic}, given by
 %
 \begin{equation*}
-    \mathcal{Q}^{\lambda}_{1:N,T}=\frac{\mathcal{Q}_{1:N}e^{-\lambda\hat{\mathcal{L}}(Q,S_T)}}{\Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\lambda\hat{\mathcal{L}}(Q,S_T)}}}
+    \mathcal{Q}^{\lambda}_{1:N,T}=\frac{\mathcal{Q}_{1:N}e^{-\lambda\hat{\mathcal{L}}(Q,S_T)}}{\Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\lambda\hat{\mathcal{L}}(Q,S_T)}}} .
 \end{equation*}
 The meaning of this result is that given that we know the relative importance of the empirical loss and the KL-divergence, the optimal hyper-posterior that minimizes \eqref{eq:main-result-generic} is the Gibbs hyper-posterior $\mathcal{Q}^{\lambda}_{1:N,T}$.
 
@@ -314,21 +314,21 @@ This property encourages further exploration of the Gibbs hyper-posterior for me
 \begin{equation} \label{eq:aml-post-defn}
 \mathcal{Q}^{\gamma}_{1:N,T}\triangleq \frac{\mathcal{Q}_{1:N}e^{-\gamma\hat{\mathcal{L}}(Q^\beta(P,S_T),S_T)}}{Z_\gamma(S_T, \mathcal{Q}_{1:N})}
 \end{equation} 
-as the Gibbs posterior for the meta-learned problem with meta-normalization term $$Z_\gamma(S_T, \mathcal{Q}_{1:N})\triangleq \Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\gamma\hat{\mathcal{L}}(Q^\beta(P,S_T),S_T)}}.$$
+as the Gibbs posterior for the meta-learned problem with meta-normalization term $$Z_\gamma(S_T, \mathcal{Q}_{1:N})\triangleq \Expect{P\sim \mathcal{Q}_{1:N}}{e^{-\gamma\hat{\mathcal{L}}(Q^\beta(P,S_T),S_T)}} .$$
 
 We have 
 \begin{align*} 
 \begin{split}
 D_{KL}(\mathcal{Q}^{\gamma}_{1:N,T}||\mathcal{Q}_{1:N})&=
 -\gamma\hat{\mathcal{L}}(\mathcal{Q}_{1:N,T}, S_T)\\
-&-\log Z_\gamma(S_T, \mathcal{Q}_{1:N})
+&-\log Z_\gamma(S_T, \mathcal{Q}_{1:N}) .
 \end{split}
 \end{align*}
 
 So plugging these values in \eqref{eq:main-result-generic} gives us
 \begin{align*} 
 \begin{split}
-\mathcal{L}(\mathcal{Q}^{\gamma}_{1:N,T}, \mathcal{D}_T) & \leq \hat{\mathcal{L}}(\mathcal{Q}^{\gamma}_{1:N,T}, S_T) -\frac{\gamma}{\lambda}\hat{\mathcal{L}}(\mathcal{Q}^{\gamma}_{1:N,T}, S_T) \\ &- \frac{1}{\lambda}\log Z_\gamma(S_T, \mathcal{Q}_{1:N})\\ &+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
+\mathcal{L}(\mathcal{Q}^{\gamma}_{1:N,T}, \mathcal{D}_T) & \leq \hat{\mathcal{L}}(\mathcal{Q}^{\gamma}_{1:N,T}, S_T) -\frac{\gamma}{\lambda}\hat{\mathcal{L}}(\mathcal{Q}^{\gamma}_{1:N,T}, S_T) \\ &- \frac{1}{\lambda}\log Z_\gamma(S_T, \mathcal{Q}_{1:N})\\ &+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right ) .
 \end{split}
 \end{align*}
 
@@ -336,7 +336,7 @@ In order to clarify this expression, we will use more intuitive definitions for 
 \begin{defn}
 	The adapted meta-loss (AML) is  
 	\begin{align*} 
-	\hat{\mathcal{L}}_{\mathrm{aml}} &\triangleq  \hat{\mathcal{L}}^{(\gamma,\beta)}(\mathcal{Q}^{\gamma}_{1:N,T}, S_T)\\
+	\hat{\mathcal{L}}_{\mathrm{aml}} 
 	&=\mathbb{E}_{P\sim \mathcal{Q}^{\gamma}_{1:N,T}}\mathbb{E}_{h\sim Q^{\beta}(P,S_T)}\left [\hat{\mathcal{L}}(h, S_T)\right ]
 	\end{align*} 
 	as the fully adapted loss, meaning $S_T$ is used to adapt both the hyper-prior ($\mathcal{Q}_{1:N}$) and the sampled prior. $\hat{\mathcal{L}}_{\mathrm{aml}}$ is a function of both $\gamma$ and $\beta$. The standard meta-loss 
@@ -353,7 +353,7 @@ For brevity, we will omit the $\gamma$ from $\mathcal{Q}^{\gamma}_{1:N,T}$ and $
 \begin{split}
 \mathcal{L}(\mathcal{Q}_{1:N,T}, \mathcal{D}_T) &\leq \hat{\mathcal{L}}_{\mathrm{aml}} -\frac{\gamma}{\lambda}\hat{\mathcal{L}}_{\mathrm{aml}} \\
 &- \frac{1}{\lambda}\log \mathbb{E}_{P\sim \mathcal{Q}_{1:N}}\left [e^{-\gamma\hat{\mathcal{L}}(Q(P,S_T),S_T)}\right ]\\
-&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
+&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right ) .
 \end{split}
 \end{align*}
 
@@ -368,7 +368,7 @@ By simplifying the third term using Jensen's inequality , we arrive at the follo
 	\begin{split}
 	\mathcal{L}(\mathcal{Q}_{1:N,T}, \mathcal{D}_T) &\leq 
 	(1-\frac{\gamma}{\lambda})\hat{\mathcal{L}}_{\mathrm{aml}} + \frac{\gamma}{\lambda}\hat{\mathcal{L}}_{\mathrm{ml}} \\
-	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
+	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right ) .
 	\end{split}
 	\end{align}
 \end{corollary}
@@ -407,7 +407,7 @@ Doing so gives the upper bound
 \end{split}
 \end{align}
 
-where $\bar{\xi}_{\mathrm{kl}}\triangleq \bar{\xi}(\mathcal{Q}_{1:N}, \mathcal{D}_T,\lambda, \mathrm{kl}) $
+where $\bar{\xi}_{\mathrm{kl}}\triangleq \bar{\xi}(\mathcal{Q}_{1:N}, \mathcal{D}_T,\lambda, \mathrm{kl}) .$
 
 If the base learner $Q$ is the Gibbs posterior, the moment term of  \eqref{eq:generic-kl-bound} can be meaningfully bounded. To do so, we make use of the notion of differential privacy at scale $\epsilon$, $DP(\epsilon)$ (see Definition \ref{def:diff_privacy} in the appendix).
 
@@ -431,8 +431,8 @@ By making use of Theorem 4.2 in \citet{Dziugaite2018} as well as  \eqref{eq:gene
 %
 	\begin{align*} 
 	\begin{split}
-	\mathrm{kl}(\hat{\mathcal{L}}(\mathcal{Q},S)||\mathcal{L}(\mathcal{Q},S&))\leq \frac{2\beta^2}{m^2}+\frac{\beta}{m}\sqrt{\frac{2\log (4/\delta_T)}{m}} \\
-	&+\frac{1}{m}\left (D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N})+\log\frac{4\sqrt{m}}{\delta_T} \right )
+	\mathrm{kl}(\hat{\mathcal{L}}(\mathcal{Q},S_T)||\mathcal{L}(&\mathcal{Q},\mathcal{D}_T))\leq \frac{2\beta^2}{m^2}+\frac{\beta}{m}\sqrt{\frac{2\log (4/\delta_T)}{m}} \\
+	&+\frac{1}{m}\left (D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N})+\log\frac{4\sqrt{m}}{\delta_T} \right ) .
 	\end{split}
 	\end{align*}
 	
@@ -673,7 +673,7 @@ We restate Theorem \ref{thm:rivasplata-pb} for stochastic kernels.
 	$$
 	such that $P_S$ is the distribution over $\mathcal{H}$ corresponding to the sampled $S$. Assuming $\xi(P_S, \mathcal{D}, f)$ is finite, then for any $\delta \in (0,1)$ and any posterior $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{H})$, with probability at least $1-\delta$ over the choice of $S\sim \mathcal{D}$,
 	\begin{equation} \label{eq:ribasplata-pb-appendix}
-	\Expect{h\sim Q_S}{f(S, h)} \leq D_{KL}(Q_S||P_S)+\log\left (\xi(P_S, \mathcal{D}, f)/\delta\right )
+	\Expect{h\sim Q_S}{f(S, h)} \leq D_{KL}(Q_S||P_S)+\log\left (\xi(P_S, \mathcal{D}, f)/\delta\right ) .
 	\end{equation}
 \end{theorem}
 %
@@ -685,7 +685,7 @@ Next, we restate and prove Theorem \ref{thm:main-result}.
 	\begin{align}
 	\begin{split}
 	\mathcal{L}(\mathcal{Q}, \mathcal{D}_T) &\leq \hat{\mathcal{L}}(\mathcal{Q}, S_T) + \frac{1}{\lambda}D_{KL}(\mathcal{Q}||\mathcal{Q}_{1:N})\\
-	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
+	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right ) ,
 	\end{split}
 	\end{align}
 	
@@ -693,7 +693,7 @@ Next, we restate and prove Theorem \ref{thm:main-result}.
 	\begin{align} \label{eq:tilde_xi}
 	\begin{split}
 	&\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)\triangleq \\
-	&\;\;\;\; \Expect{S\sim \mathcal{D}_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T)-\hat{\mathcal{L}}(h, S)\right )}}
+	&\;\;\;\; \Expect{S\sim \mathcal{D}_T, P\sim \mathcal{Q}_{1:N}, h\sim Q(P,S)}{e^{\lambda\left (\mathcal{L}(h, \mathcal{D}_T)-\hat{\mathcal{L}}(h, S)\right )}} .
 	\end{split}
 	\end{align}
 \end{theorem}
@@ -748,7 +748,7 @@ Next, we restate and prove Theorem \ref{thm:main-result}.
 	\begin{equation} \label{eq:appendix-proof-eq-2}
 	\begin{split}
 	\mathcal{L}(\mathcal{Q}_{S_T},\mathcal{D}_T) &\leq \hat{\mathcal{L}}(\mathcal{Q}_{S_T},S_T)\\ &+\frac{1}{\lambda} D_{KL}((\mathcal{Q}_{S_T}, Q_{S_T})||(\mathcal{Q}_{1:N}, Q_{S_T})) \\
-	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
+	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right ) .
 	\end{split}
 	\end{equation}
 	
@@ -760,7 +760,7 @@ Next, we restate and prove Theorem \ref{thm:main-result}.
 	&=\Expect{(P,h)\sim (\mathcal{Q}_{S_T},Q_{S_T})}{\log\frac{\mathcal{Q}_{S_T}(P)Q(P, S_T)(h)}{\mathcal{Q}_{1:N}(P)Q(P, S_T)(h)}}\\
 	&=\mathbb{E}_{P\sim \mathcal{Q}_{S_T}}\Expect{h\sim Q(P,S_T)}{\log\frac{\mathcal{Q}_{S_T}(P)}{\mathcal{Q}_{1:N}(P)}}\\
 	&=\Expect{P\sim \mathcal{Q}_{S_T}}{\log\frac{\mathcal{Q}_{S_T}(P)}{\mathcal{Q}_{1:N}(P)}}\\
-	&=D_{KL}(\mathcal{Q}_{S_T}||\mathcal{Q}_{1:N})
+	&=D_{KL}(\mathcal{Q}_{S_T}||\mathcal{Q}_{1:N}) .
 	\end{split}
 	\end{align*}
 	
@@ -771,7 +771,7 @@ Next, we restate and prove Theorem \ref{thm:main-result}.
 	\begin{align*}
 	\begin{split}
 	\mathcal{L}(\mathcal{Q}_{S_T}, \mathcal{D}_T)) &\leq \hat{\mathcal{L}}(\mathcal{Q}_{S_T}, S_T) + \frac{1}{\lambda}D_{KL}(\mathcal{Q}_{S_T}||\mathcal{Q}_{1:N})\\
-	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
+	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right ) .
 	\end{split}
 	\end{align*}
 	\end{proof}
@@ -784,7 +784,7 @@ Next, we restate and prove Theorem \ref{thm:main-result}.
     \begin{align} \label{eq:corollary-bound}
     \begin{split}
     \mathcal{L}(\mathcal{Q}_{1:N}, \mathcal{D}_T) &\leq \hat{\mathcal{L}}(\mathcal{Q}_{1:N}, S_T)\\
-	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right )
+	&+\frac{1}{\lambda}\log\left (\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)/\delta_T\right ) ,
     \end{split}
     \end{align}
 	where $\tilde{\xi}(\lambda,\mathcal{Q}_{1:N},\mathcal{D}_T)$ is as defined in  Theorem \ref{thm:main-result}.
@@ -813,7 +813,7 @@ An equivalent definition for stochastic kernels that is easier to understand for
 	Let $Q\in \mathcal{K}(\mathcal{Z}^m, \mathcal{M}(\mathcal{H}))$ be a stochastic kernel.
 	$Q$ is $DP(\epsilon)$ if 
 %	
-	$$\frac{Q(S, A)}{Q(S', A)} \leq e^\epsilon, \;\;\;\; \forall A\in  \mathcal{M}(\mathcal{H})$$
+	$$\frac{Q(S, A)}{Q(S', A)} \leq e^\epsilon, \;\;\;\; \forall A\in  \mathcal{M}(\mathcal{H}) .$$
 \end{defn}
 
 \begin{proposition} \label{thm:pair-is-dp-appendix}
@@ -830,10 +830,10 @@ An equivalent definition for stochastic kernels that is easier to understand for
 	
 	From the DP property, 
 %	
-	$$ \frac{\mathcal{P}(S, A_1)Q(S,A_2)}{\mathcal{P}(S', A_1)Q(S',A_2)}\leq \frac{\mathcal{P}(S, A_1)}{\mathcal{P}(S', A_1)}e^{\frac{2\beta}{m}}$$
+	$$ \frac{\mathcal{P}(S, A_1)Q(S,A_2)}{\mathcal{P}(S', A_1)Q(S',A_2)}\leq \frac{\mathcal{P}(S, A_1)}{\mathcal{P}(S', A_1)}e^{\frac{2\beta}{m}} .$$
 	
 	Since $\mathcal{P}$ is a hyper-prior, we assume it is data-free with respect to $S$, and so 
-	$$\mathcal{P}(S, A_1)=\mathcal{P}(S', A_1)=\mathcal{P}(A_1)$$
+	$$\mathcal{P}(S, A_1)=\mathcal{P}(S', A_1)=\mathcal{P}(A_1) .$$
 	
 \end{proof}
 
