@@ -24,6 +24,7 @@ def run_meta_learnerPB(
         n_test_epochs,
         gamma,
         load_trained,
+        is_adaptive,
         mnist_pixels_to_permute_train=0,
         mnist_pixels_to_permute_test=0,
         seed=1):
@@ -38,7 +39,7 @@ def run_meta_learnerPB(
                                  train_ways=n_ways,
                                  test_shots=shots_mult * n_shots,
                                  test_ways=n_ways,
-                                 shuffle_pixels=True, permute_labels=False, n_pixels_to_change_train=mnist_pixels_to_permute_train,
+                                 shuffle_pixels=False, permute_labels=True, n_pixels_to_change_train=mnist_pixels_to_permute_train,
                                  n_pixels_to_change_test=mnist_pixels_to_permute_test) #-1 shuffles all
     else:
         task_sets = l2l.vision.benchmarks.get_tasksets(
@@ -80,9 +81,9 @@ def run_meta_learnerPB(
         seed,
         n_ways,
         gamma,
-        reset_clf_on_meta_loop, stochastic_model, stochastic_ctor, shots_mult)
+        reset_clf_on_meta_loop, stochastic_model, stochastic_ctor, shots_mult, is_adaptive)
 
-    stochastic_model_name = f"artifacts/{dataset}/stochastic_model.pkl"
+    stochastic_model_name = f"artifacts/{dataset}/stochastic_model_permute.pkl"
     os.makedirs(f"artifacts/{dataset}", exist_ok=True)
 
     if load_trained:

@@ -1,7 +1,7 @@
 program: ./main_double_sgld.py
 method: grid
 name: averaged-sweep
-project: meta-pb-simple-adaptive-fixed3
+project: meta-pb-simple-adaptive-fixed-sgd
 parameters:
   dataset:
     value: "mnist"
@@ -34,7 +34,7 @@ parameters:
     value: 100
 
   n_test_epochs:
-    value: 10
+    values: [5,10]
 
   model_num:
     values: [19,21]
@@ -44,7 +44,7 @@ parameters:
     #values: [1000.0, 10000.0, 5000.0, 10000000000.0]
 
   gamma:
-    values: [1000.0]
+    values: [5000.0]
     #values: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0]
 
   load_trained_model:

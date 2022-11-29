@@ -1,3 +1,5 @@
+import math
+
 import torch
 import copy
 import numpy as np
@@ -6,9 +8,12 @@ from learn2learn.utils import clone_module
 from learn2learn.vision.models import ConvBase
 
 import models.stochastic_models
+import os
 
 from optimizers.sgld_variant_optim import SimpleSGLDPriorSampling
-from utils.complexity_terms import get_hyper_divergnce, get_meta_complexity_term, get_task_complexity
+from prior_analysis_graph import run_prior_analysis
+from utils.complexity_terms import get_hyper_divergnce, get_meta_complexity_term, get_task_complexity, \
+    get_net_densities_divergence
 
 
 def accuracy(predictions, targets):
@@ -54,7 +59,8 @@ class MetaLearnerFairPB(object):
             reset_clf_on_meta_loop,
             stochastic_model,
             stochastic_ctor,
-            shots_mult
+            shots_mult,
+            adaptive
     ):
 
         self.meta_batch_size = meta_batch_size
@@ -63,7 +69,7 @@ class MetaLearnerFairPB(object):
         self.device = device
         self.loss = f_loss
         # self.test_opt = SimpleSGLDPriorSampling(self.maml.parameters(), meta_lr, beta=gamma)
-        #self.test_opt = torch.optim.Adam(self.maml.parameters(), meta_lr)
+        # self.test_opt = torch.optim.Adam(self.maml.parameters(), meta_lr)
         self.test_opt = torch.optim.Adam
         self.test_opt_params = {"lr": per_task_lr}
         self.seed = seed
@@ -72,6 +78,10 @@ class MetaLearnerFairPB(object):
         self.stochastic_model = stochastic_model
         self.stochastic_ctor = stochastic_ctor
         self.shots_mult = shots_mult
+
+        self.is_adaptive_prior = adaptive
+        self.use_training_prior = adaptive
+        self.analyze_layer_variance = False
 
     def calculate_meta_loss(self, task_batch, learner, adapt_steps):
         D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval = self.split_adapt_eval(task_batch)
@@ -107,6 +117,7 @@ class MetaLearnerFairPB(object):
         return D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval
 
     def meta_train_pb_bound(self, n_epochs, train_taskset):
+        os.makedirs("./artifacts/trainsets", exist_ok=True)
         for epoch in range(n_epochs):
             self.stochastic_model.train()
             # make posterior models
@@ -115,7 +126,7 @@ class MetaLearnerFairPB(object):
             all_post_param = sum([list(posterior_model.parameters()) for posterior_model in posterior_models], [])
             prior_params = list(self.stochastic_model.parameters())
             all_params = all_post_param + prior_params
-            optimizer = self.test_opt(all_params, **self.test_opt_params) # TODO: clean code
+            optimizer = self.test_opt(all_params, **self.test_opt_params)  # TODO: clean code
             for step in range(self.train_adapt_steps):
                 hyper_dvrg = get_hyper_divergnce(var_prior=1e2, var_posterior=1e-3, prior_model=self.stochastic_model,
                                                  device=self.device)
@@ -124,6 +135,7 @@ class MetaLearnerFairPB(object):
                 complexities = torch.zeros(self.meta_batch_size, device=self.device)
                 for i, task in enumerate(range(self.meta_batch_size)):
                     batch = train_taskset.sample()
+                    torch.save(batch, f"./artifacts/trainsets/{epoch},{i}.pt")
                     losses[i], complexities[i] = self.get_pb_terms_single_task(
                         batch[0].to(self.device), batch[1].to(self.device),
                         self.stochastic_model, posterior_models[i],
@@ -140,8 +152,17 @@ class MetaLearnerFairPB(object):
             D_test_batch, train_frac=self.shots_mult)
 
         self.stochastic_model.train()
+        if self.analyze_layer_variance:
+            run_prior_analysis(self.stochastic_model, False, save_path="./hyper-prior_model")
+
+        # Hyper-KL from hyper-prior, const (data-free)
+        orig_hyper_prior = clone_model(self.stochastic_model, self.stochastic_ctor, self.device)
+        base_hyper_prior = clone_model(self.stochastic_model, self.stochastic_ctor, self.device)
 
         for epoch in range(test_meta_epochs):
+            # Hyper-KL from hyper-prior, each loop (data-dependent)
+            if self.is_adaptive_prior:
+                base_hyper_prior = clone_model(self.stochastic_model, self.stochastic_ctor, self.device)
             # make posterior models
             posterior_models = [clone_model(self.stochastic_model, self.stochastic_ctor, self.device)
                                 for i in range(self.meta_batch_size)]
@@ -149,9 +170,12 @@ class MetaLearnerFairPB(object):
             prior_params = list(self.stochastic_model.parameters())
             all_params = all_post_param + prior_params
             optimizer = self.test_opt(all_params, **self.test_opt_params)
-            for step in range(self.test_adapt_steps):
-                hyper_dvrg = get_hyper_divergnce(var_prior=1e2, var_posterior=1e-3, prior_model=self.stochastic_model,
-                                                 device=self.device)
+            for step in range(self.train_adapt_steps):
+                if self.use_training_prior:
+                    hyper_dvrg = get_net_densities_divergence(base_hyper_prior, self.stochastic_model, prm=1e-3)
+                else:  # low norm
+                    hyper_dvrg = get_hyper_divergnce(var_prior=1e2, var_posterior=1e-3,
+                                                     prior_model=self.stochastic_model, device=self.device)
                 meta_complex_term = get_meta_complexity_term(hyper_dvrg, delta=0.1, n_train_tasks=self.meta_batch_size)
                 pb_objective = self.get_pb_objective(D_task_xs_adapt, D_task_ys_adapt, hyper_dvrg,
                                                      meta_complex_term, posterior_models)
@@ -159,6 +183,8 @@ class MetaLearnerFairPB(object):
                 pb_objective.backward()
                 optimizer.step()
 
+        if self.analyze_layer_variance:
+            run_prior_analysis(self.stochastic_model, False, save_path="./hyper-posterior_model")
         prior = clone_model(self.stochastic_model, self.stochastic_ctor, self.device)
         optimizer = self.test_opt(self.stochastic_model.parameters(), **self.test_opt_params)
         for step in range(self.test_adapt_steps):
@@ -175,11 +201,35 @@ class MetaLearnerFairPB(object):
                                                                        (D_task_xs_error_eval, D_task_ys_error_eval),
                                                                        self.loss)
 
+        err_bound, acc_bound = self.calculate_pb_bound(D_task_xs_adapt, D_task_ys_adapt, orig_hyper_prior)
+
+        if False:
+            forgetting_score = self.measure_forgetting_score()
+        else:
+            forgetting_score = -1
+
         # Logging
         print('Meta Test Error', evaluation_error.item(), flush=True)
         print('Meta Test Accuracy', evaluation_accuracy.item(), flush=True)
+        print('Error bound', err_bound.item(), flush=True)
+        print('Accuracy bound', acc_bound.item(), flush=True)
+        print('Forgetting', forgetting_score, flush=True)
 
-        return evaluation_error.item(), evaluation_accuracy.item()
+        return evaluation_error.item(), evaluation_accuracy.item(), err_bound.item(), acc_bound.item(), forgetting_score
+
+    def calculate_pb_bound(self, D_task_xs_adapt, D_task_ys_adapt, orig_hyper_prior, delta=0.1):
+        trn_error, trn_acc = run_eval_max_posterior(self.stochastic_model, (D_task_xs_adapt, D_task_ys_adapt),
+                                                    self.loss)
+        if self.use_training_prior:
+            hyper_kl = get_net_densities_divergence(orig_hyper_prior, self.stochastic_model, prm=1e-3)
+        else:
+            hyper_kl = get_hyper_divergnce(var_prior=1e2, var_posterior=1e-3,
+                                           prior_model=self.stochastic_model, device=self.device)
+        m = len(D_task_ys_adapt)
+        complexity_term = torch.sqrt((hyper_kl - math.log(2 * m / delta)) / (2 * m - 1))
+        acc_bound = trn_acc - complexity_term
+        err_bound = trn_error + complexity_term
+        return err_bound, acc_bound
 
     def get_pb_objective(self, x_data, y_data, hyper_dvrg, meta_complex_term, posterior_models):
         losses = torch.zeros(self.meta_batch_size, device=self.device)
@@ -190,12 +240,15 @@ class MetaLearnerFairPB(object):
             D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval = self.split_adapt_eval(
                 batch)
 
-            losses[i], complexities[i] = self.get_pb_terms_single_task(D_task_xs_error_eval, D_task_ys_error_eval,
+            # losses[i], complexities[i] = self.get_pb_terms_single_task(D_task_xs_error_eval, D_task_ys_error_eval,
+            #                                                            self.stochastic_model, posterior_models[i],
+            #                                                            hyper_dvrg=hyper_dvrg,
+            #                                                            n_tasks=self.meta_batch_size)
+            losses[i], complexities[i] = self.get_pb_terms_single_task(x_data, y_data,
                                                                        self.stochastic_model, posterior_models[i],
                                                                        hyper_dvrg=hyper_dvrg,
                                                                        n_tasks=self.meta_batch_size)
-        # loss to KL ratio is bad, adaptation with 100*loss worked
-        pb_objective = losses.mean() + complexities.mean() + meta_complex_term
+        pb_objective = losses.mean() + complexities.mean()
         return pb_objective
 
     def get_pb_terms_single_task(self, x, y, prior, posterior, hyper_dvrg=0, n_tasks=1):
@@ -205,8 +258,7 @@ class MetaLearnerFairPB(object):
         for i_MC in range(n_MC):
             # Empirical Loss on current task:
             outputs = posterior(x)
-            #avg_empiric_loss_curr = (1 / n_samples) * self.loss(outputs, y)
-            avg_empiric_loss_curr =1*  self.loss(outputs, y)
+            avg_empiric_loss_curr = 1 * self.loss(outputs, y)
             avg_empiric_loss += (1 / n_MC) * avg_empiric_loss_curr
 
         # TODO: we can optimize the bound using x_adapt, y_adapt...
@@ -215,3 +267,31 @@ class MetaLearnerFairPB(object):
                                          n_samples=n_samples, avg_empiric_loss=avg_empiric_loss, hyper_dvrg=hyper_dvrg,
                                          n_train_tasks=n_tasks, noised_prior=True)
         return avg_empiric_loss, complexity
+
+    def measure_forgetting_score(self):
+        sum_forgetting = 0
+        for fullpath, _, datasets in os.walk("./artifacts/trainsets/"):
+            for dataset_path in datasets:
+                batch = torch.load(fullpath + dataset_path)
+                D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval = self.split_adapt_eval(
+                    batch)
+
+                prior = clone_model(self.stochastic_model, self.stochastic_ctor, self.device)
+                optimizer = self.test_opt(self.stochastic_model.parameters(), **self.test_opt_params)
+                for step in range(self.test_adapt_steps):
+                    loss, complexity = self.get_pb_terms_single_task(D_task_xs_adapt, D_task_ys_adapt,
+                                                                     prior, self.stochastic_model)
+                    pb_objective = loss + complexity
+
+                    optimizer.zero_grad()
+                    pb_objective.backward()
+                    optimizer.step()
+
+                # Evaluate the adapted model
+                evaluation_error, evaluation_accuracy = run_eval_max_posterior(self.stochastic_model,
+                                                                               (D_task_xs_error_eval,
+                                                                                D_task_ys_error_eval),
+                                                                               self.loss)
+                sum_forgetting += 1 - evaluation_accuracy.item()
+            mean_forgetting = sum_forgetting / len(datasets)
+            return mean_forgetting

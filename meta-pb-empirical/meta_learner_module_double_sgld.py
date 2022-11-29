@@ -9,6 +9,7 @@ from torch.autograd import grad
 
 from optimizers.sgld_variant_optim import SimpleSGLDPriorSampling
 
+LAMBDA = 0.01
 
 def accuracy(predictions, targets):
     predictions = predictions.argmax(dim=1).view(targets.shape)
@@ -55,6 +56,7 @@ class MetaLearnerDoubleSGLD(object):
         self.reset_clf_on_meta_loop = reset_clf_on_meta_loop
         self.shots_mult = shots_mult
         self.adaptive_gamma = True
+        self.weight_decay = True
 
     def calculate_meta_loss(self, task_batch, learner, adapt_steps, use_sgd=True):
         split_data = self.split_adapt_eval(task_batch)
@@ -105,6 +107,11 @@ class MetaLearnerDoubleSGLD(object):
         # Adapt the model
         for step in range(adapt_steps):
             adaptation_error = self.loss(learner(D_task_xs_adapt), D_task_ys_adapt)
+            if self.weight_decay:
+                l2_reg = 0
+                for param in learner.parameters():
+                    l2_reg += torch.norm(param)
+                adaptation_error += LAMBDA * l2_reg
             if use_sgd:
                 learner.adapt(adaptation_error)
             else:
@@ -214,7 +221,7 @@ class MetaLearnerDoubleSGLD(object):
         learner = self.maml.clone()
         evaluation_error, evaluation_accuracy = self.adapt_model(
             (D_task_xs_adapt, D_task_xs_error_eval, D_task_ys_adapt, D_task_ys_error_eval),
-            learner, self.test_adapt_steps, use_sgd=False)
+            learner, self.test_adapt_steps, use_sgd=True)
         del learner
 
         # Logging

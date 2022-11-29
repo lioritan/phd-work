@@ -9,11 +9,11 @@ def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', default="mnist", choices=["mini-imagenet", "omniglot", "mnist"],
                         help="Dataset to use.")
-    parser.add_argument('--train_sample_size', default=10, type=int,
+    parser.add_argument('--train_sample_size', default=100, type=int,
                         help="Number of training examples in the inner loop at meta-train time")
     parser.add_argument('--n_ways', default=5, type=int,
                         help="Number of candidate labels (classes) at meta-test time")
-    parser.add_argument('--n_shots', default=10, type=int,
+    parser.add_argument('--n_shots', default=2, type=int,
                         help="Number of training examples in the inner loop at meta-test time")
     parser.add_argument('--per_task_lr', default=1e-1, type=float,
                         help="Per task LR for adaptation, should be high")
@@ -37,11 +37,11 @@ def get_parser():
                         help="Base-posterior gibbs parameter")
     parser.add_argument('--load_trained_model', default=True, type=bool,
                         help="Load pretrained model")
-    parser.add_argument('--model_num', default=21, type=int,
+    parser.add_argument('--model_num', default=23, type=int,
                         help="number for model loading")
-    parser.add_argument('--mnist_pixels_to_permute_train', default=100, type=int,
+    parser.add_argument('--mnist_pixels_to_permute_train', default=300, type=int,
                         help="permutes for mnist")
-    parser.add_argument('--mnist_pixels_to_permute_test', default=100, type=int,
+    parser.add_argument('--mnist_pixels_to_permute_test', default=300, type=int,
                         help="permutes for mnist")
     parser.add_argument('--large_test_set', default=True, type=bool,
                         help="Have a bigger test set to lower noise")
@@ -77,7 +77,7 @@ def run_experiment(args):
 
 if __name__ == "__main__":
     args = get_parser().parse_args()
-    wandb.init(project="meta-pb-simple-adaptive-fixed2")
+    wandb.init(project="meta-pb-simple-adaptive-inet")
     wandb.config.update(args)
 
     if not args.load_trained_model:

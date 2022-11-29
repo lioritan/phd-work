@@ -1,7 +1,7 @@
 program: ./main_pb.py
 method: grid
 name: averaged-sweep
-project: meta-pb-stoch17
+project: meta-pb-stoch29l
 parameters:
   dataset:
     value: "mnist"
@@ -13,7 +13,7 @@ parameters:
     value: 5
 
   n_shots:
-    values: [2, 5, 10, 15, 20, 30, 40, 50]
+    values: [5, 10, 20, 50]
 
   per_task_lr:
     value: 0.1
@@ -25,16 +25,16 @@ parameters:
     value: 8
 
   train_adapt_steps:
-    value: 5
+    value: 50
 
   test_adapt_steps:
-    value: 1050
+    values: [50]
 
   n_epochs:
     value: 100
 
   n_test_epochs:
-    values: [0]
+    values: [40]
 
   beta:
     value: 1.0
@@ -46,8 +46,11 @@ parameters:
   load_trained_model:
     value: True
 
+  is_adaptive:
+    values: [True, False]
+
   mnist_pixels_to_permute_test:
-    value: 100
+    value: 0
 
   seed:
     values: [42, 1337, 7, 13, 999, 752, 56789, 145790, 11, 306050]
