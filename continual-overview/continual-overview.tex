@@ -1,0 +1,126 @@
+\documentclass[letterpaper]{article}
+
+% AAAI-style 2-per-page format, without the annoying bits
+\setlength\topmargin{-0.25in} \setlength\oddsidemargin{-0.25in}
+\setlength\textheight{9.0in} \setlength\textwidth{7.0in}
+\setlength\columnsep{0.375in} \newlength\titlebox \setlength\titlebox{2.25in}
+\setlength\headheight{0pt}  \setlength\headsep{0pt}
+\flushbottom \sloppy
+
+\pdfpagewidth=8.5in
+\pdfpageheight=11in
+
+\usepackage{natbib}
+
+\usepackage{times} 
+\usepackage{helvet}  
+\usepackage{courier}  
+\usepackage{url}  
+\usepackage{graphicx} 
+
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+
+
+\usepackage{multirow}
+\usepackage{ctable}
+\usepackage{color}
+\usepackage{natbib}
+\usepackage[normalem]{ulem}
+
+
+\usepackage{romannum}
+
+%\usepackage[style=authoryear]{biblatex}
+
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black, % color for table of contents
+	citecolor=black, % color for citations
+	urlcolor=blue, % color for hyperlinks
+	bookmarks=true,
+}
+\urlstyle{same}
+
+
+
+
+\raggedbottom %nicer enumerate
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{hypothesis}{Hypothesis}[section]
+\newtheorem{assumption}{Assumption}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Summary of continual and lifelong learning frontiers}
+\begin{document}
+	
+	\pagenumbering{arabic}
+	\maketitle
+	
+	
+\section{Introduction}
+	
+
+\section{Literature review}
+
+TODO
+- classical transfer learning and bounds
+- PAC-Bayes and domain adaptation \citep{germain2020pac}
+- PAC-Bayesian Domain Adaptation Bounds for Multiclass Learners \citep{sicilia2022pac}
+- Beyond $\mathcal{H}$-Divergence: Domain Adaptation Theory With Jensen-Shannon Divergence \citep{shui2020beyond}
+- Gap Minimization for Knowledge Sharing and Transfer \citep{wang2022gap}
+- A Theory for Knowledge Transfer in Continual Learning \citep{benavides2022theory}
+- Online PAC-Bayes Learning \citep{haddouche2022online}
+
+Papers specific to linear regression and transfer/meta/continual
+
+\subsection{Problem variations}
+
+Task/data order:
+\begin{itemize}
+	\item $i.i.d.$
+	\item Predictable
+	\item Curriculum
+	\item Adversarial
+\end{itemize}
+
+Settings: $P_{x,y}$ identical, $P_x$ identical and $P_{y|x}$ differs, complete difference.
+
+Task boundaries: discrete or continuous, known or unknown.
+
+Usual metrics:
+Regret $$REGRET_T = \sum_{t=1}^{T}\mathcal{L}_t(\theta_t)-\min_\theta \sum_{t=1}^{T}\mathcal{L}_t(\theta)$$
+Cannot be calculated in practice, want sub-linear regret (in $t$).
+
+Backwards transfer: new task improves old tasks compared to learning from scratch, Forward transfer: old tasks improve compared to learning from scratch.
+
+\subsection{Common known approaches}
+\begin{itemize}
+	\item Follow the leader - store all data seen and train on it, fine tune to task
+	\item Gradient step on new data (no memory, negative backwards transfer aka forgetting)
+	\item Store little data per task, make sure we don't unlearn (minimize loss subject to no decrease on all previous tasks)
+	\item Follow the meta-leader - store all data seen and meta-train on it
+\end{itemize}
+
+\section{Specific problem formulation: PAC-Bayes forgetting}
+	
+\subsection{Notation and preliminaries}
+
+\begin{defn}
+	The expected loss of a given hypothesis $h\in \mathcal{H}$ is defined as $\mathcal{L}(h, D) \triangleq E_{z\in \mathcal{D}} \ell(h, z)$. The empirical loss of a hypothesis w.\!r.\!t.\! a sample $S\in \mathcal{D}$ is defined as $\hat{\mathcal{L}}(h, S) \triangleq \frac{1}{m}\sum_{j=1}^{m}\ell(h, z_j)$.
+\end{defn}
+
+
+
+
+\clearpage
+\bibliographystyle{plainnat}
+\bibliography{library}
+
+\end{document}
