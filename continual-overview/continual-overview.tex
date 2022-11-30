@@ -78,7 +78,11 @@ TODO
 - A Theory for Knowledge Transfer in Continual Learning \citep{benavides2022theory}
 - Online PAC-Bayes Learning \citep{haddouche2022online}
 
-Papers specific to linear regression and transfer/meta/continual
+Papers specific to linear regression/NTK and transfer/meta/continual
+- How catastrophic can catastrophic forgetting be in linear regression? \citep{evron2022catastrophic}
+- Generalisation guarantees for continual learning with orthogonal gradient descent \citep{bennani2020generalisation}
+- Learning Curves for Continual Learning in Neural Networks: Self-Knowledge Transfer and Forgetting \citep{karakida2021learning}
+- Curriculum learning by transfer learning: Theory and experiments with deep networks \citep{weinshall2018curriculum}
 
 \subsection{Problem variations}
 
@@ -113,11 +117,104 @@ Backwards transfer: new task improves old tasks compared to learning from scratc
 \subsection{Notation and preliminaries}
 
 \begin{defn}
+	A task environment $\tau$ is a distribution over tasks $\mathcal{D}\sim \tau$. A task $\mathcal{D}$ is a probability distribution over $\mathcal{X}\times \mathcal{Y}$.
+\end{defn}
+
+\begin{defn}
+	A set of $n$ tasks $\{\mathcal{D}_1,\ldots,\mathcal{D}_n\}$ is called $\mathcal{F}$-related if there exists a set of transformations $\mathcal{F}\triangleq\{f|f:\mathcal{X}\rightarrow\mathcal{X}\}$ such that $\forall\mathcal{D}_i,\mathcal{D}_j \exists f\in\mathcal{F}: f(\mathcal{D}_i)=\mathcal{D}_j$.
+	A set of samples $\{S_1~\mathcal{D}_1,\ldots,S_n~\mathcal{D}_n\}$ is called $\mathcal{F}$-related if the underlaying tasks $\{\mathcal{D}_1,\ldots,\mathcal{D}_n\}$ are $\mathcal{F}$-related.
+\end{defn}
+
+\begin{defn}
+	A hypothesis $h$ is a function $h:\mathcal{X}\rightarrow\mathcal{Y}$. A family of hypotheses is marked $\mathbb{H}$. We assume that $\mathbb{H}$ is closed under $\mathcal{F}$. Let $\mathcal{H}$ be a family of hypothesis spaces that consist of sets of hypotheses $[h]$ that are equivalent up to transformations in $\mathcal{F}$. 
+	
+	If $\mathcal{F}$ is a group over $\mathbb{H}$, then we consider $\mathcal{H}=\{[h]:[h]\in\mathbb{H}\}$ be the family of all equivalence classes of $\mathbb{H}$ under $\sim_\mathcal{F}$ (there exists $f\in\mathcal{F}$ such that we can transform one hypothesis to another using it).
+\end{defn}
+
+\begin{defn}
 	The expected loss of a given hypothesis $h\in \mathcal{H}$ is defined as $\mathcal{L}(h, D) \triangleq E_{z\in \mathcal{D}} \ell(h, z)$. The empirical loss of a hypothesis w.\!r.\!t.\! a sample $S\in \mathcal{D}$ is defined as $\hat{\mathcal{L}}(h, S) \triangleq \frac{1}{m}\sum_{j=1}^{m}\ell(h, z_j)$.
 \end{defn}
 
+\subsection{Problem definition - without meta-learning} \label{sec:forgetting-formulation}
+
+Let us first consider only two tasks $\mathcal{D}_s, \mathcal{D}_t$. Let us mark $Q_s$ be a distribution over the set of hypotheses learned by some process $J_s$ over $S_s\sim \mathcal{D}_s$ and a data-free prior hypothesis distribution $P$ such that $$Q_s=J_s(S_s, P).$$ We then proceed to utilize another process $J_t$ such that $$Q_{st}=J_t(S_t, Q_s).$$ 
+
+\begin{defn}
+	The backwards transfer of $Q_{st}$ on task $\mathcal{D}_s$ is defined as $$\mathrm{BWT}(Q_{st}, \mathcal{D}_s) \triangleq \mathbb{E}_{h\in Q_{st}}\left [\mathcal{L}(h, \mathcal{D}_s)\right ].$$
+	
+	The negative transfer of $Q_{st}$ on task $\mathcal{D}_s$ is defined as $$F(Q_{st}, \mathcal{D}_s) \triangleq \mathrm{BWT}(Q_{st}, \mathcal{D}_s) - \mathbb{E}_{h\in Q_{s}}\left [\mathcal{L}(h, \mathcal{D}_s)\right ].$$
+	
+	If the negative transfer $F(Q_{st}, \mathcal{D}_s)>0$, we will say that $Q_{st}$ has forgotten task $\mathcal{D}_s$.
+\end{defn}
+
+We note that this definition of forgetting is somewhat restrictive, as it requires new tasks to be learned without any loss in performance compared to previous tasks. As such, we will also consider the following weaker condition:
+
+\begin{defn}
+	A hypothesis distribution $Q_{st}$ is said to completely-forget task $\mathcal{D}_s$ if
+	$$\mathrm{BWT}(Q_{st}, \mathcal{D}_s) - \mathbb{E}_{h\in P}\left [\mathcal{L}(h, \mathcal{D}_s)\right ]>0$$
+\end{defn}
+
+This condition is weaker in the sense that for a class to completely-forget a previous task, it must perform worse on that task than a data-free prior that has not been given any sample from the task distribution. Depending on $J_s,J_t$, this event should be less likely compared to the standard forgetting setting.
 
 
+
+\section{Specific problem formulation: connecting regret and transfer with domain adaptation and PAC-Bayes}
+
+\subsection{Problem definition} \label{sec:regret-formulation}
+
+Considering the same setting as Section \ref{sec:forgetting-formulation}, we consider the metric of regret:
+
+\begin{defn}
+	The regret on $n$ tasks is defined as 
+	$$REGRET_n = \sum_{t=1}^{n}\mathcal{L}(Q_{1:t}, \mathcal{D}_t)-\min_{Q} \sum_{t=1}^{T}\mathcal{L}(Q, \mathcal{D}_t),$$
+	where $Q_{1:t}$ is the distribution obtained by applying the series of processes $J_1, \ldots, J_t$ on $P, \{S_1,\ldots,S_t\}$, such that $Q_1=J_1(S_1,P)$ and $Q_1:i=J_i(S_i, Q_{i-1})$ for $i>1$.
+\end{defn}
+
+Again, we begin with the two-task setting ($n=2$), and notice that
+
+\begin{equation}
+\mathcal{L}(Q_1, \mathcal{D}_1)+\mathcal{L}(Q_{1:2}, \mathcal{D}_2)=
+\mathcal{L}(Q_1, \mathcal{D}_1)-\mathcal{L}(Q_1, \mathcal{D}_2)+\mathcal{L}(Q_1, \mathcal{D}_2)+\mathcal{L}(Q_{1:2}, \mathcal{D}_2)-\mathcal{L}(Q_{1:2}, \mathcal{D}_1)+\mathcal{L}(Q_{1:2}, \mathcal{D}_1)
+\end{equation}
+
+Marking $\mathcal{L}(Q_1, \mathcal{D}_2)\triangleq FWT(Q_1, \mathcal{D}_2)$ as the forward transfer from task $1$ to task $2$, we have
+\begin{equation}
+\mathcal{L}(Q_1, \mathcal{D}_1)+\mathcal{L}(Q_{1:2}, \mathcal{D}_2)=
+\underbrace{\mathcal{L}(Q_1, \mathcal{D}_1)-\mathcal{L}(Q_1, \mathcal{D}_2)}_{\text{transfer gap from source}} + FWT(Q_1, \mathcal{D}_2) + \underbrace{\mathcal{L}(Q_{1:2}, \mathcal{D}_2)-\mathcal{L}(Q_{1:2}, \mathcal{D}_1)}_{\text{transfer gap from target}}+BWT(Q_{1:2}, \mathcal{D}_1)
+\end{equation}
+
+We can use known results from domain adaptation methods to provide an upper bound to the transfer gap terms. As a simple (and loose) example, we can consider the following theorem from \citet{shui2020beyond}:
+
+\begin{lemma}
+	Assume that $\ell$ is bounded in $[0, K]$. For all $h\in \mathcal{H}$ we have
+	$$\mathcal{L}(h, \mathcal{D}_1)-\mathcal{L}(h, \mathcal{D}_2)\leq \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_1||\mathcal{D}_2)},$$ 
+	where $D_{JS}$ is the Jensen-Shannon divergence between the joint data distributions.
+\end{lemma}
+
+Due to the symmetry of the Jensen-Shannon divergence, this bound applies for $\mathcal{L}(h, \mathcal{D}_2)-\mathcal{L}(h, \mathcal{D}_1)$ as well, and so we have
+
+\begin{equation}
+\mathcal{L}(Q_1, \mathcal{D}_1)+\mathcal{L}(Q_{1:2}, \mathcal{D}_2) \leq 
+K\sqrt{2 D_{JS}(\mathcal{D}_1||\mathcal{D}_2)}+FWT(Q_1, \mathcal{D}_2)+ BWT(Q_{1:2}, \mathcal{D}_1).
+\end{equation}
+
+We note that while this bound is somewhat naive in that it does not take the posterior distributions into account at all, it does give us some insight into the relationship between transfer and regret - minimizing forgetting (and lowering backwards transfer) gives us a guaranteed upper bound on the overall regret. 
+
+We can easily extend this result for $n$ tasks: (TODO later - prove this) %TODO
+\begin{equation}
+\begin{split}
+ \sum_{t=1}^{n}\mathcal{L}(Q_{1:t}, \mathcal{D}_t) \leq &  FWT(Q_1, \mathcal{D}_2) + \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{1}||\mathcal{D}_{2})} \\ &+ \sum_{t=2}^{n}\left ( BWT(Q_{1:t}, \mathcal{D}_{t-1}) \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{t}||\mathcal{D}_{t-1})}\right ) \\&
+ \end{split}
+\end{equation}
+
+A minor potential improvement over this would be to use a Pac-Bayes bound for the first term $Q_1$, giving us with probability at least $1-\delta$ over the choice of $S_1$, uniformly for all $Q_1$,
+\begin{equation}
+\begin{split}
+\sum_{t=1}^{n}\mathcal{L}(Q_{1:t}, \mathcal{D}_t) \leq &  \hat{\mathcal{L}}(Q_1, S_1)+\frac{1}{\lambda}D_{KL}(Q_1||P)+C(\lambda,\delta,P,S_1, K) \\ &+ \sum_{t=2}^{n}\left ( BWT(Q_{1:t}, \mathcal{D}_{t-1}) \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{t}||\mathcal{D}_{t-1})}\right ) \\&
+\end{split}
+\end{equation}
+
+This implies that if the Jensen-Shannon divergence between subsequent tasks is smaller on average than $\sqrt{2}/K$, minimizing backwards transfer can potentially lead to a sub-linear regret bound.
 
 \clearpage
 \bibliographystyle{plainnat}
