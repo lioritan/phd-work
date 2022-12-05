@@ -69,20 +69,26 @@
 
 \section{Literature review}
 
-TODO
-- classical transfer learning and bounds
-- PAC-Bayes and domain adaptation \citep{germain2020pac}
-- PAC-Bayesian Domain Adaptation Bounds for Multiclass Learners \citep{sicilia2022pac}
-- Beyond $\mathcal{H}$-Divergence: Domain Adaptation Theory With Jensen-Shannon Divergence \citep{shui2020beyond}
-- Gap Minimization for Knowledge Sharing and Transfer \citep{wang2022gap}
-- A Theory for Knowledge Transfer in Continual Learning \citep{benavides2022theory}
-- Online PAC-Bayes Learning \citep{haddouche2022online}
+Relevant theory papers:
 
-Papers specific to linear regression/NTK and transfer/meta/continual
-- How catastrophic can catastrophic forgetting be in linear regression? \citep{evron2022catastrophic}
-- Generalisation guarantees for continual learning with orthogonal gradient descent \citep{bennani2020generalisation}
-- Learning Curves for Continual Learning in Neural Networks: Self-Knowledge Transfer and Forgetting \citep{karakida2021learning}
-- Curriculum learning by transfer learning: Theory and experiments with deep networks \citep{weinshall2018curriculum}
+\begin{itemize}
+	\item classical transfer learning and bounds
+	\item PAC-Bayes and domain adaptation \citep{germain2020pac}
+	\item PAC-Bayesian Domain Adaptation Bounds for Multiclass Learners \citep{sicilia2022pac}
+	\item Beyond $\mathcal{H}$-Divergence: Domain Adaptation Theory With Jensen-Shannon Divergence \citep{shui2020beyond}
+	\item Gap Minimization for Knowledge Sharing and Transfer \citep{wang2022gap}
+	\item A Theory for Knowledge Transfer in Continual Learning \citep{benavides2022theory}
+	\item Online PAC-Bayes Learning \citep{haddouche2022online}
+\end{itemize}
+
+Papers specific to linear regression/NTK and transfer/meta/continual:
+\begin{enumerate}
+	\item How catastrophic can catastrophic forgetting be in linear regression? \citep{evron2022catastrophic}
+	\item Generalisation guarantees for continual learning with orthogonal gradient descent \citep{bennani2020generalisation}
+	\item  Learning Curves for Continual Learning in Neural Networks: Self-Knowledge Transfer and Forgetting \citep{karakida2021learning}
+	\item Curriculum learning by transfer learning: Theory and experiments with deep networks \citep{weinshall2018curriculum}
+\end{enumerate}
+
 
 \subsection{Problem variations}
 
@@ -107,8 +113,8 @@ Backwards transfer: new task improves old tasks compared to learning from scratc
 \subsection{Common known approaches}
 \begin{itemize}
 	\item Follow the leader - store all data seen and train on it, fine tune to task
-	\item Gradient step on new data (no memory, negative backwards transfer aka forgetting)
-	\item Store little data per task, make sure we don't unlearn (minimize loss subject to no decrease on all previous tasks)
+	\item Gradient step on new data (no memory, experiences forgetting)
+	\item Store little data per task, make sure we don't unlearn (minimize loss subject to no empirical decrease on all previous tasks)
 	\item Follow the meta-leader - store all data seen and meta-train on it
 \end{itemize}
 
@@ -137,26 +143,59 @@ Backwards transfer: new task improves old tasks compared to learning from scratc
 
 \subsection{Problem definition - without meta-learning} \label{sec:forgetting-formulation}
 
-Let us first consider only two tasks $\mathcal{D}_s, \mathcal{D}_t$. Let us mark $Q_s$ be a distribution over the set of hypotheses learned by some process $J_s$ over $S_s\sim \mathcal{D}_s$ and a data-free prior hypothesis distribution $P$ such that $$Q_s=J_s(S_s, P).$$ We then proceed to utilize another process $J_t$ such that $$Q_{st}=J_t(S_t, Q_s).$$ 
+Let us first consider only two tasks $\mathcal{D}_s, \mathcal{D}_t$. Let us mark $Q_s$ be a distribution over the set of hypotheses learned by some process $J_s$ over $S_s\sim \mathcal{D}_s$ and a data-free prior hypothesis distribution $P$ such that $$Q_s=J_s(S_s, P).$$ We then proceed to utilize another process $J_t$ such that $$Q_{s:t}=J_t(S_t, Q_s).$$ 
 
 \begin{defn}
-	The backwards transfer of $Q_{st}$ on task $\mathcal{D}_s$ is defined as $$\mathrm{BWT}(Q_{st}, \mathcal{D}_s) \triangleq \mathbb{E}_{h\in Q_{st}}\left [\mathcal{L}(h, \mathcal{D}_s)\right ].$$
+	The backwards transfer of $Q_{s:t}$ on task $\mathcal{D}_s$ is defined as $$\mathrm{BWT}(Q_{s:t}, \mathcal{D}_s) \triangleq \mathbb{E}_{h\sim Q_{s:t}}\left [\mathcal{L}(h, \mathcal{D}_s)\right ].$$
 	
-	The negative transfer of $Q_{st}$ on task $\mathcal{D}_s$ is defined as $$F(Q_{st}, \mathcal{D}_s) \triangleq \mathrm{BWT}(Q_{st}, \mathcal{D}_s) - \mathbb{E}_{h\in Q_{s}}\left [\mathcal{L}(h, \mathcal{D}_s)\right ].$$
+	The negative transfer of $Q_{s:t}$ on task $\mathcal{D}_s$ is defined as $$F(Q_{s:t}, \mathcal{D}_s) \triangleq \mathrm{BWT}(Q_{s:t}, \mathcal{D}_s) - \mathbb{E}_{h\sim Q_{s}}\left [\mathcal{L}(h, \mathcal{D}_s)\right ].$$
 	
-	If the negative transfer $F(Q_{st}, \mathcal{D}_s)>0$, we will say that $Q_{st}$ has forgotten task $\mathcal{D}_s$.
+	If the negative transfer $F(Q_{s:t}, \mathcal{D}_s)>0$, we will say that $Q_{s:t}$ has forgotten task $\mathcal{D}_s$.
 \end{defn}
 
 We note that this definition of forgetting is somewhat restrictive, as it requires new tasks to be learned without any loss in performance compared to previous tasks. As such, we will also consider the following weaker condition:
 
 \begin{defn}
-	A hypothesis distribution $Q_{st}$ is said to completely-forget task $\mathcal{D}_s$ if
-	$$\mathrm{BWT}(Q_{st}, \mathcal{D}_s) - \mathbb{E}_{h\in P}\left [\mathcal{L}(h, \mathcal{D}_s)\right ]>0$$
+	A hypothesis distribution $Q_{s:t}$ is said to completely-forget task $\mathcal{D}_s$ if
+	$$\mathrm{BWT}(Q_{s:t}, \mathcal{D}_s) - \mathbb{E}_{h\sim P}\left [\mathcal{L}(h, \mathcal{D}_s)\right ]>0$$
 \end{defn}
 
 This condition is weaker in the sense that for a class to completely-forget a previous task, it must perform worse on that task than a data-free prior that has not been given any sample from the task distribution. Depending on $J_s,J_t$, this event should be less likely compared to the standard forgetting setting.
 
+\subsection{Concentration inequalities for forgetting - without meta-learning}
 
+One method to upper bound the backward transfer term is via concentration inequalities, among which is the following specialization of the generic change-of-measure inequality attributed to \citet{donsker1975large}:
+
+\begin{lemma} \label{lemma:concentration} \cite{shui2020beyond} \\
+	Let $\pi$ and $\rho$ be two distributions on a common space $\mathcal{Z}$ such that $\rho$ is absolutely continuous w.\!r.\!t.\! $\pi$. For any $\lambda\in \mathbb{R}$ and any measurable function $f:\mathcal{Z}\rightarrow \mathbb{R}$ such that $\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ]<\infty$, we have
+	
+	$$\lambda\left (\mathbb{E}_{z\sim \rho}\left [f(z) \right ]-\mathbb{E}_{z\sim \pi}\left [f(z) \right ]\right )\leq D_{\mathrm{KL}}(\rho||\pi)+ \log\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ],$$
+	
+	where $D_{\mathrm{KL}}$ is the KL-divergence and equality is achieved for $f(z)=\mathbb{E}_\pi f(z)+\frac{1}{\lambda}\log(\frac{d\rho}{d\pi})$
+\end{lemma}
+
+Using this inequality, we can choose $\rho=Q_{s:t}, \pi=Q_s, f(z)=\mathcal{L}(z,\mathcal{D}_s)$ and provide a uniform upper bound on the negative transfer if $$\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathbb{E}_{Q_s} \mathcal{L}(h,\mathcal{D}_s))} \right ]<\infty.$$
+
+We have 
+\begin{equation}
+F(Q_{s:t},\mathcal{D}_s)\leq \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_s)+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathbb{E}_{Q_s} \mathcal{L}(h,\mathcal{D}_s))} \right ]
+\end{equation}
+
+This is elegant in that it guarantees that minimizing KL-divergence would also guarantee low forgetting, and ties forgetting to the variability of the previous learner $Q_s$, but it does not offer significant insight to finding hypotheses that have low forgetting. We note here that a good bound on the moment term (the expectation) is critical in turning this inequality to a useful bound. For the complete-forgetting setting with bounded loss function $\ell\in [0,K]$, trivial application of this bound would yield the vacuous $$\mathrm{BWT}(Q_{s:t},\mathcal{D}_s)-\mathbb{E}_{h\sim P}\left [\mathcal{L}(h,\mathcal{D}_s)\right ]\leq  \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||P)+K.$$
+
+Assuming we could keep task samples between tasks, we could derive a potentially more useful version of this bound by choosing $f(z)=\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}}(z,S_s)$ %TODO: this seems non-useful
+
+Another option that is available for us if the two task domains $\mathcal{D}_s, \mathcal{D}_t$ have the same support is to apply a joint data-hypothesis version of \ref{lemma:concentration},
+choosing $\rho=(Q_{s:t},\mathcal{D}_t), \pi=(Q_s, \mathcal{D}_s), f(h,z_i)=\ell(h,z_i)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j)$
+
+\begin{align*}
+\begin{split}
+\lambda\mathbb{E}_{(h,z)\sim (Q_{s:t},\mathcal{D}_t)}\left [\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] - \lambda\mathbb{E}_{(h,z)\sim (Q_{s},\mathcal{D}_s)}\left [\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] \\
+\leq D_{\mathrm{KL}}((Q_{s:t},\mathcal{D}_t)||(Q_{s},\mathcal{D}_s))+\log\mathbb{E}_{(h,z)\sim (Q_{s},\mathcal{D}_s)}\left [e^{\lambda(\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j))} \right ]
+\end{split}
+\end{align*}
+
+%TODO: continue this direction, though maybe pick  $\rho=(Q_{s:t},\mathcal{D}_s)$ instead to keep it about forgetting -> measure gap on new data and if prior has some stability trait for future tasks we win!
 
 \section{Specific problem formulation: connecting regret and transfer with domain adaptation and PAC-Bayes}
 
