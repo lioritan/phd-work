@@ -185,8 +185,27 @@ This is elegant in that it guarantees that minimizing KL-divergence would also g
 
 Assuming we could keep task samples between tasks, we could derive a potentially more useful version of this bound by choosing $f(z)=\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}}(z,S_s)$ %TODO: this seems non-useful
 
+Alternatively, we can choose $f(z)=\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}}(z,S_t)$ to make use of currently available data, resulting in the bound 
+
+
+\begin{align*}
+\begin{split}
+\lambda\mathbb{E}_{h\sim Q_{s:t}}\left [\mathcal{L}(h,\mathcal{D}_s)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] - \lambda\mathbb{E}_{h\sim Q_{s}}\left [\mathcal{L}(h,\mathcal{D}_s)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] \\
+\leq D_{\mathrm{KL}}(Q_{s:t}||Q_{s})+\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j))} \right ]
+\end{split}
+\end{align*}
+
+This means that we have
+
+\begin{align*}
+\begin{split}
+F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \hat{\mathcal{L}}(Q_{s}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})\\
+&+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j))} \right ]
+\end{split}
+\end{align*}
+
 Another option that is available for us if the two task domains $\mathcal{D}_s, \mathcal{D}_t$ have the same support is to apply a joint data-hypothesis version of \ref{lemma:concentration},
-choosing $\rho=(Q_{s:t},\mathcal{D}_t), \pi=(Q_s, \mathcal{D}_s), f(h,z_i)=\ell(h,z_i)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j)$
+choosing $\rho=(Q_{s:t},\mathcal{D}_s), \pi=(Q_s, \mathcal{D}_s), f(h,z_i)=\ell(h,z_i)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j)$
 
 \begin{align*}
 \begin{split}
@@ -195,7 +214,15 @@ choosing $\rho=(Q_{s:t},\mathcal{D}_t), \pi=(Q_s, \mathcal{D}_s), f(h,z_i)=\ell(
 \end{split}
 \end{align*}
 
-%TODO: continue this direction, though maybe pick  $\rho=(Q_{s:t},\mathcal{D}_s)$ instead to keep it about forgetting -> measure gap on new data and if prior has some stability trait for future tasks we win!
+%TODO: this is more generalization / regret
+
+\subsection{Meta-learning formulation}
+
+Let $\mathcal{P}\in\mathcal{M}(\mathcal{M}(\mathcal{H}))$ be a data-free distribution over hypothesis distributions, which we will refer to as the hyper-prior. We define 
+$$\mathcal{Q}_s=\mathcal{J}_s(S_s,\mathcal{P})$$ and similarly for $\mathcal{Q}_{s:t}$, where the only difference is that the inputs are meta-distributions instead of normal distributions over hypotheses. For example, we could have $\mathcal{J}_s$ sample from the hyper-prior $\mathcal{P}$ and activate $J_s$ on the sampled distribution, thus giving us a ne meta-distribution that depends on $S_s$. While bounds from the previous section can be applied to this new setting, sampling from the hyper-posterior is impractical, and thus measuring loss terms is not reasonable for this general setting, so we must make a stronger assumption on the construction process.
+
+Assume 
+
 
 \section{Specific problem formulation: connecting regret and transfer with domain adaptation and PAC-Bayes}
 
