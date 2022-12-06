@@ -269,14 +269,14 @@ We note that while this bound is somewhat naive in that it does not take the pos
 We can easily extend this result for $n$ tasks: (TODO later - prove this) %TODO
 \begin{equation}
 \begin{split}
- \sum_{t=1}^{n}\mathcal{L}(Q_{1:t}, \mathcal{D}_t) \leq &  FWT(Q_1, \mathcal{D}_2) + \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{1}||\mathcal{D}_{2})} \\ &+ \sum_{t=2}^{n}\left ( BWT(Q_{1:t}, \mathcal{D}_{t-1}) \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{t}||\mathcal{D}_{t-1})}\right ) \\&
+ \sum_{t=1}^{n}\mathcal{L}(Q_{1:t}, \mathcal{D}_t) \leq &  FWT(Q_1, \mathcal{D}_2) + \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{1}||\mathcal{D}_{2})} \\ &+ \sum_{t=2}^{n}\left ( BWT(Q_{1:t}, \mathcal{D}_{t-1})+ \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{t}||\mathcal{D}_{t-1})}\right ) \\&
  \end{split}
 \end{equation}
 
 A minor potential improvement over this would be to use a Pac-Bayes bound for the first term $Q_1$, giving us with probability at least $1-\delta$ over the choice of $S_1$, uniformly for all $Q_1$,
 \begin{equation}
 \begin{split}
-\sum_{t=1}^{n}\mathcal{L}(Q_{1:t}, \mathcal{D}_t) \leq &  \hat{\mathcal{L}}(Q_1, S_1)+\frac{1}{\lambda}D_{KL}(Q_1||P)+C(\lambda,\delta,P,S_1, K) \\ &+ \sum_{t=2}^{n}\left ( BWT(Q_{1:t}, \mathcal{D}_{t-1}) \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{t}||\mathcal{D}_{t-1})}\right ) \\&
+\sum_{t=1}^{n}\mathcal{L}(Q_{1:t}, \mathcal{D}_t) \leq &  \hat{\mathcal{L}}(Q_1, S_1)+\frac{1}{\lambda}D_{KL}(Q_1||P)+C(\lambda,\delta,P,S_1, K) \\ &+ \sum_{t=2}^{n}\left ( BWT(Q_{1:t}, \mathcal{D}_{t-1})+ \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{t}||\mathcal{D}_{t-1})}\right ) \\&
 \end{split}
 \end{equation}
 
