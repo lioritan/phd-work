@@ -237,21 +237,60 @@ $$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\ha
 This gives us 
 $$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ] = \log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}e^{\lambda(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]\triangleq \log\mathbb{E}_{Q_{s}}\left [e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)} \right ].$$
 
-Using the definition of covariance,
-$$=\log\left (\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}+cov(e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}, e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)})\right )$$
+Using the Cauchy-Shwartz inequality $$\mathbb{E}_{X}\left [f_1(X)f_2(X)\right ]^2\leq \mathbb{E}_{X}\left [f_1(X)^2\right ]\mathbb{E}_{X}\left [f_2(X)^2\right ],$$
+as well as the fact that both exponent terms are non-negative, we have
 
-A known inequivalent for logarithms is 
-$\forall x>0,y>0, \log(x+y)\leq \log x + \frac{y}{x}$. Using this we get
+$$\log\mathbb{E}_{Q_{s}}\left [e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)} \right ]\leq \log\mathbb{E}_{Q_{s}}\left [e^{2\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\right ]\mathbb{E}_{Q_{s}}\left [e^{2\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)} \right ].$$
 
-$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \log\left (\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)})\right )+\frac{|cov(e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}, e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)})|}{\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}}$$
+If $\ell\in [0,K]$, we can use Hoeffding's lemma and get
 
-Using an inequality for covariance, $|cov(x,y)\leq \sqrt{Var(x)Var(y)}$,
+$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \log\mathbb{E}_{Q_{s}}\left [e^{2\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\right ]+\log e^{\frac{\lambda^2K^2}{2m_t}}$$
+
+Finally, we get
 
 \begin{align}
 \begin{split}
-\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \log\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}+\log\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}+\frac{\sqrt{Var(e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)})Var( e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}})}{\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}}
+F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \hat{\mathcal{L}}(Q_{s}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]+\frac{\lambda K^2}{2m_t}
 \end{split}
 \end{align}
+
+The term $\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)}\right ]$ measures domain disagreement over $Q_s$, and can be hard to understand in general. A simple setting where $Q_s(h)=\frac{P(h)e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}}{\mathbb{E}_{h\sim P}\left [e^{-2\lambda\hat{\mathcal{L}}(h,S_s)} \right ]}$ yields 
+
+$$\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]=\frac{1}{\lambda}\log \int \frac{1}{\mathbb{E}_{h\sim P}\left [e^{-2\lambda\hat{\mathcal{L}}(h,S_s)} \right ]}P(h)e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s)-\mathcal{L}(h,\mathcal{D}_t))}dh$$
+
+$$=\frac{1}{\lambda}\log \int \frac{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}  }\frac{P(h)e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,\mathcal{D}_t)}}e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s))}dh$$
+
+$$=\frac{1}{\lambda}\log\frac{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}  }+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q^{*}_t}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s))}\right ]$$
+
+Using Hoeffding's lemma again gives us 
+
+$$\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q^{*}_t}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ] \leq \frac{\lambda K^2}{2m_s}$$
+
+Putting it all together, if $Q_s(h)=\frac{P(h)e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}}{\mathbb{E}_{h\sim P}\left [e^{-2\lambda\hat{\mathcal{L}}(h,S_s)} \right ]}$ and the loss is bounded $\ell\in[0,K]$, we have almost surely
+
+\begin{align}
+\begin{split}
+F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \hat{\mathcal{L}}(Q_{s}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{\lambda K^2}{2m_s}+\frac{\lambda K^2}{2m_t}+\frac{1}{\lambda}\log\frac{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}  }
+\end{split}
+\end{align}
+
+%Using the definition of covariance,
+%$$=\log\left (\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}+cov(e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}, e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)})\right )$$
+
+%A known inequivalent for logarithms is 
+%$\forall x>0,y>0, \log(x+y)\leq \log x + \frac{y}{x}$. Using this we get
+
+%$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \log\left (\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)})\right )+\frac{|cov(e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}, e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)})|}{\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}}$$
+
+%Using an inequality for covariance, $|cov(x,y)\leq \sqrt{Var(x)Var(y)}$,
+
+%\begin{align}
+%\begin{split}
+%\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \log\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}+\log\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}+\frac{\sqrt{Var(e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)})Var( e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}})}{\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}}
+%\end{split}
+%\end{align}
 
 
 \subsection{Useful inequality to use for regret later}
