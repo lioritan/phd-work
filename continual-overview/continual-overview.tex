@@ -197,12 +197,64 @@ Alternatively, we can choose $f(z)=\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}
 
 This means that we have
 
-\begin{align*}
+\begin{align} \label{eq:forget-base}
 \begin{split}
 F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \hat{\mathcal{L}}(Q_{s}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})\\
 &+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j))} \right ]
 \end{split}
+\end{align}
+
+This can be expended by providing an upper bound on the exponential moment term.
+One method to do so is via an oracle distribution, $$Q_{s:t}^{\lambda}(h)\triangleq\frac{Q_s(h)e^{-\lambda\hat{\mathcal{L}}(h,S_t)}}{\mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ]}.$$
+
+Using a simple change of measures, 
+$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]=\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ] \mathbb{E}_{h\sim Q_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)} \right ]$$
+$$=\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ]+\log \mathbb{E}_{h\sim Q_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)} \right ]$$
+
+This provides us with the following oracle bound:
+\begin{align*}
+\begin{split}
+F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \hat{\mathcal{L}}(Q_{s}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}\right ]+\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ]
+\end{split}
 \end{align*}
+
+If the loss is non-negative, we have the simpler
+
+\begin{align}
+\begin{split}
+F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \hat{\mathcal{L}}(Q_{s}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}\right ]
+\end{split}
+\end{align}
+
+Since according to Jensen's inequality, $$\log \mathbb{E}_{h\sim Q_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}\right ]\geq \mathbb{E}_{h\sim Q_{s:t}^{\lambda}}\left [\lambda\mathcal{L}(h,\mathcal{D}_s)\right ],$$
+the oracle term can be seen as an upper bound to the backward transfer of the Gibbs learner using $Q_s$ as a prior. Note that this result holds for any non-negative loss function, even unbounded ones.
+
+An alternative method to provide a useful bound on \eqref{eq:forget-base} is to note that
+$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ] = \log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)+\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ].$$
+
+This gives us 
+$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ] = \log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}e^{\lambda(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]\triangleq \log\mathbb{E}_{Q_{s}}\left [e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)} \right ].$$
+
+Using the definition of covariance,
+$$=\log\left (\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}+cov(e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}, e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)})\right )$$
+
+A known inequivalent for logarithms is 
+$\forall x>0,y>0, \log(x+y)\leq \log x + \frac{y}{x}$. Using this we get
+
+$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \log\left (\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)})\right )+\frac{|cov(e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}, e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)})|}{\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}}$$
+
+Using an inequality for covariance, $|cov(x,y)\leq \sqrt{Var(x)Var(y)}$,
+
+\begin{align}
+\begin{split}
+\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \log\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}+\log\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}+\frac{\sqrt{Var(e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)})Var( e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}})}{\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}}
+\end{split}
+\end{align}
+
+
+\subsection{Useful inequality to use for regret later}
 
 Another option that is available for us if the two task domains $\mathcal{D}_s, \mathcal{D}_t$ have the same support is to apply a joint data-hypothesis version of \ref{lemma:concentration},
 choosing $\rho=(Q_{s:t},\mathcal{D}_s), \pi=(Q_s, \mathcal{D}_s), f(h,z_i)=\ell(h,z_i)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j)$
