@@ -165,11 +165,14 @@ This condition is weaker in the sense that for a class to completely-forget a pr
 \subsection{Concentration inequalities for forgetting - without meta-learning}
 
 One method to upper bound the backward transfer term is via concentration inequalities, among which is the following specialization of the generic change-of-measure inequality attributed to \citet{donsker1975large}:
+% Shui proof actually prove this without the variational lemma, but derivation from the lemma is easy
 
 \begin{lemma} \label{lemma:concentration} \cite{shui2020beyond} \\
 	Let $\pi$ and $\rho$ be two distributions on a common space $\mathcal{Z}$ such that $\rho$ is absolutely continuous w.\!r.\!t.\! $\pi$. For any $\lambda\in \mathbb{R}$ and any measurable function $f:\mathcal{Z}\rightarrow \mathbb{R}$ such that $\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ]<\infty$, we have
 	
-	$$\lambda\left (\mathbb{E}_{z\sim \rho}\left [f(z) \right ]-\mathbb{E}_{z\sim \pi}\left [f(z) \right ]\right )\leq D_{\mathrm{KL}}(\rho||\pi)+ \log\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ],$$
+	\begin{equation}
+	\lambda\left (\mathbb{E}_{z\sim \rho}\left [f(z) \right ]-\mathbb{E}_{z\sim \pi}\left [f(z) \right ]\right )\leq D_{\mathrm{KL}}(\rho||\pi)+ \log\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ],
+	\end{equation}
 	
 	where $D_{\mathrm{KL}}$ is the KL-divergence and equality is achieved for $f(z)=\mathbb{E}_\pi f(z)+\frac{1}{\lambda}\log(\frac{d\rho}{d\pi})$
 \end{lemma}
@@ -177,11 +180,11 @@ One method to upper bound the backward transfer term is via concentration inequa
 Using this inequality, we can choose $\rho=Q_{s:t}, \pi=Q_s, f(z)=\mathcal{L}(z,\mathcal{D}_s)$ and provide a uniform upper bound on the negative transfer if $$\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathbb{E}_{Q_s} \mathcal{L}(h,\mathcal{D}_s))} \right ]<\infty.$$
 
 We have 
-\begin{equation}
+\begin{equation*}
 F(Q_{s:t},\mathcal{D}_s)\leq \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_s)+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathbb{E}_{Q_s} \mathcal{L}(h,\mathcal{D}_s))} \right ]
-\end{equation}
+\end{equation*}
 
-This is elegant in that it guarantees that minimizing KL-divergence would also guarantee low forgetting, and ties forgetting to the variability of the previous learner $Q_s$, but it does not offer significant insight to finding hypotheses that have low forgetting. We note here that a good bound on the moment term (the expectation) is critical in turning this inequality to a useful bound. For the complete-forgetting setting with bounded loss function $\ell\in [0,K]$, trivial application of this bound would yield the vacuous $$\mathrm{BWT}(Q_{s:t},\mathcal{D}_s)-\mathbb{E}_{h\sim P}\left [\mathcal{L}(h,\mathcal{D}_s)\right ]\leq  \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||P)+K.$$
+This is elegant in that it guarantees that minimizing KL-divergence would also guarantee low forgetting, and ties forgetting to the variability of the previous learner $Q_s$, but it does not offer significant insight to finding hypotheses that have low forgetting in practice. We note here that a good bound on the moment term (the expectation) is critical in turning this inequality to a useful bound. For the complete-forgetting setting with bounded loss function $\ell\in [0,K]$, trivial application of this bound would yield the vacuous $$\mathrm{BWT}(Q_{s:t},\mathcal{D}_s)-\mathbb{E}_{h\sim P}\left [\mathcal{L}(h,\mathcal{D}_s)\right ]\leq  \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||P)+K.$$
 
 Assuming we could keep task samples between tasks, we could derive a potentially more useful version of this bound by choosing $f(z)=\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}}(z,S_s)$ %TODO: this seems non-useful
 
@@ -190,8 +193,8 @@ Alternatively, we can choose $f(z)=\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}
 
 \begin{align*}
 \begin{split}
-\lambda\mathbb{E}_{h\sim Q_{s:t}}\left [\mathcal{L}(h,\mathcal{D}_s)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] - \lambda\mathbb{E}_{h\sim Q_{s}}\left [\mathcal{L}(h,\mathcal{D}_s)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] \\
-\leq D_{\mathrm{KL}}(Q_{s:t}||Q_{s})+\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j))} \right ]
+\lambda\mathbb{E}_{h\sim Q_{s:t}}\left [\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t) \right ] - \lambda\mathbb{E}_{h\sim Q_{s}}\left [\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t) \right ] \\
+\leq D_{\mathrm{KL}}(Q_{s:t}||Q_{s})+\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))}e^{-\lambda(\mathcal{L}(Q_s,\mathcal{D}_s)-\hat{\mathcal{L}}(Q_s,S_t))} \right ]
 \end{split}
 \end{align*}
 
@@ -199,23 +202,23 @@ This means that we have
 
 \begin{align} \label{eq:forget-base}
 \begin{split}
-F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \hat{\mathcal{L}}(Q_{s}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})\\
-&+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j))} \right ]
+F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_s) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})\\
+&+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]
 \end{split}
 \end{align}
 
 This can be expended by providing an upper bound on the exponential moment term.
-One method to do so is via an oracle distribution, $$Q_{s:t}^{\lambda}(h)\triangleq\frac{Q_s(h)e^{-\lambda\hat{\mathcal{L}}(h,S_t)}}{\mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ]}.$$
+One method to do so is via a given distribution, $$\hat{Q}_{s:t}^{\lambda}(h)\triangleq\frac{Q_s(h)e^{-\lambda\hat{\mathcal{L}}(h,S_t)}}{\mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ]}.$$
 
 Using a simple change of measures, 
-$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]=\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ] \mathbb{E}_{h\sim Q_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)} \right ]$$
-$$=\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ]+\log \mathbb{E}_{h\sim Q_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)} \right ]$$
+$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]=\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ] \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)} \right ]$$
+$$=\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ]+\log \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)} \right ]$$
 
-This provides us with the following oracle bound:
+This provides us with the following relative bound:
 \begin{align*}
 \begin{split}
-F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \hat{\mathcal{L}}(Q_{s}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
-+\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}\right ]+\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ]
+F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_s) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{1}{\lambda}\log \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}\right ]+\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ]
 \end{split}
 \end{align*}
 
@@ -223,13 +226,13 @@ If the loss is non-negative, we have the simpler
 
 \begin{align}
 \begin{split}
-F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \hat{\mathcal{L}}(Q_{s}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
-+\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}\right ]
+F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_s) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{1}{\lambda}\log \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}\right ]
 \end{split}
 \end{align}
 
-Since according to Jensen's inequality, $$\log \mathbb{E}_{h\sim Q_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}\right ]\geq \mathbb{E}_{h\sim Q_{s:t}^{\lambda}}\left [\lambda\mathcal{L}(h,\mathcal{D}_s)\right ],$$
-the oracle term can be seen as an upper bound to the backward transfer of the Gibbs learner using $Q_s$ as a prior. Note that this result holds for any non-negative loss function, even unbounded ones.
+Since according to Jensen's inequality, $$\log \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}\right ]\geq \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda}}\left [\lambda\mathcal{L}(h,\mathcal{D}_s)\right ],$$
+the last term can be seen as an upper bound to the backward transfer of the Gibbs learner using $Q_s$ as a prior. Note that this result holds for any non-negative loss function, even unbounded ones.
 
 An alternative method to provide a useful bound on \eqref{eq:forget-base} is to note that
 $$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ] = \log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)+\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ].$$
@@ -242,16 +245,43 @@ as well as the fact that both exponent terms are non-negative, we have
 
 $$\log\mathbb{E}_{Q_{s}}\left [e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)} \right ]\leq \frac{1}{2}\log\mathbb{E}_{Q_{s}}\left [e^{2\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\right ]\mathbb{E}_{Q_{s}}\left [e^{2\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)} \right ].$$
 
-If $\ell\in [0,K]$, we can use Hoeffding's lemma and get
+\begin{lemma}
+	Let $l:Z\times H\rightarrow[0,K]$ be a measurable function. Let $\pi\in\mathcal{M}(H)$ be a distribution over $H$ that is independent w.r.t. $Z$. Let $S\in Z^m$ be an i.\! i.\! d.\! sample. With probability at least $1-\delta$ over the choice of $S$,
+	
+	$$\log \mathbb{E}_{h\sim \pi}\left [e^{t(\frac{1}{m}\sum_i l(z_i,h)-\mathbb{E}_{z}l(z,h))}\right ]\leq \frac{t^2K^2}{8m}+\log{1/ \delta}$$
+\end{lemma}
 
-$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \frac{1}{2}\log\mathbb{E}_{Q_{s}}\left [e^{2\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\right ]+\log e^{\frac{\lambda^2K^2}{4m_t}}$$
+\begin{proof} \label{lemma:hoeffding-concentration}
+	Using Markov's inequality, we know that 
+	$$Pr\left (\mathbb{E}_{h\sim \pi}\left [e^{t(\frac{1}{m}\sum_i l(z_i,h)-\mathbb{E}_{z}l(z,h))}\right ]<\frac{1}{\delta}\mathbb{E}_{S\sim Z^m}\mathbb{E}_{h\sim \pi}\left [e^{t(\frac{1}{m}\sum_i l(z_i,h)-\mathbb{E}_{z}l(z,h))}\right ] \right ) \geq 1-\delta$$
+	
+	Applying Fubini's theorem (both distributions are independent), we can re-order the expectations
+	
+	$$Pr\left (\mathbb{E}_{h\sim \pi}\left [e^{t(\frac{1}{m}\sum_i l(z_i,h)-\mathbb{E}_{z}l(z,h))}\right ]<\frac{1}{\delta}\mathbb{E}_{h\sim \pi}\mathbb{E}_{S\sim Z^m}\left [e^{t(\frac{1}{m}\sum_i l(z_i,h)-\mathbb{E}_{z}l(z,h))}\right ] \right ) \geq 1-\delta$$
+	
+	Since $S$ is drawn i.\! i.\! d.\! and $l$ is bounded, we can apply Hoeffding's lemma to each example, giving us
+	
+	$$Pr\left (\mathbb{E}_{h\sim \pi}\left [e^{t(\frac{1}{m}\sum_i l(z_i,h)-\mathbb{E}_{z}l(z,h))}\right ]<\frac{1}{\delta}\mathbb{E}_{h\sim \pi}\left [e^{\frac{t^2K^2}{8m}}\right ] \right ) \geq 1-\delta$$
+	
+	$$Pr\left (\log\mathbb{E}_{h\sim \pi}\left [e^{t(\frac{1}{m}\sum_i l(z_i,h)-\mathbb{E}_{z}l(z,h))}\right ]<\log\frac{1}{\delta}e^{\frac{t^2K^2}{8m}} \right ) \geq 1-\delta$$
+	
+	and so we have 
+	
+	$$Pr\left (\log\mathbb{E}_{h\sim \pi}\left [e^{t(\frac{1}{m}\sum_i l(z_i,h)-\mathbb{E}_{z}l(z,h))}\right ]<\log\frac{1}{\delta}+\frac{t^2K^2}{8m} \right ) \geq 1-\delta$$
+	
+\end{proof}
+
+If $\ell\in [0,K]$, we can use Lemma \ref{lemma:hoeffding-concentration} and get with probability at least $1-\delta/2$ over the choice of $S_t$
+
+
+$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \frac{1}{2}\log\mathbb{E}_{Q_{s}}\left [e^{2\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\right ]+\frac{\lambda^2K^2}{4m_t}+\log(2/\delta)$$
 
 Finally, we get
 
 \begin{align}
 \begin{split}
-F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \hat{\mathcal{L}}(Q_{s}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
-+\frac{1}{2\lambda}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]+\frac{\lambda K^2}{4m_t}
+F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_s) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{1}{2\lambda}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]+\frac{\lambda K^2}{4m_t}+\frac{1}{2\lambda}\log(2/\delta)
 \end{split}
 \end{align}
 
@@ -259,53 +289,128 @@ The term $\frac{1}{2\lambda}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda(\mat
 
 $$\frac{1}{2\lambda}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]=\frac{1}{2\lambda}\log \int \frac{1}{\mathbb{E}_{h\sim P}\left [e^{-2\lambda\hat{\mathcal{L}}(h,S_s)} \right ]}P(h)e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s)-\mathcal{L}(h,\mathcal{D}_t))}dh$$
 
-$$=\frac{1}{2\lambda}\log \int \frac{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}  }\frac{P(h)e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,\mathcal{D}_t)}}e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s))}dh$$
+$$=\frac{1}{2\lambda}\log \int \frac{\mathbb{E}_{h\sim P} e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}  }\frac{P(h)e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}}e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s))}dh$$
 
-$$=\frac{1}{2\lambda}\log\frac{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}  }+\frac{1}{2\lambda}\log\mathbb{E}_{h\sim Q^{*}_t}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s))}\right ]$$
+$$=\frac{1}{2\lambda}\log\frac{\mathbb{E}_{h\sim P} e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}  }+\frac{1}{2\lambda}\log\mathbb{E}_{h\sim Q^{*}_t}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s))}\right ]$$
 
-Using Hoeffding's lemma again gives us 
+Using Lemma \ref{lemma:hoeffding-concentration} again gives us with probability at least $1-\delta/2$ over the choice of $S_s$
 
-$$\frac{1}{2\lambda}\log \mathbb{E}_{h\sim Q^{*}_t}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ] \leq \frac{\lambda K^2}{4m_s}$$
+$$\frac{1}{2\lambda}\log \mathbb{E}_{h\sim Q^{*}_t}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ] \leq \frac{\lambda K^2}{4m_s}+\frac{1}{2\lambda}\log(2/\delta)$$
 
-Putting it all together, if $Q_s(h)=\frac{P(h)e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}}{\mathbb{E}_{h\sim P}\left [e^{-2\lambda\hat{\mathcal{L}}(h,S_s)} \right ]}$ and the loss is bounded $\ell\in[0,K]$, we have almost surely
+Putting it all together with a union bound, if $Q_s(h)=\frac{P(h)e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}}{\mathbb{E}_{h\sim P}\left [e^{-2\lambda\hat{\mathcal{L}}(h,S_s)} \right ]}$ and the loss is bounded $\ell\in[0,K]$, we have with probability at least $1-\delta/2$ over the choice of $S_s,S_t$:
 
 \begin{align}
 \begin{split}
-F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \hat{\mathcal{L}}(Q_{s}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
-+\frac{\lambda K^2}{4m_s}+\frac{\lambda K^2}{4m_t}+\frac{1}{2\lambda}\log\frac{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}  }
+F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_s) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{\lambda K^2}{4m_s}+\frac{\lambda K^2}{4m_t}+\frac{1}{\lambda}\log(2/\delta)+\frac{1}{2\lambda}\log\frac{\mathbb{E}_{h\sim P} e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}  }
 \end{split}
 \end{align}
 
-%Using the definition of covariance,
-%$$=\log\left (\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}+cov(e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}, e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)})\right )$$
-
-%A known inequivalent for logarithms is 
-%$\forall x>0,y>0, \log(x+y)\leq \log x + \frac{y}{x}$. Using this we get
-
-%$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \log\left (\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)})\right )+\frac{|cov(e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}, e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)})|}{\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}}$$
-
-%Using an inequality for covariance, $|cov(x,y)\leq \sqrt{Var(x)Var(y)}$,
-
-%\begin{align}
-%\begin{split}
-%\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \log\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}+\log\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}+\frac{\sqrt{Var(e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)})Var( e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}})}{\mathbb{E}_{Q_{s}}e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\mathbb{E}_{Q_{s}}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)}}
-%\end{split}
-%\end{align}
-
-
-\subsection{Useful inequality to use for regret later}
-
-Another option that is available for us if the two task domains $\mathcal{D}_s, \mathcal{D}_t$ have the same support is to apply a joint data-hypothesis version of \ref{lemma:concentration},
-choosing $\rho=(Q_{s:t},\mathcal{D}_s), \pi=(Q_s, \mathcal{D}_s), f(h,z_i)=\ell(h,z_i)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j)$
+% we can also use log-sum inequality, but it's non-useful
 
 \begin{align*}
 \begin{split}
-\lambda\mathbb{E}_{(h,z)\sim (Q_{s:t},\mathcal{D}_t)}\left [\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] - \lambda\mathbb{E}_{(h,z)\sim (Q_{s},\mathcal{D}_s)}\left [\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] \\
-\leq D_{\mathrm{KL}}((Q_{s:t},\mathcal{D}_t)||(Q_{s},\mathcal{D}_s))+\log\mathbb{E}_{(h,z)\sim (Q_{s},\mathcal{D}_s)}\left [e^{\lambda(\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j))} \right ]
+F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_s) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{\lambda K^2}{4m_s}+\frac{\lambda K^2}{4m_t}+\frac{1}{\lambda}\log(2/\delta)+\frac{1}{2\lambda}\log\mathbb{E}_{h\sim P} e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}-\frac{1}{2\lambda}\log\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}   \\
+& \leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_s) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{\lambda K^2}{4m_s}+\frac{\lambda K^2}{4m_t}+\frac{1}{\lambda}\log(2/\delta)+0+\frac{1}{2\lambda}\mathbb{E}_{h\sim P} 2\lambda\hat{\mathcal{L}}(h,S_s) \\
+& \leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_s) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{\lambda K^2}{4m_s}+\frac{\lambda K^2}{4m_t}+\frac{1}{\lambda}\log(2/\delta)+ \hat{\mathcal{L}}(P, S_s)
 \end{split}
 \end{align*}
 
+\subsection{Similar bound for forward transfer}
+
+We now apply Lemma \ref{lemma:concentration} to the problem of forward transfer, meaning $f(z)=\mathcal{L}(z,\mathcal{D}_t)-\hat{\mathcal{L}}(z,S_t)$.
+
+Doing so gives us the following inequality:
+
+\begin{align}
+\begin{split}
+\mathcal{L}(Q_{s:t},\mathcal{D}_t) - \mathcal{L}(Q_{s},\mathcal{D}_t) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})\\
+&+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]
+\end{split}
+\end{align}
+
+Conveniently enough, $Q_s$ is not dependent on $S_t$, so if the loss is bounded we can apply Lemma \ref{lemma:hoeffding-concentration} and get with probability at least $1-\delta$ over the choice of $S_t$
+
+\begin{align}
+\begin{split}
+\mathcal{L}(Q_{s:t},\mathcal{D}_t) - \mathcal{L}(Q_{s},\mathcal{D}_t) \leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})+\frac{\lambda K^2}{8m_t}+\frac{1}{\lambda}\log(1/\delta)
+\end{split}
+\end{align}
+
+This implies that given enough data, forward transfer and low forgetting can both be solved by the same measures...
+
+%\subsection{Useful inequality to use for regret later}
+
+%Another option that is available for us if the two task domains $\mathcal{D}_s, \mathcal{D}_t$ have the same support is to apply a joint data-hypothesis version of \ref{lemma:concentration},
+%choosing $\rho=(Q_{s:t},\mathcal{D}_s), \pi=(Q_s, \mathcal{D}_s), f(h,z_i)=\ell(h,z_i)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j)$
+%TODO: math badness here, you can't pick and choose different functions
+% Doing f=L-\hat{L}(S_t)-\hat{L}(S_s) doesn't help since the exponetial moment cannot be bounded
+
+%\begin{align*}
+%\begin{split}
+%\lambda\mathbb{E}_{(h,z)\sim (Q_{s:t},\mathcal{D}_t)}\left [\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] - \lambda\mathbb{E}_{(h,z)\sim (Q_{s},\mathcal{D}_s)}\left [\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] \\
+%\leq D_{\mathrm{KL}}((Q_{s:t},\mathcal{D}_t)||(Q_{s},\mathcal{D}_s))+\log\mathbb{E}_{(h,z)\sim (Q_{s},\mathcal{D}_s)}\left [e^{\lambda(\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j))} \right ]
+%\end{split}
+%\end{align*}
+
 %TODO: this is more generalization / regret
+
+\subsection{Oracle inequalities for forgetting and transfer}
+
+Starting from Lemma \ref{lemma:concentration}, we know that 
+
+$$\mathbb{E}_{z\sim \rho}\left [f(z) \right ]\leq \mathbb{E}_{z\sim \pi}\left [f(z) \right ]+ \frac{1}{\lambda}D_{\mathrm{KL}}(\rho||\pi)+ \frac{1}{\lambda}\log\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ]$$
+
+In particular, for $\hat{\rho}_\lambda(z)\propto \pi(z) e^{-\lambda f(z) }$, this is an equality (from \citeauthor{donsker1975large}'s [\citeyear{donsker1975large}] variational lemma).
+From this, we know that
+
+\begin{equation}
+\mathbb{E}_{z\sim \hat{\rho}_\lambda}\left [f(z) \right ]= \mathbb{E}_{z\sim \pi}\left [f(z) \right ]+ \frac{1}{\lambda}D_{\mathrm{KL}}(\hat{\rho}_\lambda||\pi)+ \frac{1}{\lambda}\log\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ]
+\end{equation}
+
+If we pick $f(z)=\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}}(z,S_t)$ as before, we get
+
+$$\mathbb{E}_{z\sim \hat{\rho}_\lambda}\left [\mathcal{L}(z,\mathcal{D}_s) \right ]= \mathbb{E}_{z\sim \pi}\left [f(z) \right ]+\mathbb{E}_{z\sim \hat{\rho}_\lambda}\left [\hat{\mathcal{L}}(z,S_t) \right ]+ \frac{1}{\lambda}D_{\mathrm{KL}}(\hat{\rho}_\lambda||\pi)+ \frac{1}{\lambda}\log\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ]$$
+
+And as such,
+$$F( \hat{\rho}_\lambda,\mathcal{D}_s)\leq \inf_{\rho}\left \{ \hat{\mathcal{L}}(\rho,S_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(\rho||\pi)  \right \}-\mathcal{L}(\pi,D_s)+\frac{1}{\lambda}\log\mathbb{E}_{z\sim \pi}\left [e^{\lambda(\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}}(z,S_t))} \right ],$$
+
+or using our previous terminology with $\hat{Q}^{\lambda}_{s:t}(h)\propto Q_s(h)e^{-\lambda\hat{\mathcal{L}}(h,S_t)}$, 
+
+$$F( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \hat{\mathcal{L}}(Q_{s:t},S_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}-\mathcal{L}(Q_s,D_s)+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+
+If we take an expectation on $S_t$, we get
+
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}F( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \mathbb{E}_{S_t\sim \mathcal{D}_t}\inf_{Q_{s:t}}\left \{ \hat{\mathcal{L}}(Q_{s:t},S_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}-\mathcal{L}(Q_s,D_s)+\frac{1}{\lambda}\mathbb{E}_{S_t\sim \mathcal{D}_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+
+This gives us the following oracle inequality (in expectation):
+
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}F( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}-\mathcal{L}(Q_s,D_s)+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+
+$$\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]=\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}e^{\lambda(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+
+$$=\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\mathbb{E}_{S_t\sim \mathcal{D}_t}e^{\lambda(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+
+Using Hoeffding's lemma, we get
+
+$$\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ] \leq \frac{\lambda K^2}{8m_t}+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]$$
+
+Giving us
+
+\begin{equation}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}F( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}-\mathcal{L}(Q_s,D_s)+\frac{\lambda K^2}{8m_t}+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]
+\end{equation}
+
+Similarly, for forward transfer we would have
+
+\begin{equation}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}(\hat{Q}^{\lambda}_{s:t},\mathcal{D}_t)-\mathcal{L}(Q_{s},\mathcal{D}_t)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}-\mathcal{L}(Q_s,D_t)+\frac{\lambda K^2}{8m_t}
+\end{equation}
+
+%TODO: moment stuff, we alreadt have the expectation on S_t
 
 \subsection{Meta-learning formulation}
 
