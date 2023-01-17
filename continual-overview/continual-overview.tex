@@ -421,11 +421,10 @@ Similarly, for forward transfer we would have
 
 Both of these equations establish similar bounds, with the backwards transfer bound \eqref{eq:oracle-base} containing an additional domain disagreement term, $$\mathrm{Dis}(Q_s,\mathcal{D}_s, \mathcal{D}_t, \lambda )\triangleq\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ].$$
 
-We note that if $\mathrm{Dis}(Q_s,\mathcal{D}_s, \mathcal{D}_t, \lambda )\leq 0$, for example if  $\forall h, \mathcal{L}(h, \mathcal{D}_s)\leq \mathcal{L}(h, \mathcal{D}_t)$, this term does not effect the overall bound and our backward transfer is upper bounded in the same manner as the forward transfer.
+We note that 
+$$\mathbb{E}_{h\sim Q_s}\left [\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t) \right ] \leq \mathrm{Dis}(Q_s,\mathcal{D}_s, \mathcal{D}_t, \lambda )\leq \max_{h}\left [\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t) \right ]$$
 
-In other words, we are mainly interested in settings where $$\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]>1$$
-
-One possible setting for this is to consider the multivariate Laplace approximation:
+One possible bound for this term is to consider the multivariate Laplace approximation:
 
 %TODO: all of the conditions here
 
