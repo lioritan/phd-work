@@ -462,9 +462,22 @@ $$
 
 And using Jensen's inequality, would give us
 
-$$
+\begin{equation}
 \mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q^{\lambda}_{s}) \right \}+\frac{\lambda K^2}{8m_t}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
-$$
+\end{equation}
+
+Since we know that the optimal $Q_{s:t}$ for the right-hand-side is the respective Gibbs distribution, we can use it and get the infimum value:
+
+\begin{equation*}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq -\frac{1}{\lambda}\log \mathbb{E}_{Q^\lambda_s}\left [e^{-\lambda\mathcal{L}(h,\mathcal{D}_t)}\right ] +\frac{\lambda K^2}{8m_t}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+\end{equation*}
+
+And using Jensen's inequality we get 
+
+\begin{equation*}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \mathcal{L}(Q^\lambda_s,\mathcal{D}_t) +\frac{\lambda K^2}{8m_t}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+\end{equation*}
+
 
 This bound is more limited due to the specific choice of $Q_s$ that cannot be found using optimization, but turns the discrepancy term to the average loss discrepancy under a data-free prior $P$.
 
@@ -473,11 +486,30 @@ $$\mathbb{E}_{S\sim \mathcal{D}_s}\mathrm{Dis}(\hat{Q}^{\lambda}_{s},\mathcal{D}
 
 Again plugging this into \eqref{eq:oracle-base} and using Jensen's inequality,
 $$
-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda}\mathbb{E}_{S\sim \mathcal{D}_s}D_{\mathrm{KL}}(Q_{s:t}||\hat{Q}^{\lambda}_{s}) \right \}+\frac{\lambda K^2}{8m_t}+\frac{\lambda K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \mathbb{E}_{S_s\sim \mathcal{D}_s}\inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||\hat{Q}^{\lambda}_{s}) \right \}+\frac{\lambda K^2}{8m_t}+\frac{\lambda K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
 $$
 
-This provides us with a slightly more practical $Q_s$ at the cost of additional approximation error.
+Since we know the Gibbs measure that minimizes the right-hand-side, we can do as before and get 
 
+\begin{equation}
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \mathbb{E}_{S_s\sim \mathcal{D}_s}\mathcal{L}(\hat{Q}^\lambda_s,\mathcal{D}_t)+\frac{\lambda K^2}{8m_t}+\frac{\lambda K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+\end{equation}
+
+This provides us with a more practical prior $Q_s$ at the cost of additional approximation error.
+If $m_s,m_t\rightarrow \infty$, \footnote{In this case, $\hat{Q}^\lambda_s=Q^\lambda_s, \hat{Q}^{\lambda}_{s:t}=Q^{\lambda}_{s:t}$} we get an interesting bound involving generalization and forgetting:
+
+\begin{equation}
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathcal{L}(\hat{Q}^\lambda_s,\mathcal{D}_t)\leq \mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+\end{equation}
+
+We note that the right-hand-side is data-free and describes the general loss landscapes of both tasks. If both tasks come from the same distribution, for example, this implies that forgetting is upper bounded by the forward transfer (for empirical Gibbs measures).
+Another way to look at this inequality is 
+
+\begin{equation*}
+\mathcal{L}(P,\mathcal{D}_t)-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathcal{L}(\hat{Q}^\lambda_s,\mathcal{D}_t)\leq \mathcal{L}(P,\mathcal{D}_s)-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)
+\end{equation*}
+
+we can expect both sides of this equation to be non-negative. This suggests that any problem with high forgetting for the Gibbs measure would also have poor forward transfer and a problem with good forward transfer will also have low forgetting.
 
 %TODO: moment stuff, we alreadt have the expectation on S_t
 
