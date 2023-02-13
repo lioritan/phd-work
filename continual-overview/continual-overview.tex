@@ -527,11 +527,14 @@ $$
 \mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \frac{\lambda K^2}{8m_t}+\frac{1}{\lambda}\frac{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\log\frac{e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}}{e^{\lambda(-\mathcal{L}(h,\mathcal{D}_t))}} \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}
 $$
 
-$$
+\begin{equation} \label{eq:oracle-logsum}
 \mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \frac{\lambda K^2}{8m_t}+\frac{1}{\lambda}\frac{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\lambda\mathcal{L}(h,\mathcal{D}_s) \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}
-$$
+\end{equation}
 
-We can apply the Cauchy-Schwartz theorem on the expectation and get
+While this equation is not easy to interpret, we note that we can re-write the second term as $\mathbb{E}_{h\sim Q'_{s:t}}\left [\mathcal{L}(h,\mathcal{D}_s) \right ]$, where $$Q'_{s:t}(h)=\frac{Q_s(h)e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}$$.
+If, for example, $Q_s(h)\propto P(h)e^{-\lambda\mathcal{L}(h,\mathcal{D}_s)}$, we have $Q'_{s:t}(h)\propto  P(h)e^{-\lambda\mathcal{L}(h,\mathcal{D}_t)}$, giving us a bound on backward transfer in terms of a learner that did not use any data from the source task.
+
+In order to better understand \eqref{eq:oracle-logsum}, we can apply the Cauchy-Schwartz theorem on the expectation and get
 
 $$
 \mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \frac{\lambda K^2}{8m_t}+\frac{\sqrt{\mathbb{E}_{Q_s}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]\mathbb{E}_{Q_s}\left [\mathcal{L}(h,\mathcal{D}_s)^2 \right ]}}{\mathbb{E}_{Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}
@@ -544,17 +547,19 @@ $$
 
 And using the definition of variance and the triangle inequality (since both terms are non-negative), we get
 
-\begin{equation} 
+\begin{equation} \label{eq:oracle-final}
 \mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \frac{\lambda K^2}{8m_t}+\frac{\sqrt{\mathbb{E}_{Q_s}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}}{\mathbb{E}_{Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}(\sqrt{\mathrm{Var}_{Q_s}(\mathcal{L}(h,\mathcal{D}_s))}+\mathcal{L}(Q_s,\mathcal{D}_s))
 \end{equation}
 
 This equation gives us three terms that quantify forgetting in terms of $Q_s$
 \begin{enumerate}
-	\item The first multiplicative term connects the exponential moments of the discrepancies. This term is lower bounded by $1$, and is upper bounded (via the triangle inequality and the definition of variance) by $$1+\frac{\sqrt{\mathrm{Var}_{Q_s}(e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))})}}{\mathbb{E}_{Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}.$$ The second term is the noise-to-signal ratio ($1/\mathrm{SNR}$) of $e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}$ under $Q_s$.
-	Another (very loose) bound for the multiplicative term (using bounded loss and Jensen) is $$e^{\lambda (\max_h \left \{\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))\right \}+\mathcal{L}(Q_s,\mathcal{D}_t)-\mathcal{L}(Q_s,\mathcal{D}_s))}$$, meaning this term will be low if $Q_s$ transfers well to task $t$.
+	\item The first multiplicative term connects the exponential moments of the discrepancies. This term is lower bounded by $1$, and is upper bounded (using Bergstrom's inequality) by $$\max\left \{{\mathbb{E}_{Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]},\quad e^{\lambda(\mathcal{L}(Q_s,\mathcal{D}_t)-\mathcal{L}(Q_s,\mathcal{D}_s))}\right \}$$ 
+	where the first term applies if $\mathbb{E}_{Q_s}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]\geq 1$, and the second term if it is in $(0,1)$. In both cases, we have a domain discrepancy term that refers to the averaged loss discrepancy under $Q_s$. Since we can expect $Q_s$ to give high probability to hypotheses with low loss on $\mathcal{D}_s$, we are likely to be in the second setting and have this term be dominated by the forward transfer term in $e^{\lambda\mathcal{L}(Q_s,\mathcal{D}_t)}$.
 	\item The first additive term is the standard deviation of the expected loss over $Q_s$, and will be low if $Q_s$ is stable in terms of the expected error.
-	\item The second additive term is the expected loss of $Q_s$, and will be low if
+	\item The second additive term is the expected loss of $Q_s$, and will be low if $Q_s$ generalizes well.
 \end{enumerate}
+
+We can also use the Bhatia-Davis inequality to replace the second and third terms of \eqref{eq:oracle-final} with $\sqrt{K\mathcal{L}(Q_s,\mathcal{D}_s)}$ if we prefer to avoid variance terms.
 
 %TODO: moment stuff, we alreadt have the expectation on S_t
 
