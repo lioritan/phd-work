@@ -168,23 +168,23 @@ One method to upper bound the backward transfer term is via concentration inequa
 % Shui proof actually prove this without the variational lemma, but derivation from the lemma is easy
 
 \begin{lemma} \label{lemma:concentration} \cite{shui2020beyond} \\
-	Let $\pi$ and $\rho$ be two distributions on a common space $\mathcal{Z}$ such that $\rho$ is absolutely continuous w.\!r.\!t.\! $\pi$. For any $\lambda\in \mathbb{R}$ and any measurable function $f:\mathcal{Z}\rightarrow \mathbb{R}$ such that $\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ]<\infty$, we have
+	Let $\pi$ and $\rho$ be two distributions on a common space $\mathcal{Z}$ such that $\rho$ is absolutely continuous w.\!r.\!t.\! $\pi$. For any $\lambda_t\in \mathbb{R}$ and any measurable function $f:\mathcal{Z}\rightarrow \mathbb{R}$ such that $\mathbb{E}_{z\sim \pi}\left [e^{\lambda_t(f(z)-\mathbb{E}_\pi f(z))} \right ]<\infty$, we have
 	
 	\begin{equation}
-	\lambda\left (\mathbb{E}_{z\sim \rho}\left [f(z) \right ]-\mathbb{E}_{z\sim \pi}\left [f(z) \right ]\right )\leq D_{\mathrm{KL}}(\rho||\pi)+ \log\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ],
+	\lambda_t\left (\mathbb{E}_{z\sim \rho}\left [f(z) \right ]-\mathbb{E}_{z\sim \pi}\left [f(z) \right ]\right )\leq D_{\mathrm{KL}}(\rho||\pi)+ \log\mathbb{E}_{z\sim \pi}\left [e^{\lambda_t(f(z)-\mathbb{E}_\pi f(z))} \right ],
 	\end{equation}
 	
-	where $D_{\mathrm{KL}}$ is the KL-divergence and equality is achieved for $f(z)=\mathbb{E}_\pi f(z)+\frac{1}{\lambda}\log(\frac{d\rho}{d\pi})$
+	where $D_{\mathrm{KL}}$ is the KL-divergence and equality is achieved for $f(z)=\mathbb{E}_\pi f(z)+\frac{1}{\lambda_t}\log(\frac{d\rho}{d\pi})$
 \end{lemma}
 
-Using this inequality, we can choose $\rho=Q_{s:t}, \pi=Q_s, f(z)=\mathcal{L}(z,\mathcal{D}_s)$ and provide a uniform upper bound on the negative transfer if $$\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathbb{E}_{Q_s} \mathcal{L}(h,\mathcal{D}_s))} \right ]<\infty.$$
+Using this inequality, we can choose $\rho=Q_{s:t}, \pi=Q_s, f(z)=\mathcal{L}(z,\mathcal{D}_s)$ and provide a uniform upper bound on the negative transfer if $$\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathbb{E}_{Q_s} \mathcal{L}(h,\mathcal{D}_s))} \right ]<\infty.$$
 
 We have 
 \begin{equation*}
-F(Q_{s:t},\mathcal{D}_s)\leq \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_s)+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathbb{E}_{Q_s} \mathcal{L}(h,\mathcal{D}_s))} \right ]
+F(Q_{s:t},\mathcal{D}_s)\leq \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q_s)+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathbb{E}_{Q_s} \mathcal{L}(h,\mathcal{D}_s))} \right ]
 \end{equation*}
 
-This is elegant in that it guarantees that minimizing KL-divergence would also guarantee low forgetting, and ties forgetting to the variability of the previous learner $Q_s$, but it does not offer significant insight to finding hypotheses that have low forgetting in practice. We note here that a good bound on the moment term (the expectation) is critical in turning this inequality to a useful bound. For the complete-forgetting setting with bounded loss function $\ell\in [0,K]$, trivial application of this bound would yield the vacuous $$\mathrm{BWT}(Q_{s:t},\mathcal{D}_s)-\mathbb{E}_{h\sim P}\left [\mathcal{L}(h,\mathcal{D}_s)\right ]\leq  \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||P)+K.$$
+This is elegant in that it guarantees that minimizing KL-divergence would also guarantee low forgetting, and ties forgetting to the variability of the previous learner $Q_s$, but it does not offer significant insight to finding hypotheses that have low forgetting in practice. We note here that a good bound on the moment term (the expectation) is critical in turning this inequality to a useful bound. For the complete-forgetting setting with bounded loss function $\ell\in [0,K]$, trivial application of this bound would yield the vacuous $$\mathrm{BWT}(Q_{s:t},\mathcal{D}_s)-\mathbb{E}_{h\sim P}\left [\mathcal{L}(h,\mathcal{D}_s)\right ]\leq  \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||P)+K.$$
 
 Assuming we could keep task samples between tasks, we could derive a potentially more useful version of this bound by choosing $f(z)=\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}}(z,S_s)$ %TODO: this seems non-useful
 
@@ -193,8 +193,8 @@ Alternatively, we can choose $f(z)=\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}
 
 \begin{align*}
 \begin{split}
-\lambda\mathbb{E}_{h\sim Q_{s:t}}\left [\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t) \right ] - \lambda\mathbb{E}_{h\sim Q_{s}}\left [\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t) \right ] \\
-\leq D_{\mathrm{KL}}(Q_{s:t}||Q_{s})+\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))}e^{-\lambda(\mathcal{L}(Q_s,\mathcal{D}_s)-\hat{\mathcal{L}}(Q_s,S_t))} \right ]
+\lambda_t\mathbb{E}_{h\sim Q_{s:t}}\left [\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t) \right ] - \lambda_t\mathbb{E}_{h\sim Q_{s}}\left [\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t) \right ] \\
+\leq D_{\mathrm{KL}}(Q_{s:t}||Q_{s})+\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))}e^{-\lambda_t(\mathcal{L}(Q_s,\mathcal{D}_s)-\hat{\mathcal{L}}(Q_s,S_t))} \right ]
 \end{split}
 \end{align*}
 
@@ -202,8 +202,8 @@ This means that we have
 
 \begin{align} \label{eq:forget-base}
 \begin{split}
-F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_s) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})\\
-&+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]
+F(Q_{s:t},\mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_s) + \frac{1}{\lambda_t} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})\\
+&+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]
 \end{split}
 \end{align}
 
@@ -211,23 +211,23 @@ or in simpler terms
 
 \begin{align} \label{eq:forget-base2}
 \begin{split}
-\mathcal{L}(Q_{s:t}, \mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})\\
-&+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]
+\mathcal{L}(Q_{s:t}, \mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda_t} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})\\
+&+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]
 \end{split}
 \end{align}
 
 This can be expended by providing an upper bound on the exponential moment term.
-One method to do so is via a given distribution, $$\hat{Q}_{s:t}^{\lambda}(h)\triangleq\frac{Q_s(h)e^{-\lambda\hat{\mathcal{L}}(h,S_t)}}{\mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ]}.$$
+One method to do so is via a given distribution, $$\hat{Q}_{s:t}^{\lambda_t}(h)\triangleq\frac{Q_s(h)e^{-\lambda_t\hat{\mathcal{L}}(h,S_t)}}{\mathbb{E}_{h\sim Q_s}\left [e^{-\lambda_t\hat{\mathcal{L}}(h,S_t)} \right ]}.$$
 
 Using a simple change of measures, 
-$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]=\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ] \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)} \right ]$$
-$$=\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ]+\log \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)} \right ]$$
+$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]=\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda_t\hat{\mathcal{L}}(h,S_t)} \right ] \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda_t}}\left [e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)} \right ]$$
+$$=\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda_t\hat{\mathcal{L}}(h,S_t)} \right ]+\log \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda_t}}\left [e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)} \right ]$$
 
 This provides us with the following relative bound:
 \begin{align*}
 \begin{split}
-\mathcal{L}(Q_{s:t}, \mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
-+\frac{1}{\lambda}\log \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}\right ]+\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\hat{\mathcal{L}}(h,S_t)} \right ]
+\mathcal{L}(Q_{s:t}, \mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda_t} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{1}{\lambda_t}\log \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda_t}}\left [e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}\right ]+\frac{1}{\lambda_t}\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda_t\hat{\mathcal{L}}(h,S_t)} \right ]
 \end{split}
 \end{align*}
 
@@ -235,24 +235,24 @@ If the loss is non-negative, we have the simpler
 
 \begin{align}
 \begin{split}
-\mathcal{L}(Q_{s:t}, \mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
-+\frac{1}{\lambda}\log \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}\right ]
+\mathcal{L}(Q_{s:t}, \mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda_t} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{1}{\lambda_t}\log \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda_t}}\left [e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}\right ]
 \end{split}
 \end{align}
 
-Since according to Jensen's inequality, $$\log \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda}}\left [e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}\right ]\geq \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda}}\left [\lambda\mathcal{L}(h,\mathcal{D}_s)\right ],$$
+Since according to Jensen's inequality, $$\log \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda_t}}\left [e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}\right ]\geq \mathbb{E}_{h\sim \hat{Q}_{s:t}^{\lambda_t}}\left [\lambda_t\mathcal{L}(h,\mathcal{D}_s)\right ],$$
 the last term can be seen as an upper bound to the backward transfer of the Gibbs learner using $Q_s$ as a prior. Note that this result holds for any non-negative loss function, even unbounded ones.
 
 An alternative method to provide a useful bound on \eqref{eq:forget-base} is to note that
-$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ] = \log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)+\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ].$$
+$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ] = \log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)+\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ].$$
 
 This gives us 
-$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ] = \log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}e^{\lambda(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]\triangleq \log\mathbb{E}_{Q_{s}}\left [e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)} \right ].$$
+$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ] = \log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]\triangleq \log\mathbb{E}_{Q_{s}}\left [e^{\lambda_t\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}e^{\lambda_t\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)} \right ].$$
 
 Using the Cauchy-Shwartz inequality $$\mathbb{E}_{X}\left [f_1(X)f_2(X)\right ]^2\leq \mathbb{E}_{X}\left [f_1(X)^2\right ]\mathbb{E}_{X}\left [f_2(X)^2\right ],$$
 as well as the fact that both exponent terms are non-negative, we have
 
-$$\log\mathbb{E}_{Q_{s}}\left [e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}e^{\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)} \right ]\leq \frac{1}{2}\log\mathbb{E}_{Q_{s}}\left [e^{2\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\right ]\mathbb{E}_{Q_{s}}\left [e^{2\lambda\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)} \right ].$$
+$$\log\mathbb{E}_{Q_{s}}\left [e^{\lambda_t\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}e^{\lambda_t\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)} \right ]\leq \frac{1}{2}\log\mathbb{E}_{Q_{s}}\left [e^{2\lambda_t\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\right ]\mathbb{E}_{Q_{s}}\left [e^{2\lambda_t\Delta\hat{\mathcal{L}}(h,\mathcal{D}_t, S_t)} \right ].$$
 
 \begin{lemma}
 	Let $l:Z\times H\rightarrow[0,K]$ be a measurable function. Let $\pi\in\mathcal{M}(H)$ be a distribution over $H$ that is independent w.r.t. $Z$. Let $S\in Z^m$ be an i.\! i.\! d.\! sample. With probability at least $1-\delta$ over the choice of $S$,
@@ -283,35 +283,35 @@ $$\log\mathbb{E}_{Q_{s}}\left [e^{\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mat
 If $\ell\in [0,K]$, we can use Lemma \ref{lemma:hoeffding-concentration} and get with probability at least $1-\delta/2$ over the choice of $S_t$
 
 
-$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \frac{1}{2}\log\mathbb{E}_{Q_{s}}\left [e^{2\lambda\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\right ]+\frac{\lambda^2K^2}{4m_t}+\log(2/\delta)$$
+$$\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]\leq \frac{1}{2}\log\mathbb{E}_{Q_{s}}\left [e^{2\lambda_t\Delta\mathcal{L}(h,\mathcal{D}_s, \mathcal{D}_t)}\right ]+\frac{\lambda_t^2K^2}{4m_t}+\log(2/\delta)$$
 
 Finally, we get
 
 \begin{align}
 \begin{split}
-\mathcal{L}(Q_{s:t}, \mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
-+\frac{1}{2\lambda}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]+\frac{\lambda K^2}{4m_t}+\frac{1}{2\lambda}\log(2/\delta)
+\mathcal{L}(Q_{s:t}, \mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda_t} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{1}{2\lambda_t}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]+\frac{\lambda_t K^2}{4m_t}+\frac{1}{2\lambda_t}\log(2/\delta)
 \end{split}
 \end{align}
 
-The term $\frac{1}{2\lambda}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)}\right ]$ measures domain disagreement over $Q_s$, and can be hard to understand in general. A simple setting where $Q_s(h)=\frac{P(h)e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}}{\mathbb{E}_{h\sim P}\left [e^{-2\lambda\hat{\mathcal{L}}(h,S_s)} \right ]}$ yields 
+The term $\frac{1}{2\lambda_t}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)}\right ]$ measures domain disagreement over $Q_s$, and can be hard to understand in general. A simple setting where $Q_s(h)=\frac{P(h)e^{-2\lambda_t\hat{\mathcal{L}}(h,S_s)}}{\mathbb{E}_{h\sim P}\left [e^{-2\lambda_t\hat{\mathcal{L}}(h,S_s)} \right ]}$ yields 
 
-$$\frac{1}{2\lambda}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]=\frac{1}{2\lambda}\log \int \frac{1}{\mathbb{E}_{h\sim P}\left [e^{-2\lambda\hat{\mathcal{L}}(h,S_s)} \right ]}P(h)e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s)-\mathcal{L}(h,\mathcal{D}_t))}dh$$
+$$\frac{1}{2\lambda_t}\log \mathbb{E}_{h\sim Q_{s}}\left [e^{2\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]=\frac{1}{2\lambda_t}\log \int \frac{1}{\mathbb{E}_{h\sim P}\left [e^{-2\lambda_t\hat{\mathcal{L}}(h,S_s)} \right ]}P(h)e^{2\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s)-\mathcal{L}(h,\mathcal{D}_t))}dh$$
 
-$$=\frac{1}{2\lambda}\log \int \frac{\mathbb{E}_{h\sim P} e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}  }\frac{P(h)e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}}e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s))}dh$$
+$$=\frac{1}{2\lambda_t}\log \int \frac{\mathbb{E}_{h\sim P} e^{-2\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda_t\hat{\mathcal{L}}(h,S_s)}  }\frac{P(h)e^{-2\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}e^{2\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s))}dh$$
 
-$$=\frac{1}{2\lambda}\log\frac{\mathbb{E}_{h\sim P} e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}  }+\frac{1}{2\lambda}\log\mathbb{E}_{h\sim Q^{*}_t}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s))}\right ]$$
+$$=\frac{1}{2\lambda_t}\log\frac{\mathbb{E}_{h\sim P} e^{-2\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda_t\hat{\mathcal{L}}(h,S_s)}  }+\frac{1}{2\lambda_t}\log\mathbb{E}_{h\sim Q^{*}_t}\left [e^{2\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s))}\right ]$$
 
 Using Lemma \ref{lemma:hoeffding-concentration} again gives us with probability at least $1-\delta/2$ over the choice of $S_s$
 
-$$\frac{1}{2\lambda}\log \mathbb{E}_{h\sim Q^{*}_t}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ] \leq \frac{\lambda K^2}{4m_s}+\frac{1}{2\lambda}\log(2/\delta)$$
+$$\frac{1}{2\lambda_t}\log \mathbb{E}_{h\sim Q^{*}_t}\left [e^{2\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ] \leq \frac{\lambda_t K^2}{4m_s}+\frac{1}{2\lambda_t}\log(2/\delta)$$
 
-Putting it all together with a union bound, if $Q_s(h)=\frac{P(h)e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}}{\mathbb{E}_{h\sim P}\left [e^{-2\lambda\hat{\mathcal{L}}(h,S_s)} \right ]}$ and the loss is bounded $\ell\in[0,K]$, we have with probability at least $1-\delta/2$ over the choice of $S_s,S_t$:
+Putting it all together with a union bound, if $Q_s(h)=\frac{P(h)e^{-2\lambda_t\hat{\mathcal{L}}(h,S_s)}}{\mathbb{E}_{h\sim P}\left [e^{-2\lambda_t\hat{\mathcal{L}}(h,S_s)} \right ]}$ and the loss is bounded $\ell\in[0,K]$, we have with probability at least $1-\delta/2$ over the choice of $S_s,S_t$:
 
 \begin{align}
 \begin{split}
-\mathcal{L}(Q_{s:t}, \mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
-+\frac{\lambda K^2}{4m_s}+\frac{\lambda K^2}{4m_t}+\frac{1}{\lambda}\log(2/\delta)+\frac{1}{2\lambda}\log\frac{\mathbb{E}_{h\sim P} e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}  }
+\mathcal{L}(Q_{s:t}, \mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda_t} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{\lambda_t K^2}{4m_s}+\frac{\lambda_t K^2}{4m_t}+\frac{1}{\lambda_t}\log(2/\delta)+\frac{1}{2\lambda_t}\log\frac{\mathbb{E}_{h\sim P} e^{-2\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}{\mathbb{E}_{h\sim P} e^{-2\lambda_t\hat{\mathcal{L}}(h,S_s)}  }
 \end{split}
 \end{align}
 
@@ -319,12 +319,12 @@ Putting it all together with a union bound, if $Q_s(h)=\frac{P(h)e^{-2\lambda\ha
 
 \begin{align*}
 \begin{split}
-\mathcal{L}(Q_{s:t}, \mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t)+ \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
-+\frac{\lambda K^2}{4m_s}+\frac{\lambda K^2}{4m_t}+\frac{1}{\lambda}\log(2/\delta)+\frac{1}{2\lambda}\log\mathbb{E}_{h\sim P} e^{-2\lambda\mathcal{L}(h,\mathcal{D}_t)}-\frac{1}{2\lambda}\log\mathbb{E}_{h\sim P} e^{-2\lambda\hat{\mathcal{L}}(h,S_s)}   \\
-& \leq \hat{\mathcal{L}}(Q_{s:t}, S_t)+ \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
-+\frac{\lambda K^2}{4m_s}+\frac{\lambda K^2}{4m_t}+\frac{1}{\lambda}\log(2/\delta)+0+\frac{1}{2\lambda}\mathbb{E}_{h\sim P} 2\lambda\hat{\mathcal{L}}(h,S_s) \\
-& \leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
-+\frac{\lambda K^2}{4m_s}+\frac{\lambda K^2}{4m_t}+\frac{1}{\lambda}\log(2/\delta)+ \hat{\mathcal{L}}(P, S_s)
+\mathcal{L}(Q_{s:t}, \mathcal{D}_s) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t)+ \frac{1}{\lambda_t} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{\lambda_t K^2}{4m_s}+\frac{\lambda_t K^2}{4m_t}+\frac{1}{\lambda_t}\log(2/\delta)+\frac{1}{2\lambda_t}\log\mathbb{E}_{h\sim P} e^{-2\lambda_t\mathcal{L}(h,\mathcal{D}_t)}-\frac{1}{2\lambda_t}\log\mathbb{E}_{h\sim P} e^{-2\lambda_t\hat{\mathcal{L}}(h,S_s)}   \\
+& \leq \hat{\mathcal{L}}(Q_{s:t}, S_t)+ \frac{1}{\lambda_t} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{\lambda_t K^2}{4m_s}+\frac{\lambda_t K^2}{4m_t}+\frac{1}{\lambda_t}\log(2/\delta)+0+\frac{1}{2\lambda_t}\mathbb{E}_{h\sim P} 2\lambda_t\hat{\mathcal{L}}(h,S_s) \\
+& \leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda_t} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})
++\frac{\lambda_t K^2}{4m_s}+\frac{\lambda_t K^2}{4m_t}+\frac{1}{\lambda_t}\log(2/\delta)+ \hat{\mathcal{L}}(P, S_s)
 \end{split}
 \end{align*}
 
@@ -336,8 +336,8 @@ Doing so gives us the following inequality:
 
 \begin{align}
 \begin{split}
-\mathcal{L}(Q_{s:t},\mathcal{D}_t) - \mathcal{L}(Q_{s},\mathcal{D}_t) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})\\
-&+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]
+\mathcal{L}(Q_{s:t},\mathcal{D}_t) - \mathcal{L}(Q_{s},\mathcal{D}_t) &\leq \hat{\mathcal{L}}(Q_{s:t}, S_t) - \mathcal{L}(Q_{s}, D_t) + \frac{1}{\lambda_t} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})\\
+&+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_{s}}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]
 \end{split}
 \end{align}
 
@@ -345,7 +345,7 @@ Conveniently enough, $Q_s$ is not dependent on $S_t$, so if the loss is bounded 
 
 \begin{align}
 \begin{split}
-\mathcal{L}(Q_{s:t},\mathcal{D}_t) \leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})+\frac{\lambda K^2}{8m_t}+\frac{1}{\lambda}\log(1/\delta)
+\mathcal{L}(Q_{s:t},\mathcal{D}_t) \leq \hat{\mathcal{L}}(Q_{s:t}, S_t) + \frac{1}{\lambda_t} D_{\mathrm{KL}}(Q_{s:t}||Q_{s})+\frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log(1/\delta)
 \end{split}
 \end{align}
 
@@ -360,8 +360,8 @@ This implies that given enough data, forward transfer and low forgetting can bot
 
 %\begin{align*}
 %\begin{split}
-%\lambda\mathbb{E}_{(h,z)\sim (Q_{s:t},\mathcal{D}_t)}\left [\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] - \lambda\mathbb{E}_{(h,z)\sim (Q_{s},\mathcal{D}_s)}\left [\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] \\
-%\leq D_{\mathrm{KL}}((Q_{s:t},\mathcal{D}_t)||(Q_{s},\mathcal{D}_s))+\log\mathbb{E}_{(h,z)\sim (Q_{s},\mathcal{D}_s)}\left [e^{\lambda(\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j))} \right ]
+%\lambda_t\mathbb{E}_{(h,z)\sim (Q_{s:t},\mathcal{D}_t)}\left [\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] - \lambda_t\mathbb{E}_{(h,z)\sim (Q_{s},\mathcal{D}_s)}\left [\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j) \right ] \\
+%\leq D_{\mathrm{KL}}((Q_{s:t},\mathcal{D}_t)||(Q_{s},\mathcal{D}_s))+\log\mathbb{E}_{(h,z)\sim (Q_{s},\mathcal{D}_s)}\left [e^{\lambda_t(\ell(h,z)-\frac{1}{m_t}\sum_{j=1}^{m_t}\hat{\ell}(h,z_j))} \right ]
 %\end{split}
 %\end{align*}
 
@@ -371,70 +371,70 @@ This implies that given enough data, forward transfer and low forgetting can bot
 
 Starting from Lemma \ref{lemma:concentration}, we know that 
 
-$$\mathbb{E}_{z\sim \rho}\left [f(z) \right ]\leq \mathbb{E}_{z\sim \pi}\left [f(z) \right ]+ \frac{1}{\lambda}D_{\mathrm{KL}}(\rho||\pi)+ \frac{1}{\lambda}\log\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ]$$
+$$\mathbb{E}_{z\sim \rho}\left [f(z) \right ]\leq \mathbb{E}_{z\sim \pi}\left [f(z) \right ]+ \frac{1}{\lambda_t}D_{\mathrm{KL}}(\rho||\pi)+ \frac{1}{\lambda_t}\log\mathbb{E}_{z\sim \pi}\left [e^{\lambda_t(f(z)-\mathbb{E}_\pi f(z))} \right ]$$
 
-In particular, for $\hat{\rho}_\lambda(z)\propto \pi(z) e^{-\lambda f(z) }$, this is an equality (from \citeauthor{donsker1975large}'s [\citeyear{donsker1975large}] variational lemma).
+In particular, for $\hat{\rho}_\lambda(z)\propto \pi(z) e^{-\lambda_t f(z) }$, this is an equality (from \citeauthor{donsker1975large}'s [\citeyear{donsker1975large}] variational lemma).
 From this, we know that
 
 \begin{equation}
-\mathbb{E}_{z\sim \hat{\rho}_\lambda}\left [f(z) \right ]= \mathbb{E}_{z\sim \pi}\left [f(z) \right ]+ \frac{1}{\lambda}D_{\mathrm{KL}}(\hat{\rho}_\lambda||\pi)+ \frac{1}{\lambda}\log\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ]
+\mathbb{E}_{z\sim \hat{\rho}_\lambda}\left [f(z) \right ]= \mathbb{E}_{z\sim \pi}\left [f(z) \right ]+ \frac{1}{\lambda_t}D_{\mathrm{KL}}(\hat{\rho}_\lambda||\pi)+ \frac{1}{\lambda_t}\log\mathbb{E}_{z\sim \pi}\left [e^{\lambda_t(f(z)-\mathbb{E}_\pi f(z))} \right ]
 \end{equation}
 
 If we pick $f(z)=\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}}(z,S_t)$ as before, we get
 
-$$\mathbb{E}_{z\sim \hat{\rho}_\lambda}\left [\mathcal{L}(z,\mathcal{D}_s) \right ]= \mathbb{E}_{z\sim \pi}\left [f(z) \right ]+\mathbb{E}_{z\sim \hat{\rho}_\lambda}\left [\hat{\mathcal{L}}(z,S_t) \right ]+ \frac{1}{\lambda}D_{\mathrm{KL}}(\hat{\rho}_\lambda||\pi)+ \frac{1}{\lambda}\log\mathbb{E}_{z\sim \pi}\left [e^{\lambda(f(z)-\mathbb{E}_\pi f(z))} \right ]$$
+$$\mathbb{E}_{z\sim \hat{\rho}_\lambda}\left [\mathcal{L}(z,\mathcal{D}_s) \right ]= \mathbb{E}_{z\sim \pi}\left [f(z) \right ]+\mathbb{E}_{z\sim \hat{\rho}_\lambda}\left [\hat{\mathcal{L}}(z,S_t) \right ]+ \frac{1}{\lambda_t}D_{\mathrm{KL}}(\hat{\rho}_\lambda||\pi)+ \frac{1}{\lambda_t}\log\mathbb{E}_{z\sim \pi}\left [e^{\lambda_t(f(z)-\mathbb{E}_\pi f(z))} \right ]$$
 
 And as such,
-$$F( \hat{\rho}_\lambda,\mathcal{D}_s)\leq \inf_{\rho}\left \{ \hat{\mathcal{L}}(\rho,S_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(\rho||\pi)  \right \}-\mathcal{L}(\pi,D_s)+\frac{1}{\lambda}\log\mathbb{E}_{z\sim \pi}\left [e^{\lambda(\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}}(z,S_t))} \right ],$$
+$$F( \hat{\rho}_\lambda,\mathcal{D}_s)\leq \inf_{\rho}\left \{ \hat{\mathcal{L}}(\rho,S_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(\rho||\pi)  \right \}-\mathcal{L}(\pi,D_s)+\frac{1}{\lambda_t}\log\mathbb{E}_{z\sim \pi}\left [e^{\lambda_t(\mathcal{L}(z,\mathcal{D}_s)-\hat{\mathcal{L}}(z,S_t))} \right ],$$
 
-or using our previous terminology with $\hat{Q}^{\lambda}_{s:t}(h)\propto Q_s(h)e^{-\lambda\hat{\mathcal{L}}(h,S_t)}$, 
+or using our previous terminology with $\hat{Q}^{\lambda_t}_{s:t}(h)\propto Q_s(h)e^{-\lambda_t\hat{\mathcal{L}}(h,S_t)}$, 
 
-$$\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \hat{\mathcal{L}}(Q_{s:t},S_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+$$\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \hat{\mathcal{L}}(Q_{s:t},S_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
 
 If we take an expectation on $S_t$, we get
 
-$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \mathbb{E}_{S_t\sim \mathcal{D}_t}\inf_{Q_{s:t}}\left \{ \hat{\mathcal{L}}(Q_{s:t},S_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{1}{\lambda}\mathbb{E}_{S_t\sim \mathcal{D}_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \mathbb{E}_{S_t\sim \mathcal{D}_t}\inf_{Q_{s:t}}\left \{ \hat{\mathcal{L}}(Q_{s:t},S_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{1}{\lambda_t}\mathbb{E}_{S_t\sim \mathcal{D}_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
 
 This gives us the following oracle inequality (in expectation):
 
-$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
 
-$$\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]=\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}e^{\lambda(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+$$\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]=\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
 
-$$=\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\mathbb{E}_{S_t\sim \mathcal{D}_t}e^{\lambda(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+$$=\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\mathbb{E}_{S_t\sim \mathcal{D}_t}e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
 
 Using Hoeffding's lemma, we get
 
-$$\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ] \leq \frac{\lambda K^2}{8m_t}+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]$$
+$$\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ] \leq \frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]$$
 
 Giving us
 
 \begin{equation} \label{eq:oracle-base}
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{\lambda K^2}{8m_t}+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]
 \end{equation}
 
 Similarly, for forward transfer we would have
 
 \begin{equation}
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}(\hat{Q}^{\lambda}_{s:t},\mathcal{D}_t)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{\lambda K^2}{8m_t}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}(\hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_t)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{\lambda_t K^2}{8m_t}
 \end{equation}
 
-Both of these equations establish similar bounds, with the backwards transfer bound \eqref{eq:oracle-base} containing an additional domain disagreement term, $$\mathrm{Dis}(Q_s,\mathcal{D}_s, \mathcal{D}_t, \lambda )\triangleq\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ].$$
+Both of these equations establish similar bounds, with the backwards transfer bound \eqref{eq:oracle-base} containing an additional domain disagreement term, $$\mathrm{Dis}(Q_s,\mathcal{D}_s, \mathcal{D}_t, \lambda_t )\triangleq\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ].$$
 
 We note that 
-$$\mathbb{E}_{h\sim Q_s}\left [\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t) \right ] \leq \mathrm{Dis}(Q_s,\mathcal{D}_s, \mathcal{D}_t, \lambda )\leq \max_{h}\left [\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t) \right ]$$
+$$\mathbb{E}_{h\sim Q_s}\left [\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t) \right ] \leq \mathrm{Dis}(Q_s,\mathcal{D}_s, \mathcal{D}_t, \lambda_t )\leq \max_{h}\left [\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t) \right ]$$
 
 One possible bound for this term is to consider the multivariate Laplace approximation:
 
 %TODO: all of the conditions here
 
-suppose $\mathcal{H}=\mathbb{R}^d, d\geq 2$, so we will mark hypotheses using $\theta\in \mathbb{R}^d$. If $\lambda \rightarrow \infty$, it is well known that
-$$\int_{\Theta}e^{-\lambda(\mathcal{L}(\theta, \mathcal{D}_t)-\mathcal{L}(\theta, \mathcal{D}_s))}Q_s(\theta)d\theta$$ converges asymptotically to $$\left (\frac{2\pi}{\lambda}\right )^{d/2}\frac{e^{-\lambda(\mathcal{L}(\theta^*, \mathcal{D}_t)-\mathcal{L}(\theta^*, \mathcal{D}_s))}}{\mathrm{det}(H_{\mathcal{L}_t}(\theta^*)-H_{\mathcal{L}_s}(\theta^*))^{1/2}}Q_s(\theta^*)$$
+suppose $\mathcal{H}=\mathbb{R}^d, d\geq 2$, so we will mark hypotheses using $\theta\in \mathbb{R}^d$. If $\lambda_t \rightarrow \infty$, it is well known that
+$$\int_{\Theta}e^{-\lambda_t(\mathcal{L}(\theta, \mathcal{D}_t)-\mathcal{L}(\theta, \mathcal{D}_s))}Q_s(\theta)d\theta$$ converges asymptotically to $$\left (\frac{2\pi}{\lambda_t}\right )^{d/2}\frac{e^{-\lambda_t(\mathcal{L}(\theta^*, \mathcal{D}_t)-\mathcal{L}(\theta^*, \mathcal{D}_s))}}{\mathrm{det}(H_{\mathcal{L}_t}(\theta^*)-H_{\mathcal{L}_s}(\theta^*))^{1/2}}Q_s(\theta^*)$$
 
 This means that 
 
 \begin{equation} \label{eq:dis-lim}
-	\lim_{\lambda\rightarrow\infty}\mathrm{Dis}(Q_s,\mathcal{D}_s, \mathcal{D}_t, \lambda )=\frac{d}{2\lambda}\log\left (\frac{2\pi}{\lambda}\right )+\mathcal{L}(\theta^*, \mathcal{D}_s)-\mathcal{L}(\theta^*, \mathcal{D}_t)+\frac{1}{\lambda}\log Q_s(\theta^*)-\frac{1}{2\lambda}\log \mathrm{det}(H_{\mathcal{L}_t}(\theta^*)-H_{\mathcal{L}_s}(\theta^*))
+	\lim_{\lambda_t\rightarrow\infty}\mathrm{Dis}(Q_s,\mathcal{D}_s, \mathcal{D}_t, \lambda_t )=\frac{d}{2\lambda_t}\log\left (\frac{2\pi}{\lambda_t}\right )+\mathcal{L}(\theta^*, \mathcal{D}_s)-\mathcal{L}(\theta^*, \mathcal{D}_t)+\frac{1}{\lambda_t}\log Q_s(\theta^*)-\frac{1}{2\lambda_t}\log \mathrm{det}(H_{\mathcal{L}_t}(\theta^*)-H_{\mathcal{L}_s}(\theta^*))
 \end{equation}
 
 We note that for this approximation to apply, several conditions must be met, the most restrictive of which being 
@@ -442,7 +442,7 @@ the existence of $\delta>0,\Delta>0$ such that $\mathcal{L}(\theta, \mathcal{D}_
 
 Equation \eqref{eq:dis-lim} contains four main terms:
 \begin{enumerate}
-	\item A linear function of the dimension that can be low if we choose $\lambda=O(\sqrt{d})$ for large enough parameter space size $d$.
+	\item A linear function of the dimension that can be low if we choose $\lambda_t=O(\sqrt{d})$ for large enough parameter space size $d$.
 	\item The maximal difference between losses $\mathcal{L}(\theta^*, \mathcal{D}_s)-\mathcal{L}(\theta^*, \mathcal{D}_t)$.
 	\item The log-density of the likelihood of $\theta^*$ under $Q_s$, essentially a measure of the likelihood of choosing parameters with large loss discrepancy under $Q_s$.
 	\item The negative log-determinant of the difference between Hessians for both loss functions for the point that maximizes loss difference. This term can be high if the determinant is near zero, meaning the Hessians for both loss functions are very similar. This essentially implies that transfer is harder if the loss landscapes are similar for both domains on points with maximal loss discrepancy.
@@ -452,61 +452,61 @@ The most dominant term here is the maximal loss discrepancy $D(\mathcal{D}_s, \m
 
 %TODO: consider swapping posterior and using -f(z) to get a reverse here?
 
-Another possible setting to consider is if $Q_s$ is the expected Gibbs posterior $Q^{\lambda}_{s}\propto P(h)e^{\lambda\mathcal{L}(h,\mathcal{D}_s)}$. Under this setting, $$\mathrm{Dis}(Q^{\lambda}_{s},\mathcal{D}_s, \mathcal{D}_t, \lambda )\leq -\frac{1}{\lambda}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda\mathcal{L}(h,\mathcal{D}_s)} \right ]-\mathcal{L}(P,\mathcal{D}_t).$$
+Another possible setting to consider is if $Q_s$ is the expected Gibbs posterior $Q^{\lambda_t}_{s}\propto P(h)e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}$. Under this setting, $$\mathrm{Dis}(Q^{\lambda_t}_{s},\mathcal{D}_s, \mathcal{D}_t, \lambda_t )\leq -\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_s)} \right ]-\mathcal{L}(P,\mathcal{D}_t).$$
 
 Plugging this into \eqref{eq:oracle-base} gives us
 
 $$
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q^{\lambda}_{s}) \right \}+\frac{\lambda K^2}{8m_t}-\frac{1}{\lambda}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda\mathcal{L}(h,\mathcal{D}_s)} \right ]-\mathcal{L}(P,\mathcal{D}_t)
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q^{\lambda_t}_{s}) \right \}+\frac{\lambda_t K^2}{8m_t}-\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_s)} \right ]-\mathcal{L}(P,\mathcal{D}_t)
 $$
 
 And using Jensen's inequality, would give us
 
 \begin{equation}
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||Q^{\lambda}_{s}) \right \}+\frac{\lambda K^2}{8m_t}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q^{\lambda_t}_{s}) \right \}+\frac{\lambda_t K^2}{8m_t}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
 \end{equation}
 
 Since we know that the optimal $Q_{s:t}$ for the right-hand-side is the respective Gibbs distribution, we can use it and get the infimum value:
 
 \begin{equation*}
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq -\frac{1}{\lambda}\log \mathbb{E}_{Q^\lambda_s}\left [e^{-\lambda\mathcal{L}(h,\mathcal{D}_t)}\right ] +\frac{\lambda K^2}{8m_t}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq -\frac{1}{\lambda_t}\log \mathbb{E}_{Q^\lambda_s}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}\right ] +\frac{\lambda_t K^2}{8m_t}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
 \end{equation*}
 
 And using Jensen's inequality we get 
 
 \begin{equation*}
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \mathcal{L}(Q^\lambda_s,\mathcal{D}_t) +\frac{\lambda K^2}{8m_t}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \mathcal{L}(Q^\lambda_s,\mathcal{D}_t) +\frac{\lambda_t K^2}{8m_t}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
 \end{equation*}
 
 
 This bound is more limited due to the specific choice of $Q_s$ that cannot be found using optimization, but turns the discrepancy term to the average loss discrepancy under a data-free prior $P$.
 
-Similarly for $Q_s=\hat{Q}^{\lambda}_{s}$ we would get 
-$$\mathbb{E}_{S\sim \mathcal{D}_s}\mathrm{Dis}(\hat{Q}^{\lambda}_{s},\mathcal{D}_s, \mathcal{D}_t, \lambda )\leq \frac{\lambda K^2}{8m_s} -\frac{1}{\lambda}\mathbb{E}_{S\sim \mathcal{D}_s}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda\hat{\mathcal{L}}(h,S)} \right ]-\mathcal{L}(P,\mathcal{D}_t).$$
+Similarly for $Q_s=\hat{Q}^{\lambda_t}_{s}$ we would get 
+$$\mathbb{E}_{S\sim \mathcal{D}_s}\mathrm{Dis}(\hat{Q}^{\lambda_t}_{s},\mathcal{D}_s, \mathcal{D}_t, \lambda_t )\leq \frac{\lambda_t K^2}{8m_s} -\frac{1}{\lambda_t}\mathbb{E}_{S\sim \mathcal{D}_s}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\hat{\mathcal{L}}(h,S)} \right ]-\mathcal{L}(P,\mathcal{D}_t).$$
 
 Again plugging this into \eqref{eq:oracle-base} and using Jensen's inequality,
 $$
-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \mathbb{E}_{S_s\sim \mathcal{D}_s}\inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda}D_{\mathrm{KL}}(Q_{s:t}||\hat{Q}^{\lambda}_{s}) \right \}+\frac{\lambda K^2}{8m_t}+\frac{\lambda K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \mathbb{E}_{S_s\sim \mathcal{D}_s}\inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||\hat{Q}^{\lambda_t}_{s}) \right \}+\frac{\lambda_t K^2}{8m_t}+\frac{\lambda_t K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
 $$
 
 Since we know the Gibbs measure that minimizes the right-hand-side, we can do as before and get 
 
 \begin{equation}
-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \mathbb{E}_{S_s\sim \mathcal{D}_s}\mathcal{L}(\hat{Q}^\lambda_s,\mathcal{D}_t)+\frac{\lambda K^2}{8m_t}+\frac{\lambda K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \mathbb{E}_{S_s\sim \mathcal{D}_s}\mathcal{L}(\hat{Q}^\lambda_s,\mathcal{D}_t)+\frac{\lambda_t K^2}{8m_t}+\frac{\lambda_t K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
 \end{equation}
 
 This provides us with a more practical prior $Q_s$ at the cost of additional approximation error.
-If $m_s,m_t\rightarrow \infty$, \footnote{In this case, $\hat{Q}^\lambda_s=Q^\lambda_s, \hat{Q}^{\lambda}_{s:t}=Q^{\lambda}_{s:t}$} we get an interesting bound involving generalization and forgetting:
+If $m_s,m_t\rightarrow \infty$, \footnote{In this case, $\hat{Q}^\lambda_s=Q^\lambda_s, \hat{Q}^{\lambda_t}_{s:t}=Q^{\lambda_t}_{s:t}$} we get an interesting bound involving generalization and forgetting:
 
 \begin{equation}
-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathcal{L}(\hat{Q}^\lambda_s,\mathcal{D}_t)\leq \mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathcal{L}(\hat{Q}^\lambda_s,\mathcal{D}_t)\leq \mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
 \end{equation}
 
 We note that the right-hand-side is data-free and describes the general loss landscapes of both tasks. If both tasks come from the same distribution, for example, this implies that forgetting is upper bounded by the forward transfer (for empirical Gibbs measures).
 Another way to look at this inequality is 
 
 \begin{equation*}
-\mathcal{L}(P,\mathcal{D}_t)-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathcal{L}(\hat{Q}^\lambda_s,\mathcal{D}_t)\leq \mathcal{L}(P,\mathcal{D}_s)-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)
+\mathcal{L}(P,\mathcal{D}_t)-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathcal{L}(\hat{Q}^\lambda_s,\mathcal{D}_t)\leq \mathcal{L}(P,\mathcal{D}_s)-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)
 \end{equation*}
 
 we can expect both sides of this equation to be non-negative. This suggests that any problem with high forgetting for the Gibbs measure would also have poor forward transfer and a problem with good forward transfer will also have low forgetting.
@@ -514,52 +514,85 @@ we can expect both sides of this equation to be non-negative. This suggests that
 We can derive an alternative bound from \eqref{eq:oracle-base} by setting the optimal posterior:
 
 \begin{equation} 
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq -\frac{1}{\lambda}\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\mathcal{L}(h,\mathcal{D}_t)}\right ]+\frac{\lambda K^2}{8m_t}+\frac{1}{\lambda}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq -\frac{1}{\lambda_t}\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}\right ]+\frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]
 \end{equation}
 
 $$
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \frac{\lambda K^2}{8m_t}+\frac{1}{\lambda}\log\frac{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{-\lambda\mathcal{L}(h,\mathcal{D}_t)}\right ]}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\frac{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}\right ]}
 $$
 
 Since $e^k\geq 0$ for all $k\in \mathbb{R}$, we can apply the log-sum inequality:
 
 $$
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \frac{\lambda K^2}{8m_t}+\frac{1}{\lambda}\frac{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\log\frac{e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}}{e^{\lambda(-\mathcal{L}(h,\mathcal{D}_t))}} \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\frac{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\log\frac{e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}}{e^{\lambda_t(-\mathcal{L}(h,\mathcal{D}_t))}} \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}
 $$
 
 \begin{equation} \label{eq:oracle-logsum}
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \frac{\lambda K^2}{8m_t}+\frac{1}{\lambda}\frac{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\lambda\mathcal{L}(h,\mathcal{D}_s) \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\frac{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\lambda_t\mathcal{L}(h,\mathcal{D}_s) \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}
 \end{equation}
 
-While this equation is not easy to interpret, we note that we can re-write the second term as $\mathbb{E}_{h\sim Q'_{s:t}}\left [\mathcal{L}(h,\mathcal{D}_s) \right ]$, where $$Q'_{s:t}(h)=\frac{Q_s(h)e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}$$.
-If, for example, $Q_s(h)\propto P(h)e^{-\lambda\mathcal{L}(h,\mathcal{D}_s)}$, we have $Q'_{s:t}(h)\propto  P(h)e^{-\lambda\mathcal{L}(h,\mathcal{D}_t)}$, giving us a bound on backward transfer in terms of a learner that did not use any data from the source task.
+While this equation is not easy to interpret, we note that we can re-write the second term as $\mathbb{E}_{h\sim Q'_{s:t}}\left [\mathcal{L}(h,\mathcal{D}_s) \right ]$, where $$Q'_{s:t}(h)=\frac{Q_s(h)e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}$$.
+If, for example, $Q_s(h)\propto P(h)e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_s)}$, we have $Q'_{s:t}(h)\propto  P(h)e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}$, giving us a bound on backward transfer in terms of a learner that did not use any data from the source task.
 
 In order to better understand \eqref{eq:oracle-logsum}, we can apply the Cauchy-Schwartz theorem on the expectation and get
 
 $$
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \frac{\lambda K^2}{8m_t}+\frac{\sqrt{\mathbb{E}_{Q_s}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]\mathbb{E}_{Q_s}\left [\mathcal{L}(h,\mathcal{D}_s)^2 \right ]}}{\mathbb{E}_{Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{\sqrt{\mathbb{E}_{Q_s}\left [e^{2\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]\mathbb{E}_{Q_s}\left [\mathcal{L}(h,\mathcal{D}_s)^2 \right ]}}{\mathbb{E}_{Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}
 $$
 
 
-$$
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \frac{\lambda K^2}{8m_t}+\frac{\sqrt{\mathbb{E}_{Q_s}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}}{\mathbb{E}_{Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}\sqrt{\mathbb{E}_{Q_s}\left [\mathcal{L}(h,\mathcal{D}_s)^2 \right ]}
-$$
+\begin{equation} \label{eq:oracle-CS-opt}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{\sqrt{\mathbb{E}_{Q_s}\left [e^{2\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}}{\mathbb{E}_{Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}\sqrt{\mathbb{E}_{Q_s}\left [\mathcal{L}(h,\mathcal{D}_s)^2 \right ]}
+\end{equation}
 
 And using the definition of variance and the triangle inequality (since both terms are non-negative), we get
 
 \begin{equation} \label{eq:oracle-final}
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda}_{s:t},\mathcal{D}_s)\leq \frac{\lambda K^2}{8m_t}+\frac{\sqrt{\mathbb{E}_{Q_s}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}}{\mathbb{E}_{Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}(\sqrt{\mathrm{Var}_{Q_s}(\mathcal{L}(h,\mathcal{D}_s))}+\mathcal{L}(Q_s,\mathcal{D}_s))
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{\sqrt{\mathbb{E}_{Q_s}\left [e^{2\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}}{\mathbb{E}_{Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}(\sqrt{\mathrm{Var}_{Q_s}(\mathcal{L}(h,\mathcal{D}_s))}+\mathcal{L}(Q_s,\mathcal{D}_s))
 \end{equation}
 
 This equation gives us three terms that quantify forgetting in terms of $Q_s$
 \begin{enumerate}
-	\item The first multiplicative term connects the exponential moments of the discrepancies. This term is lower bounded by $1$, and is upper bounded (using Bergstrom's inequality) by $$\max\left \{{\mathbb{E}_{Q_s}\left [e^{\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]},\quad e^{\lambda(\mathcal{L}(Q_s,\mathcal{D}_t)-\mathcal{L}(Q_s,\mathcal{D}_s))}\right \}$$ 
-	where the first term applies if $\mathbb{E}_{Q_s}\left [e^{2\lambda(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]\geq 1$, and the second term if it is in $(0,1)$. In both cases, we have a domain discrepancy term that refers to the averaged loss discrepancy under $Q_s$. Since we can expect $Q_s$ to give high probability to hypotheses with low loss on $\mathcal{D}_s$, we are likely to be in the second setting and have this term be dominated by the forward transfer term in $e^{\lambda\mathcal{L}(Q_s,\mathcal{D}_t)}$.
+	\item The first multiplicative term connects the exponential moments of the discrepancies. This term is lower bounded by $1$, and is upper bounded (using the Bhatia-Davis inequality) by $$ e^{\lambda_t/2\max_h\left \{\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)\right \}}e^{\lambda_t/2(\mathcal{L}(Q_s,\mathcal{D}_t)-\mathcal{L}(Q_s,\mathcal{D}_s))}$$ 
+	We have a domain discrepancy term that refers to the averaged loss discrepancy under $Q_s$ as well as the maximal discrepancy. Since we can expect $Q_s$ to give high probability to hypotheses with low loss on $\mathcal{D}_s$, this term is likely to be dominated by the forward transfer term in $e^{\lambda_t\mathcal{L}(Q_s,\mathcal{D}_t)}$.
+	We can also use a lemma from \citet{cover1996universal} that states $$\frac{\mathbb{E}[X]}{\mathbb{E}[Y]}\leq max_i \frac{x_i}{y_i}$$ if $X,Y$ are non-negative RVs, in order to give an upper bound of the form $$\max\left \{e^{\lambda_t\max_h\left \{\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)\right \}},\quad  e^{\lambda_t(\mathcal{L}(Q_s,\mathcal{D}_t)-\mathcal{L}(Q_s,\mathcal{D}_s))}\right \}$$ where the first term is if the numerator is at least $1$, and the second is if it is in $[0,1)$.
 	\item The first additive term is the standard deviation of the expected loss over $Q_s$, and will be low if $Q_s$ is stable in terms of the expected error.
 	\item The second additive term is the expected loss of $Q_s$, and will be low if $Q_s$ generalizes well.
 \end{enumerate}
 
-We can also use the Bhatia-Davis inequality to replace the second and third terms of \eqref{eq:oracle-final} with $\sqrt{K\mathcal{L}(Q_s,\mathcal{D}_s)}$ if we prefer to avoid variance terms.
+Unsurprisingly, if $\lambda_t$ is high we arrive at a trivial bound on forgetting, as the Gibbs learner focuses on minimizing the empirical error for $S_t$.
+
+Another potential bound can be derived from \eqref{eq:oracle-logsum} by applying the Bhatia-Davis inequality on numerator:
+
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{\max_h e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\mathbb{E}_{h\sim Q_s}\left [\mathcal{L}(h,\mathcal{D}_s) \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}$$
+
+By taking an upper bound on the denominator, we get 
+
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\max_h \left \{ e^{2\lambda_t|\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)|}\right \}\mathcal{L}(Q_s,\mathcal{D}_s)$$
+
+Taking an expectation over $S_s$, we get
+
+\begin{equation}
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\max_h \left \{ e^{2\lambda_t|\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)|}\right \}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [\mathcal{L}(Q_s,\mathcal{D}_s)\right ]
+\end{equation}
+
+And we can apply standard expectation upper bounds or oracle bounds on $\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [\mathcal{L}(Q_s,\mathcal{D}_s)\right ]$.
+
+Another alternative bound would be to take \eqref{eq:oracle-CS-opt} and apply the lemma from \citet{cover1996universal} to get 
+
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\max_h\left \{e^{\lambda_t|\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)|}\right \}\sqrt{\mathbb{E}_{Q_s}\left [\mathcal{L}(h,\mathcal{D}_s)^2 \right ]}$$
+
+If $Q_s(h)\propto P(h)e^{-\lambda_s \hat{\mathcal{L}}(h,S_s)}$, we can apply a Laplace method approximation for the expectation assuming $\lambda_s\rightarrow \infty$, and that $P(\theta^*)\mathcal{L}(\theta^*,\mathcal{D}_s)^2>0$ for the optimal hypothesis $\theta^*\triangleq \arg\min_\theta \hat{\mathcal{L}}(\theta, S_s)$.
+
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\max_h\left \{e^{\lambda_t|\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)|}\right \}\sqrt{\left (\frac{2\pi}{\lambda_s}\right )^{d/2}\frac{P(\theta^*)\mathcal{L}(\theta^*,\mathcal{D}_s)^2e^{-\lambda_s\hat{\mathcal{L}}(\theta^*,S_s)}}{|H(\theta^*)|^{1/2}\mathbb{E}_{\theta\in P}\left [e^{-\lambda_s \hat{\mathcal{L}}(\theta,S_s)}\right ]}}$$
+
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\left (\frac{2\pi}{\lambda_s}\right )^{d/4}\max_h\left \{e^{\lambda_t|\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)|}\right \}\frac{\sqrt{P(\theta^*)}\mathcal{L}(\theta^*,\mathcal{D}_s)e^{\lambda_s/2(\hat{\mathcal{L}}(P,S_s)-\hat{\mathcal{L}}(\theta^*,S_s))}}{|H(\theta^*)|^{1/4}}$$
+
+Taking an expectation over $S_s$ yields
+
+\begin{equation}
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\left (\frac{2\pi}{\lambda_s}\right )^{d/4}\max_h\left \{e^{\lambda_t|\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)|}\right \}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [\frac{\sqrt{P(\theta^*)}\mathcal{L}(\theta^*,\mathcal{D}_s)e^{\lambda_s/2(\hat{\mathcal{L}}(P,S_s)-\hat{\mathcal{L}}(\theta^*,S_s))}}{|H(\theta^*)|^{1/4}}\right ]
+\end{equation}
 
 %TODO: moment stuff, we alreadt have the expectation on S_t
 
@@ -623,7 +656,7 @@ We can easily extend this result for $n$ tasks: (TODO later - prove this) %TODO
 A minor potential improvement over this would be to use a Pac-Bayes bound for the first term $Q_1$, giving us with probability at least $1-\delta$ over the choice of $S_1$, uniformly for all $Q_1$,
 \begin{equation}
 \begin{split}
-\sum_{t=1}^{n}\mathcal{L}(Q_{1:t}, \mathcal{D}_t) \leq &  \hat{\mathcal{L}}(Q_1, S_1)+\frac{1}{\lambda}D_{KL}(Q_1||P)+C(\lambda,\delta,P,S_1, K) \\ &+ \sum_{t=2}^{n}\left ( BWT(Q_{1:t}, \mathcal{D}_{t-1})+ \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{t}||\mathcal{D}_{t-1})}\right ) \\&
+\sum_{t=1}^{n}\mathcal{L}(Q_{1:t}, \mathcal{D}_t) \leq &  \hat{\mathcal{L}}(Q_1, S_1)+\frac{1}{\lambda_t}D_{KL}(Q_1||P)+C(\lambda_t,\delta,P,S_1, K) \\ &+ \sum_{t=2}^{n}\left ( BWT(Q_{1:t}, \mathcal{D}_{t-1})+ \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{t}||\mathcal{D}_{t-1})}\right ) \\&
 \end{split}
 \end{equation}
 
