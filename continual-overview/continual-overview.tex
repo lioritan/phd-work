@@ -573,10 +573,10 @@ $$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\math
 Taking an expectation over $S_s$, we get
 
 \begin{equation}
-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\max_h \left \{ e^{2\lambda_t|\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)|}\right \}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [\mathcal{L}(Q_s,\mathcal{D}_s)\right ]
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\max_h \left \{ e^{2\lambda_t|\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)|}\right \}\mathbb{E}_{S_s\sim \mathcal{D}_s}\left [\mathcal{L}(Q_s,\mathcal{D}_s)\right ]
 \end{equation}
 
-And we can apply standard expectation upper bounds or oracle bounds on $\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [\mathcal{L}(Q_s,\mathcal{D}_s)\right ]$.
+And we can apply standard expectation upper bounds or oracle bounds on $\mathbb{E}_{S_s\sim \mathcal{D}_s}\left [\mathcal{L}(Q_s,\mathcal{D}_s)\right ]$.
 
 Another alternative bound would be to take \eqref{eq:oracle-CS-opt} and apply the lemma from \citet{cover1996universal} to get 
 
@@ -591,7 +591,7 @@ $$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\math
 Taking an expectation over $S_s$ yields
 
 \begin{equation}
-\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\left (\frac{2\pi}{\lambda_s}\right )^{d/4}\max_h\left \{e^{\lambda_t|\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)|}\right \}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [\frac{\sqrt{P(\theta^*)}\mathcal{L}(\theta^*,\mathcal{D}_s)e^{\lambda_s/2(\hat{\mathcal{L}}(P,S_s)-\hat{\mathcal{L}}(\theta^*,S_s))}}{|H(\theta^*)|^{1/4}}\right ]
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\left (\frac{2\pi}{\lambda_s}\right )^{d/4}\max_h\left \{e^{\lambda_t|\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)|}\right \}\mathbb{E}_{S_s\sim \mathcal{D}_s}\left [\frac{\sqrt{P(\theta^*)}\mathcal{L}(\theta^*,\mathcal{D}_s)e^{\lambda_s/2(\hat{\mathcal{L}}(P,S_s)-\hat{\mathcal{L}}(\theta^*,S_s))}}{|H(\theta^*)|^{1/4}}\right ]
 \end{equation}
 
 %TODO: moment stuff, we alreadt have the expectation on S_t
