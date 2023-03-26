@@ -577,6 +577,12 @@ Taking an expectation over $S_s$, we get
 \end{equation}
 
 And we can apply standard expectation upper bounds or oracle bounds on $\mathbb{E}_{S_s\sim \mathcal{D}_s}\left [\mathcal{L}(Q_s,\mathcal{D}_s)\right ]$.
+Sadly, this  bound implies that in order to avoid forgetting, we would like $\lambda_t=O(1)$, whereas standard bounds on forward transfer usually have $\lambda_t=O(\sqrt{m_t})$. This appears to be a irreconcilable issue with the Gibbs predictor. Some potential solutions to this issue are:
+
+\begin{enumerate}
+	\item Keep data from previous tasks ($S_s$) and use it for learning $Q_{s:t}$, such as by using a follow-the-leader algorithm.
+	\item Have a sufficiently rich shared representation such that parameters can remember all previous tasks. It is not entirely clear how to represent such a thing in the context of standard PB bounds (with or without domain transfer).
+\end{enumerate} 
 
 Another alternative bound would be to take \eqref{eq:oracle-CS-opt} and apply the lemma from \citet{cover1996universal} to get 
 
