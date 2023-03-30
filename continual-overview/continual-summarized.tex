@@ -1,0 +1,279 @@
+\documentclass[letterpaper]{article}
+
+% AAAI-style 2-per-page format, without the annoying bits
+\setlength\topmargin{-0.25in} \setlength\oddsidemargin{-0.25in}
+\setlength\textheight{9.0in} \setlength\textwidth{7.0in}
+\setlength\columnsep{0.375in} \newlength\titlebox \setlength\titlebox{2.25in}
+\setlength\headheight{0pt}  \setlength\headsep{0pt}
+\flushbottom \sloppy
+
+\pdfpagewidth=8.5in
+\pdfpageheight=11in
+
+\usepackage{natbib}
+
+\usepackage{times} 
+\usepackage{helvet}  
+\usepackage{courier}  
+\usepackage{url}  
+\usepackage{graphicx} 
+
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+
+
+\usepackage{multirow}
+\usepackage{ctable}
+\usepackage{color}
+\usepackage{natbib}
+\usepackage[normalem]{ulem}
+
+
+\usepackage{romannum}
+
+%\usepackage[style=authoryear]{biblatex}
+
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black, % color for table of contents
+	citecolor=black, % color for citations
+	urlcolor=blue, % color for hyperlinks
+	bookmarks=true,
+}
+\urlstyle{same}
+
+
+
+
+\raggedbottom %nicer enumerate
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{hypothesis}{Hypothesis}[section]
+\newtheorem{assumption}{Assumption}
+
+\title{Bounds on forgetting for continual learning and transfer}
+\begin{document}
+	
+	\pagenumbering{arabic}
+	\maketitle
+	
+\section{Notation and preliminaries}
+
+\begin{defn}
+	A task environment $\tau$ is a distribution over tasks $\mathcal{D}\sim \tau$. A task $\mathcal{D}$ is a probability distribution over $\mathcal{X}\times \mathcal{Y}$.
+\end{defn}
+
+
+\begin{defn}
+	A hypothesis $h$ is a function $h:\mathcal{X}\rightarrow\mathcal{Y}$. A family of hypotheses is marked $\mathcal{H}$. 
+\end{defn}
+
+\begin{defn}
+	The expected loss of a given hypothesis $h\in \mathcal{H}$ is defined as $\mathcal{L}(h, D) \triangleq E_{z\in \mathcal{D}} \ell(h, z)$. The empirical loss of a hypothesis w.\!r.\!t.\! a sample $S\in \mathcal{D}$ is defined as $\hat{\mathcal{L}}(h, S) \triangleq \frac{1}{m}\sum_{j=1}^{m}\ell(h, z_j)$.
+\end{defn}
+
+\subsection{Problem definition - without meta-learning} \label{sec:forgetting-formulation}
+
+Let us first consider only two tasks $\mathcal{D}_s, \mathcal{D}_t$. Let us mark $Q_s$ be a distribution over the set of hypotheses learned by some process $J_s$ over $S_s\sim \mathcal{D}_s$ and a data-free prior hypothesis distribution $P$ such that $$Q_s=J_s(S_s, P).$$ We then proceed to utilize another process $J_t$ such that $$Q_{s:t}=J_t(S_t, Q_s).$$ 
+
+\begin{defn}
+	The backwards transfer of $Q_{s:t}$ on task $\mathcal{D}_s$ is defined as $$\mathrm{BWT}(Q_{s:t}, \mathcal{D}_s) \triangleq \mathbb{E}_{h\sim Q_{s:t}}\left [\mathcal{L}(h, \mathcal{D}_s)\right ].$$
+	
+	The negative transfer of $Q_{s:t}$ on task $\mathcal{D}_s$ is defined as $$F(Q_{s:t}, \mathcal{D}_s) \triangleq \mathrm{BWT}(Q_{s:t}, \mathcal{D}_s) - \mathbb{E}_{h\sim Q_{s}}\left [\mathcal{L}(h, \mathcal{D}_s)\right ].$$
+	
+	If the negative transfer $F(Q_{s:t}, \mathcal{D}_s)>0$, we will say that $Q_{s:t}$ has forgotten task $\mathcal{D}_s$.
+\end{defn}
+
+
+\section{Bounds on forgetting in the online transfer setting}
+
+In this section, we are interested in providing an upper bound on the backwards transfer $\mathrm{BWT}(Q_{s:t}, \mathcal{D}_s) \triangleq \mathbb{E}_{h\sim Q_{s:t}}\left [\mathcal{L}(h, \mathcal{D}_s)\right ]=\mathcal{L}(Q_{s:t},\mathcal{D}_s)$, where the sampled data $S_s\sim \mathcal{D}_s$ is not directly available when learning $Q_{s:t}$.
+
+\begin{lemma} \label{lemma:concentration} \cite{shui2020beyond} \\
+	Let $\pi$ and $\rho$ be two distributions on a common space $\mathcal{Z}$ such that $\rho$ is absolutely continuous w.\!r.\!t.\! $\pi$. For any $\lambda_t\in \mathbb{R}$ and any measurable function $f:\mathcal{Z}\rightarrow \mathbb{R}$ such that $\mathbb{E}_{z\sim \pi}\left [e^{\lambda_t(f(z)-\mathbb{E}_\pi f(z))} \right ]<\infty$, we have
+	
+	\begin{equation}
+	\lambda_t\left (\mathbb{E}_{z\sim \rho}\left [f(z) \right ]-\mathbb{E}_{z\sim \pi}\left [f(z) \right ]\right )\leq D_{\mathrm{KL}}(\rho||\pi)+ \log\mathbb{E}_{z\sim \pi}\left [e^{\lambda_t(f(z)-\mathbb{E}_\pi f(z))} \right ],
+	\end{equation}
+	
+	where $D_{\mathrm{KL}}$ is the KL-divergence and equality is achieved for $f(z)=\mathbb{E}_\pi f(z)+\frac{1}{\lambda_t}\log(\frac{d\rho}{d\pi})$
+\end{lemma}
+
+We can apply this lemma with $f(h)=\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t)$ as well as $\pi=Q_s, \rho=Q_{s:t}$ and get:
+
+$$
+\mathcal{L}(Q_{s:t},\mathcal{D}_s)\leq \hat{\mathcal{L}}(Q_{s:t},S_s)+\frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q_s)+\frac{1}{\lambda_t}\log \mathbb{E}_{z\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]
+$$
+
+Choosing $Q_{s:t}=\hat{Q}^{\lambda_t}_{s:t}(h)\propto Q_s(h)e^{-\lambda_t\hat{\mathcal{L}}(h,S_t)}$ gives an equality, and we can change it back to an inequality by taking the infimum over the right-hand-side:
+
+$$\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \hat{\mathcal{L}}(Q_{s:t},S_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+
+If we take an expectation on $S_t$, we get the following \emph{oracle} inequality (in expectation)
+
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+
+Since $Q_s$ is data-free w.r.t. $S_t$, we can swap the order of expectations and get
+
+$$\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]=\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+
+$$=\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\mathbb{E}_{S_t\sim \mathcal{D}_t}e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
+
+\begin{lemma}
+	Let $l:Z\times H\rightarrow[0,K]$ be a measurable function. Let $\pi\in\mathcal{M}(H)$ be a distribution over $H$ that is independent w.r.t. $Z$. Let $S\in Z^m$ be an i.\! i.\! d.\! sample. With probability at least $1-\delta$ over the choice of $S$,
+	
+	$$\log \mathbb{E}_{h\sim \pi}\left [e^{t(\frac{1}{m}\sum_i l(z_i,h)-\mathbb{E}_{z}l(z,h))}\right ]\leq \frac{t^2K^2}{8m}+\log{1/ \delta}$$
+\end{lemma}
+
+Using this lemma, if our loss function $l$ is bounded in $[0,K]$, we get
+
+\begin{equation} \label{eq:oracle-base}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q_{s}) \right \}+\frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]
+\end{equation}
+
+Since we know that the infimum over $Q_{s:t}$ is the expected Gibbs posterior $Q^{\lambda_t}_{s:t}(h)\propto Q_s(h)e^{\lambda_t\mathcal{L}(h,\mathcal{D}_t)}$, we can use it in the right-hand-side and arrive at
+
+\begin{equation} \label{eq:opt-gibbs}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq -\frac{1}{\lambda_t}\log \mathbb{E}_{h\sim Q_s}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}\right ]+\frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]
+\end{equation}
+
+$$
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\frac{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}\right ]}
+$$
+
+Since $e^k\geq 0$ for all $k\in \mathbb{R}$, we can apply the log-sum inequality:
+
+$$
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\frac{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\log\frac{e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}}{e^{\lambda_t(-\mathcal{L}(h,\mathcal{D}_t))}} \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}
+$$
+
+Giving us 
+
+\begin{equation} \label{eq:oracle-logsum}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\frac{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\lambda_t\mathcal{L}(h,\mathcal{D}_s) \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}
+\end{equation}
+
+By applying the Bhatia-Davis inequality on numerator in \eqref{eq:oracle-logsum}, we get:
+
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{\max_h e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\mathbb{E}_{h\sim Q_s}\left [\mathcal{L}(h,\mathcal{D}_s) \right ]}{\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]}$$
+
+And via Jensen's inequality we get
+
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+ e^{\lambda_t\max_h(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}e^{\lambda_t(\mathcal{L}(Q_s,\mathcal{D}_t)-\mathcal{L}(Q_s,\mathcal{D}_s))}\mathcal{L}(Q_s,\mathcal{D}_s) $$
+
+Taking an expectation over $S_s$, we get
+
+$$\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+ e^{\lambda_t\max_h(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\mathbb{E}_{S_s\sim \mathcal{D}_s}\left [e^{\lambda_t(\mathcal{L}(Q_s,\mathcal{D}_t)-\mathcal{L}(Q_s,\mathcal{D}_s))}\mathcal{L}(Q_s,\mathcal{D}_s) \right ]$$
+
+And we can apply the Bhatia-Davis inequality again to arrive at
+
+\begin{equation}
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\max_h \left \{ e^{2\lambda_t|\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)|}\right \}\mathbb{E}_{S_s\sim \mathcal{D}_s}\left [\mathcal{L}(Q_s,\mathcal{D}_s)\right ]
+\end{equation}
+
+Note that $\mathbb{E}_{S_s\sim \mathcal{D}_s}\left [\mathcal{L}(Q_s,\mathcal{D}_s)\right ]$ can be upper bounded using standard expectation upper bounds or oracle bounds.
+Sadly, this  bound implies that in order to avoid forgetting, we would like $\lambda_t=O(1)$, whereas standard bounds on forward transfer usually have $\lambda_t=O(\sqrt{m_t})$. This appears to be a irreconcilable issue with the Gibbs predictor. Some potential solutions to this issue are:
+
+\begin{enumerate}
+	\item Keep data from previous tasks ($S_s$) and use it for learning $Q_{s:t}$, such as by using a follow-the-leader algorithm.
+	\item Have a sufficiently rich shared representation such that parameters can remember all previous tasks. It is not entirely clear how to represent such a thing in the context of standard PB bounds (with or without domain transfer).
+	\item Derive a non-trivial lower bound from \eqref{lemma:concentration} somehow and hope it increases with $\lambda_t$. I suspect it is possible to arrive at something of the form $$\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\geq \mathcal{L}(Q_s,\mathcal{D}_s)-\mathcal{L}(Q_s,\mathcal{D}_t)+C(m_t,K,\lambda_t) $$
+\end{enumerate} 
+
+\subsection{Additional result}
+
+Starting from \eqref{eq:oracle-base}, if we know that $Q_s=\hat{Q}^{\lambda_t}_{s}\propto P(h)e^{-\lambda_t\hat{\mathcal{L}}(h,S_s)}$, we can arrive at the following using Jensen's inequality and Hoeffding's lemma:
+
+$$
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \mathbb{E}_{S_s\sim \mathcal{D}_s}\inf_{Q_{s:t}}\left \{ \mathcal{L}(Q_{s:t},\mathcal{D}_t) + \frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||\hat{Q}^{\lambda_t}_{s}) \right \}+\frac{\lambda_t K^2}{8m_t}+\frac{\lambda_t K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+$$
+
+And by choosing the expected Gibbs posterior as the infimum of the right-hand-side, we get
+
+\begin{equation}
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \mathbb{E}_{S_s\sim \mathcal{D}_s}\mathcal{L}(\hat{Q}_s^{\lambda_t},\mathcal{D}_t)+\frac{\lambda_t K^2}{8m_t}+\frac{\lambda_t K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)
+\end{equation}
+
+Since $P$ is data-free, we can expect $\mathcal{L}(P,\mathcal{D}_s)-\mathcal{L}(P,\mathcal{D}_t)=0$ for most reasonable bounded loss functions, leaving us with the dominant factor of the bound being $$\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \mathbb{E}_{S_s\sim \mathcal{D}_s}\mathcal{L}(\hat{Q}_s^{\lambda_t},\mathcal{D}_t)$$
+
+This means that if the forward transfer of the prior $\hat{Q}_s^{\lambda_t}$ on task $t$ is low, we can learn task $t$ without forgetting task $s$. This is somewhat unsurprising, as it implies that generalizing well on task $s$ also leads to generalizing well on task $t$, and therefore learning without forgetting is possible.
+
+We note that a more general form of this bound can be derived from \eqref{eq:opt-gibbs}:
+
+\begin{equation}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq\mathcal{L}(Q_s,\mathcal{D}_t)+ \frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\right ]
+\end{equation}
+
+This naturally leads to the bound 
+
+$$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq\mathcal{L}(Q_s,\mathcal{D}_t)+ \frac{\lambda_t K^2}{8m_t}+\max_h\left (\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)\right )$$
+
+This implies that if the domains are similar, for any $Q_s$ that transfers well to $\mathcal{D}_t$ we can adapt to $\mathcal{D}_t$ without much forgetting using the same criterion as forward transfer.
+
+\section{Regret bound on forward transfer}
+
+Considering the same setting as Section \ref{sec:forgetting-formulation}, we consider the metric of regret:
+
+\begin{defn}
+	The regret on $n$ tasks is defined as 
+	$$REGRET_n = \sum_{t=1}^{n}\mathcal{L}(Q_{1:t}, \mathcal{D}_t)-\min_{Q} \sum_{t=1}^{T}\mathcal{L}(Q, \mathcal{D}_t),$$
+	where $Q_{1:t}$ is the distribution obtained by applying the series of processes $J_1, \ldots, J_t$ on $P, \{S_1,\ldots,S_t\}$, such that $Q_1=J_1(S_1,P)$ and $Q_1:i=J_i(S_i, Q_{i-1})$ for $i>1$.
+\end{defn}
+
+Again, we begin with the two-task setting ($n=2$), and notice that
+
+\begin{equation}
+\mathcal{L}(Q_1, \mathcal{D}_1)+\mathcal{L}(Q_{1:2}, \mathcal{D}_2)=
+\mathcal{L}(Q_1, \mathcal{D}_1)-\mathcal{L}(Q_1, \mathcal{D}_2)+\mathcal{L}(Q_1, \mathcal{D}_2)+\mathcal{L}(Q_{1:2}, \mathcal{D}_2)-\mathcal{L}(Q_{1:2}, \mathcal{D}_1)+\mathcal{L}(Q_{1:2}, \mathcal{D}_1)
+\end{equation}
+
+Marking $\mathcal{L}(Q_1, \mathcal{D}_2)\triangleq FWT(Q_1, \mathcal{D}_2)$ as the forward transfer from task $1$ to task $2$, we have
+\begin{equation}
+\mathcal{L}(Q_1, \mathcal{D}_1)+\mathcal{L}(Q_{1:2}, \mathcal{D}_2)=
+\underbrace{\mathcal{L}(Q_1, \mathcal{D}_1)-\mathcal{L}(Q_1, \mathcal{D}_2)}_{\text{transfer gap from source}} + FWT(Q_1, \mathcal{D}_2) + \underbrace{\mathcal{L}(Q_{1:2}, \mathcal{D}_2)-\mathcal{L}(Q_{1:2}, \mathcal{D}_1)}_{\text{transfer gap from target}}+BWT(Q_{1:2}, \mathcal{D}_1)
+\end{equation}
+
+We can use known results from domain adaptation methods to provide an upper bound to the transfer gap terms. As a simple (and loose) example, we can consider the following theorem from \citet{shui2020beyond}:
+
+\begin{lemma}
+	Assume that $\ell$ is bounded in $[0, K]$. For all $h\in \mathcal{H}$ we have
+	$$\mathcal{L}(h, \mathcal{D}_1)-\mathcal{L}(h, \mathcal{D}_2)\leq \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_1||\mathcal{D}_2)},$$ 
+	where $D_{JS}$ is the Jensen-Shannon divergence between the joint data distributions.
+\end{lemma}
+
+Due to the symmetry of the Jensen-Shannon divergence, this bound applies for $\mathcal{L}(h, \mathcal{D}_2)-\mathcal{L}(h, \mathcal{D}_1)$ as well, and so we have
+
+\begin{equation}
+\mathcal{L}(Q_1, \mathcal{D}_1)+\mathcal{L}(Q_{1:2}, \mathcal{D}_2) \leq 
+K\sqrt{2 D_{JS}(\mathcal{D}_1||\mathcal{D}_2)}+FWT(Q_1, \mathcal{D}_2)+ BWT(Q_{1:2}, \mathcal{D}_1).
+\end{equation}
+
+We note that while this bound is somewhat naive in that it does not take the posterior distributions into account at all, it does give us some insight into the relationship between transfer and regret - minimizing forgetting (and lowering backwards transfer) gives us a guaranteed upper bound on the overall regret. 
+
+We can easily extend this result for $n$ tasks: (TODO later - prove this) %TODO
+\begin{equation}
+\begin{split}
+\sum_{t=1}^{n}\mathcal{L}(Q_{1:t}, \mathcal{D}_t) \leq &  FWT(Q_1, \mathcal{D}_2) + \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{1}||\mathcal{D}_{2})} \\ &+ \sum_{t=2}^{n}\left ( BWT(Q_{1:t}, \mathcal{D}_{t-1})+ \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{t}||\mathcal{D}_{t-1})}\right ) \\&
+\end{split}
+\end{equation}
+
+A minor potential improvement over this would be to use a Pac-Bayes bound for the first term $Q_1$, giving us with probability at least $1-\delta$ over the choice of $S_1$, uniformly for all $Q_1$,
+\begin{equation}
+\begin{split}
+\sum_{t=1}^{n}\mathcal{L}(Q_{1:t}, \mathcal{D}_t) \leq &  \hat{\mathcal{L}}(Q_1, S_1)+\frac{1}{\lambda_t}D_{KL}(Q_1||P)+C(\lambda_t,\delta,P,S_1, K) \\ &+ \sum_{t=2}^{n}\left ( BWT(Q_{1:t}, \mathcal{D}_{t-1})+ \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_{t}||\mathcal{D}_{t-1})}\right ) \\&
+\end{split}
+\end{equation}
+
+This implies that if the Jensen-Shannon divergence between subsequent tasks is smaller on average than $\sqrt{2}/K$, minimizing backwards transfer can potentially lead to a sub-linear regret bound. This is unsurprising in practice, as several empirical works on continual learning have demonstrated that learners with low forgetting achieve good forward transfer.
+
+\clearpage
+\bibliographystyle{plainnat}
+\bibliography{library}
+
+\end{document}
