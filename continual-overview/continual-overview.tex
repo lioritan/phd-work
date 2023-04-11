@@ -636,7 +636,7 @@ $$\frac{\sum_h Q_s(h)e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}e^{-\lambda_t\math
 By averaging this we get
 
 \begin{equation} 
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\mathbb{E}_{h\sim U}\left [\mathcal{L}(h,\mathcal{D}_s)\right ] + \frac{\log |\mathcal{H}|}{\lambda_t}
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim U}\left [e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}\right ] + \frac{\log |\mathcal{H}|}{\lambda_t}
 \end{equation}
 
 Where $U$ is a uniform distribution over hypotheses. This is somewhat surprising, as it implies that Gibbs learning does not perform much worse than the average case forgetting, even if the domains are highly dissimilar.
