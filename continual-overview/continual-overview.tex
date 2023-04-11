@@ -600,7 +600,52 @@ Taking an expectation over $S_s$ yields
 \mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\left (\frac{2\pi}{\lambda_s}\right )^{d/4}\max_h\left \{e^{\lambda_t|\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t)|}\right \}\mathbb{E}_{S_s\sim \mathcal{D}_s}\left [\frac{\sqrt{P(\theta^*)}\mathcal{L}(\theta^*,\mathcal{D}_s)e^{\lambda_s/2(\hat{\mathcal{L}}(P,S_s)-\hat{\mathcal{L}}(\theta^*,S_s))}}{|H(\theta^*)|^{1/4}}\right ]
 \end{equation}
 
-%TODO: moment stuff, we alreadt have the expectation on S_t
+Considering \eqref{eq:oracle-base}, we can try to consider special settings for it:
+
+If $Q_s(h)\propto P(h)e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_s)}$, we have 
+
+\begin{equation*} 
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq -\frac{1}{\lambda_t}\log \mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)-\lambda_t\mathcal{L}(h,\mathcal{D}_s)}\right ]+\frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]
+\end{equation*}
+
+Using Jensen's inequality on the first term, we get
+
+\begin{equation} 
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\mathcal{L}(P,\mathcal{D}_s)+\mathcal{L}(P,\mathcal{D}_t) +\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]
+\end{equation}
+
+We note that $-\mathcal{L}(P,\mathcal{D}_t)\leq\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]\leq 0$ so the lest two terms somewhat offset one another, leaving us with a bound that implies that exponential weights are not much worse than not seeing the task at all.
+
+We can also apply Cauchy-Shwartz on \eqref{eq:oracle-base} and arrive at the somewhat similar 
+
+\begin{equation} 
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\mathcal{L}(Q_s,\mathcal{D}_t) +\frac{1}{2\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{-2\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]+\frac{1}{2\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{2\lambda_t\mathcal{L}(h,\mathcal{D}_s)} \right ]
+\end{equation}
+
+And choosing the same posterior for $Q_s$ (upto scale) removes the final term. This is almost identical to some of our previous results.
+
+An alternative result using Hoeffding's inequality to bound the discrepancy yields the non-useful (but interesting) upper bound
+\begin{equation} 
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\mathcal{L}(Q_s,\mathcal{D}_s)+\frac{\lambda_t K^2}{2}
+\end{equation}
+
+If $\mathcal{H}$ is finite, we have 
+$$\frac{\sum_h Q_s(h)e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}{\sum_h Q_s(h)e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}\leq 
+\sum_h \frac{Q_s(h)}{Q_s(h)e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}=\sum_h{e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}} $$
+
+By averaging this we get
+
+\begin{equation} 
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\mathbb{E}_{h\sim U}\left [\mathcal{L}(h,\mathcal{D}_s)\right ] + \frac{\log |\mathcal{H}|}{\lambda_t}
+\end{equation}
+
+Where $U$ is a uniform distribution over hypotheses. This is somewhat surprising, as it implies that Gibbs learning does not perform much worse than the average case forgetting, even if the domains are highly dissimilar.
+
+If $Q_s(h)\propto P(h)e^{-\lambda_t\hat{\mathcal{L}}(h,S_s)}$, we get 
+
+\begin{equation} 
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{\lambda_t K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)+\mathcal{L}(P,\mathcal{D}_t) +\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]
+\end{equation}
 
 \subsection{Meta-learning formulation}
 
@@ -609,6 +654,15 @@ $$\mathcal{Q}_s=\mathcal{J}_s(S_s,\mathcal{P})$$ and similarly for $\mathcal{Q}_
 
 Assume 
 
+\subsection{Extending generalization bounds to forgetting for meta-learning}
+
+Suppose we have an upper bound for expected error of a hyper-posterior $\mathcal{Q}$ of the form $\mathbb{E}_{\mathcal{D}\sim \tau}\mathcal{L}(\mathcal{Q}, \mathcal{D})\leq B(\mathcal{Q},\mathcal{P}, S_1,\ldots, S_N, Q)$, and assuming the training tasks are i.\!i.\!d. we can use Markov's inequality to arrive at the following with probability at least $1-\delta$ over the choice of the training domains:
+
+\begin{equation}
+\frac{1}{N}\sum_{i=1}^{N}\mathcal{L}(\mathcal{Q}, \mathcal{D}_i) \leq B(\mathcal{Q},\mathcal{P}, S_1,\ldots, S_N, Q) + K\sqrt{\frac{\log N/\delta}{2N}}
+\end{equation}
+
+We note that this bound makes no explicit use of the specific tasks - this bound applies for any set of $N$ tasks. This does imply that so long as we have access to data from all training tasks throughout meta-training, we can mitigate forgetting.
 
 \section{Specific problem formulation: connecting regret and transfer with domain adaptation and PAC-Bayes}
 

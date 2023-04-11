@@ -108,7 +108,7 @@ In this section, we are interested in providing an upper bound on the backwards 
 We can apply this lemma with $f(h)=\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t)$ as well as $\pi=Q_s, \rho=Q_{s:t}$ and get:
 
 $$
-\mathcal{L}(Q_{s:t},\mathcal{D}_s)\leq \hat{\mathcal{L}}(Q_{s:t},S_s)+\frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q_s)+\frac{1}{\lambda_t}\log \mathbb{E}_{z\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]
+\mathcal{L}(Q_{s:t},\mathcal{D}_s)\leq \hat{\mathcal{L}}(Q_{s:t},S_t)+\frac{1}{\lambda_t}D_{\mathrm{KL}}(Q_{s:t}||Q_s)+\frac{1}{\lambda_t}\log \mathbb{E}_{z\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_t))} \right ]
 $$
 
 Choosing $Q_{s:t}=\hat{Q}^{\lambda_t}_{s:t}(h)\propto Q_s(h)e^{-\lambda_t\hat{\mathcal{L}}(h,S_t)}$ gives an equality, and we can change it back to an inequality by taking the infimum over the right-hand-side:
