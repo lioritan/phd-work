@@ -651,7 +651,7 @@ If $Q_s(h)\propto P(h)e^{-\lambda_t\hat{\mathcal{L}}(h,S_s)}$, we get
 \subsection{Meta-learning formulation}
 
 Let $\mathcal{P}\in\mathcal{M}(\mathcal{M}(\mathcal{H}))$ be a data-free distribution over hypothesis distributions, which we will refer to as the hyper-prior. We define 
-$$\mathcal{Q}_s=\mathcal{J}_s(S_s,\mathcal{P})$$ and similarly for $\mathcal{Q}_{s:t}$, where the only difference is that the inputs are meta-distributions instead of normal distributions over hypotheses. For example, we could have $\mathcal{J}_s$ sample from the hyper-prior $\mathcal{P}$ and activate $J_s$ on the sampled distribution, thus giving us a ne meta-distribution that depends on $S_s$. While bounds from the previous section can be applied to this new setting, sampling from the hyper-posterior is impractical, and thus measuring loss terms is not reasonable for this general setting, so we must make a stronger assumption on the construction process.
+$$\mathcal{Q}_s=\mathcal{J}_s(S_s,\mathcal{P})$$ and similarly for $\mathcal{Q}_{s:t}$, where the only difference is that the inputs are meta-distributions instead of normal distributions over hypotheses. For example, we could have $\mathcal{J}_s$ sample from the hyper-prior $\mathcal{P}$ and activate $J_s$ on the sampled distribution, thus giving us a new meta-distribution that depends on $S_s$. While bounds from the previous section can be applied to this new setting, sampling from the hyper-posterior is impractical, and thus measuring loss terms is not reasonable for this general setting, so we must make a stronger assumption on the construction process.
 
 Assume 
 
