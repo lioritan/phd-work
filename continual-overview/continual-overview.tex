@@ -602,7 +602,7 @@ Taking an expectation over $S_s$ yields
 
 Considering \eqref{eq:oracle-base}, we can try to consider special settings for it:
 
-If $Q_s(h)\propto P(h)e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_s)}$, we have 
+If $Q_s(h)\propto P(h)e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_s)}$, we have (since the normalization terms in the numerator and denominator cancel out)
 
 \begin{equation*} 
 \mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq -\frac{1}{\lambda_t}\log \mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)-\lambda_t\mathcal{L}(h,\mathcal{D}_s)}\right ]+\frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]
@@ -614,38 +614,38 @@ Using Jensen's inequality on the first term, we get
 \mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\mathcal{L}(P,\mathcal{D}_s)+\mathcal{L}(P,\mathcal{D}_t) +\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]
 \end{equation}
 
-We note that $-\mathcal{L}(P,\mathcal{D}_t)\leq\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]\leq 0$ so the lest two terms somewhat offset one another, leaving us with a bound that implies that exponential weights are not much worse than not seeing the task at all.
+We note that $-\mathcal{L}(P,\mathcal{D}_t)\leq\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]\leq 0$ so the lest two terms somewhat offset one another, leaving us with a bound that implies that exponential weights can lead to low forgetting given a sufficiently good prior.
 
-We can also apply Cauchy-Shwartz on \eqref{eq:oracle-base} and arrive at the somewhat similar 
+%We can also apply Cauchy-Shwartz on \eqref{eq:oracle-base} and arrive at the somewhat similar 
 
-\begin{equation} 
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\mathcal{L}(Q_s,\mathcal{D}_t) +\frac{1}{2\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{-2\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]+\frac{1}{2\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{2\lambda_t\mathcal{L}(h,\mathcal{D}_s)} \right ]
-\end{equation}
+%\begin{equation} 
+%\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\mathcal{L}(Q_s,\mathcal{D}_t) +\frac{1}{2\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{-2\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]+\frac{1}{2\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{2\lambda_t\mathcal{L}(h,\mathcal{D}_s)} \right ]
+%\end{equation}
 
-And choosing the same posterior for $Q_s$ (upto scale) removes the final term. This is almost identical to some of our previous results.
+%And choosing the same posterior for $Q_s$ (upto scale) removes the final term. This is almost identical to some of our previous results.
 
-An alternative result using Hoeffding's inequality to bound the discrepancy yields the non-useful (but interesting) upper bound
-\begin{equation} 
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\mathcal{L}(Q_s,\mathcal{D}_s)+\frac{\lambda_t K^2}{2}
-\end{equation}
-
-If $\mathcal{H}$ is finite, we have 
-$$\frac{\sum_h Q_s(h)e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}{\sum_h Q_s(h)e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}\leq 
-\sum_h \frac{Q_s(h)}{Q_s(h)e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}=\sum_h{e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}} $$
-
-By averaging this we get
-
-\begin{equation} 
-\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim U}\left [e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}\right ] + \frac{\log |\mathcal{H}|}{\lambda_t}
-\end{equation}
-
-Where $U$ is a uniform distribution over hypotheses. This is somewhat surprising, as it implies that Gibbs learning does not perform much worse than the average case forgetting, even if the domains are highly dissimilar.
-
-If $Q_s(h)\propto P(h)e^{-\lambda_t\hat{\mathcal{L}}(h,S_s)}$, we get 
+If $Q_s(h)\propto P(h)e^{-\lambda_t\hat{\mathcal{L}}(h,S_s)}$, we get through a similar analysis and using Hoeffding's inequality:
 
 \begin{equation} 
 \mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{\lambda_t K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)+\mathcal{L}(P,\mathcal{D}_t) +\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]
 \end{equation}
+
+%An alternative result using Hoeffding's inequality to bound the discrepancy yields the non-useful (but interesting) upper bound
+%\begin{equation} 
+%\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\mathcal{L}(Q_s,\mathcal{D}_s)+\frac{\lambda_t K^2}{2}
+%\end{equation}
+
+%If $\mathcal{H}$ is finite, we have 
+%$$\frac{\sum_h Q_s(h)e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}{\sum_h Q_s(h)e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}\leq 
+%\sum_h \frac{Q_s(h)}{Q_s(h)e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}}e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)}=\sum_h{e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}} $$
+
+%By averaging this we get
+
+%\begin{equation} 
+%\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim U}\left [e^{\lambda_t\mathcal{L}(h,\mathcal{D}_s)}\right ] + \frac{\log |\mathcal{H}|}{\lambda_t}
+%\end{equation}
+
+%Where $U$ is a uniform distribution over hypotheses. This is somewhat surprising, as it implies that Gibbs learning does not perform much worse than the average case forgetting, even if the domains are highly dissimilar.
 
 \subsection{Meta-learning formulation}
 
