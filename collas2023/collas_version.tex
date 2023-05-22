@@ -1,7 +1,7 @@
 % This file was adapted from ICLR2022_conference.tex example provided for the ICLR conference
 \documentclass{article} % For LaTeX2e
 \usepackage{collas2023_conference,times}
-\usepackage{easyReview}
+%\usepackage{easyReview}
 
 % Please leave these options as they are
 \usepackage{hyperref}
@@ -77,12 +77,21 @@
 % nouns, adverbs, adjectives should be capitalized, including both words in hyphenated terms, while
 % articles, conjunctions, and prepositions are lower case unless they
 % directly follow a colon or long dash
-\title{Adaptive Meta-Learning via data-dependent PAC-Bayes bounds}
-\author{
+\title{Adaptive Meta-Learning via Data-Dependent PAC-Bayes Bounds}
+
 	%Authors
 	% All authors must be in the same font size and format.
-	Lior Friedman,\textsuperscript{\rm 1}
-	Ron Meir\textsuperscript{\rm 1}
+ \author{Lior Friedman \\
+The Viterbi Faculty of Electrical and Computer Engineering\\
+Technion - Israel Institute of Technology\\
+Haifa 3200003, Israel \\
+\texttt{liorf@campus.technion.ac.il} \\
+\And % Use And to have authors side by side
+Ron Meir  \\
+The Viterbi Faculty of Electrical and Computer Engineering \\
+Technion - Israel Institute of Technology \\
+Haifa 3200003, Israel \\
+\texttt{rmeir@ee.technion.ac.il} \\
 }
 
 %\affiliations{
@@ -93,6 +102,8 @@
 %	Haifa 3200003, Israel\\
 %	liorf@campus.technion.ac.il, rmeir@ee.technion.ac.il
 %}
+
+\collasfinalcopy
 
 \begin{document}
 	
@@ -186,16 +197,16 @@ A similar approach to the single task case leads us to PAC-Bayes bounds on the t
 
 This bound on the transfer error contains two complexity terms: an environment-level term that decreases as $N\rightarrow \infty$, and a second task-level term that decreases as $m\rightarrow \infty$. 
 
-\remove{Both this bound as well as the one presented in} \cite{Rothfuss2020} \remove{provide an upper bound on the expected loss for a randomly selected new task, that is
-$\Expect{\mathcal{D}\sim \tau}{\mathcal{L}(\mathcal{Q}, \mathcal{D})}$.
-Given a specific test task $\mathcal{D}_T\sim \tau$, they can be converted to looser high-probability bounds using the Hoeffding and Markov inequalities. The derivation itself is omitted since it is essentially identical to classical PAC-Bayes bounds but for i.i.d. tasks instead of samples and taking a union bound over the probabilities of events.}
+%\remove{Both this bound as well as the one presented in} \cite{Rothfuss2020} \remove{provide an upper bound on the expected loss for a randomly selected new task, that is
+%$\Expect{\mathcal{D}\sim \tau}{\mathcal{L}(\mathcal{Q}, \mathcal{D})}$.
+%Given a specific test task $\mathcal{D}_T\sim \tau$, they can be converted to looser high-probability bounds using the Hoeffding and Markov inequalities. The derivation itself is omitted since it is essentially identical to classical PAC-Bayes bounds but for i.i.d. tasks instead of samples and taking a union bound over the probabilities of events.}
 
 \section{Adaptive meta-learning}
 
-\add{In this section we go beyond standard meta-learning bounds that use a hyper-posterior formed from previous tasks as a hyper-prior for a new test task. To do so we allow the new hyper-prior to depend both on the learned hyper-posterior and on the new test data, implying that it is now data-dependent (with respect to the test data). We refer to this setup as adaptive, see Figure \ref{fig:data_dependant_bound}. In order to deal with the added technical complexity, we make use of recent data-dependent PAC-Bayes bounds from \citet{Rivasplata2020}, and provide novel meta PAC-Bayes bounds and algorithms in this augmented setting. The bounds display interesting tradeoffs between the empirical and complexity terms that go beyond standard results.}
+In this section we go beyond standard meta-learning bounds that use a hyper-posterior formed from previous tasks as a hyper-prior for a new test task. To do so we allow the new hyper-prior to depend both on the learned hyper-posterior and on the new test data, implying that it is now data-dependent (with respect to the test data). We refer to this setup as adaptive, see Figure \ref{fig:data_dependant_bound}. In order to deal with the added technical complexity, we make use of recent data-dependent PAC-Bayes bounds from \citet{Rivasplata2020}, and provide novel meta PAC-Bayes bounds and algorithms in this augmented setting. The bounds display interesting tradeoffs between the empirical and complexity terms that go beyond standard results.
 
-\add{Unlike existing meta-learning bounds, our bounds depend on the empirical error on the available adaptation data from the new task, and do not depend on the number of training tasks, but rather on the quality of the learned hyper-prior.
-In particular, equation \eqref{eq:pb-adapt-multi} implies that if the hyper-prior achieves poor empirical performance for the test task, it is wise to ignore it and effectively learn from scratch using the adaptation data. On the other hand, if the hyper-prior provides us with low empirical loss, using complexity terms that encourage remaining near said hyper-prior is beneficial.}
+Unlike existing meta-learning bounds, our bounds depend on the empirical error on the available adaptation data from the new task, and do not depend on the number of training tasks, but rather on the quality of the learned hyper-prior.
+In particular, equation \eqref{eq:pb-adapt-multi} implies that if the hyper-prior achieves poor empirical performance for the test task, it is wise to ignore it and effectively learn from scratch using the adaptation data. On the other hand, if the hyper-prior provides us with low empirical loss, using complexity terms that encourage remaining near said hyper-prior is beneficial.
 
 \subsection{Meta-adaptation bounds for meta-learning} \label{sec:adapt-general}
 %generic bound
@@ -378,18 +389,18 @@ As a consequence of this, choosing $\beta=\sqrt{m}$ would result
 in the log-moment to be bounded by a constant $C$. Consequentially, the bound takes the form
     \begin{align*}
     \begin{split}
-    \mathcal{L}(\mathcal{Q}_{1:N,T}^{\gamma}, \mathcal{D}_T) &\leq \add{(1-\frac{\gamma}{\sqrt{m}})\hat{\mathcal{L}}_{\mathrm{aml}} (\mathcal{Q}^{\gamma}_{1:N,T}, S_T) +
-    \frac{\gamma}{\sqrt{m}}\hat{\mathcal{L}}_{\mathrm{ml}}(\mathcal{Q}_{1:N}, S_T) }
+    \mathcal{L}(\mathcal{Q}_{1:N,T}^{\gamma}, \mathcal{D}_T) &\leq (1-\frac{\gamma}{\sqrt{m}})\hat{\mathcal{L}}_{\mathrm{aml}} (\mathcal{Q}^{\gamma}_{1:N,T}, S_T) +
+    \frac{\gamma}{\sqrt{m}}\hat{\mathcal{L}}_{\mathrm{ml}}(\mathcal{Q}_{1:N}, S_T) 
 +\frac{1}{\sqrt{m}}\log\frac{1}{\delta_T}+\frac{C}{\sqrt{m}} .
     \end{split}
     \end{align*}
 %Evidently from this bound, the generalization gap (the difference $\mathcal{L}(\mathcal{Q}_{1:N,T}, \mathcal{D}_T)-\hat{\mathcal{L}}_{\mathrm{aml}}$) is of rate $O\left (\frac{1}{\sqrt{m}}\right )$.
 
-\add{To simplify, this implies that if $\hat{\mathcal{L}}_{\mathrm{ml}}$ is low (meaning the hyper-prior has low empirical error), we would like to choose a high value for $\gamma$ in order to balance the first two terms. In other words, if the hyper-prior performs well empirically, there is little harm in adapting it to the new task. If the hyper-prior performs poorly, our bound becomes more complex, as we would like $\gamma$ to be high enough so that $\hat{\mathcal{L}}_{\mathrm{aml}}$ is low but doing so weakens the remaining terms. Choosing a high value for $\lambda$ in \eqref{eq:pb-adapt-multi} would allow us to effectively ignore the poorly performing hyper-prior.}
+To simplify, this implies that if $\hat{\mathcal{L}}_{\mathrm{ml}}$ is low (meaning the hyper-prior has low empirical error), we would like to choose a high value for $\gamma$ in order to balance the first two terms. In other words, if the hyper-prior performs well empirically, there is little harm in adapting it to the new task. If the hyper-prior performs poorly, our bound becomes more complex, as we would like $\gamma$ to be high enough so that $\hat{\mathcal{L}}_{\mathrm{aml}}$ is low but doing so weakens the remaining terms. Choosing a high value for $\lambda$ in \eqref{eq:pb-adapt-multi} would allow us to effectively ignore the poorly performing hyper-prior.
 
 
-\remove{Corollary} \ref{thm:main-result-gibbs} \remove{provides an upper bound on the expected error for a given test task that depends on the empirical errors of the hyper-prior $\hat{\mathcal{L}}_{\mathrm{ml}}$ and the hyper-posterior $\hat{\mathcal{L}}_{\mathrm{aml}}$. 
-Since the bound applies uniformly for all $\gamma>0,\beta>0,\lambda>0$, this bound can be further improved by choosing optimal values for $\gamma, \beta, \lambda$ through optimization algorithms such as gradient descent w.r.t.\! these parameters.}
+%\remove{Corollary} \ref{thm:main-result-gibbs} \remove{provides an upper bound on the expected error for a given test task that depends on the empirical errors of the hyper-prior $\hat{\mathcal{L}}_{\mathrm{ml}}$ and the hyper-posterior $\hat{\mathcal{L}}_{\mathrm{aml}}$. 
+%Since the bound applies uniformly for all $\gamma>0,\beta>0,\lambda>0$, this bound can be further improved by choosing optimal values for $\gamma, \beta, \lambda$ through optimization algorithms such as gradient descent w.r.t.\! these parameters.}
 
 \subsection{Tighter bounds for the low error setting}
 % seeger
@@ -538,8 +549,8 @@ Numerical values for both tasks as well as standard error are reported in Table 
 		MLAP-M  & $5$   & $0.53\pm 0.04 $   & $0.2\pm 0 $   \\
 		Meta-adaptation & $5$   & $0.68^*\pm 0.06 $ & $0.51^*\pm 0.1 $ \\
 		%\midrule
-		\remove{MLAP-M}  & $10$   & $0.7\pm 0.04 $   & $0.2\pm 0.0 $   \\
-		\remove{Meta-adaptation} & $10$   & $0.83^*\pm 0.02 $ & $0.461\pm 0.106 $ \\
+		%\remove{MLAP-M}  & $10$   & $0.7\pm 0.04 $   & $0.2\pm 0.0 $   \\
+		%\remove{Meta-adaptation} & $10$   & $0.83^*\pm 0.02 $ & $0.461\pm 0.106 $ \\
 		\midrule
 		MLAP-M  & $20$   & $0.79\pm 0.02 $   & $0.2\pm 0.0 $   \\
 		Meta-adaptation & $20$   & $0.9^*\pm 0.01 $ & $0.75^*\pm 0.09 $ \\
@@ -575,7 +586,7 @@ Table \ref{table:inet} compares test accuracies for the well-known mini-Imagenet
 
 Figure \ref{fig:results-kls} shows the typical progression of KL-divergence during the meta-adaptation fitting process. We see that $D_{\mathrm{KL}}(\mathcal{Q}_{1:N,T}||\mathcal{N}(0,I_d))$ decreases (alongside the training loss on the adaptation data), resulting in lower overall variance in network weights as well as a shift in the means. $D_{\mathrm{KL}}(\mathcal{Q}_{1:N,T}||\mathcal{Q}_{1:N})$ tends to increase slowly during meta-adaptation, resulting in a hyper-posterior that diverges from the original meta-learned hyper-prior as the training loss decreases. A different choice of hyper-parameters for $\lambda$ may cause this term to diverge more slowly, leaving us with a more similar hyper-posterior.
 
-\remove{Results for the Omniglot} \citep{Vinyals2016} \remove{dataset were ommitted since all approaches reached results above $99\%$ accuracy for the $5$-shot $5$-way setting.} 
+%\remove{Results for the Omniglot} \citep{Vinyals2016} \remove{dataset were ommitted since all approaches reached results above $99\%$ accuracy for the $5$-shot $5$-way setting.} 
 
 \section{Discussion and Future Work}
 
@@ -621,8 +632,8 @@ In the adaptive hyper-posterior version of the meta-adaptation algorithm, we fir
 In the constant hyper-prior version of the meta-adaptation algorithm, the hyper-prior remains the same throughout the meta-adaptation process.
 
 The network architecture used for classification on the permuted MNIST dataset is identical to that used for the Omniglot dataset by \citet{Vinyals2016}: $4$ layers of $2$D $3\times 3$ convolution layers followed by batch norm and max pooling each. These are followed by a linear classification layer with $5$ classes (commonly referred to as number of ways). The training loss used was standard cross-entropy loss. We used the Adam optimizer \citep{Kingma2015} for meta-training and meta-testing. 
-Code to reproduce the experiments will be made available after publication.
-%Code to reproduce the experiments is available at https://github.com/lioritan/meta-adapt-pb.\RM{Should be anonymous. Promise to provide after publication.}
+%Code to reproduce the experiments will be made available after publication.
+Code to reproduce the experiments is available at \url{https://github.com/lioritan/meta-adapt-pb}.%\RM{Should be anonymous. Promise to provide after publication.}
 
 \begin{table*}[ht]	
 	

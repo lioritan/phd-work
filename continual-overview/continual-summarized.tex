@@ -95,7 +95,7 @@ Let us first consider only two tasks $\mathcal{D}_s, \mathcal{D}_t$. Let us mark
 
 In this section, we are interested in providing an upper bound on the backwards transfer $\mathrm{BWT}(Q_{s:t}, \mathcal{D}_s) \triangleq \mathbb{E}_{h\sim Q_{s:t}}\left [\mathcal{L}(h, \mathcal{D}_s)\right ]=\mathcal{L}(Q_{s:t},\mathcal{D}_s)$, where the sampled data $S_s\sim \mathcal{D}_s$ is not directly available when learning $Q_{s:t}$.
 
-\begin{lemma} \label{lemma:concentration} \cite{shui2020beyond} \\
+\begin{lemma} \label{lemma:concentration} \cite{shui2020beyond} (Lemma 1, Appendix B) \\
 	Let $\pi$ and $\rho$ be two distributions on a common space $\mathcal{Z}$ such that $\rho$ is absolutely continuous w.\!r.\!t.\! $\pi$. For any $\lambda_t\in \mathbb{R}$ and any measurable function $f:\mathcal{Z}\rightarrow \mathbb{R}$ such that $\mathbb{E}_{z\sim \pi}\left [e^{\lambda_t(f(z)-\mathbb{E}_\pi f(z))} \right ]<\infty$, we have
 	
 	\begin{equation}
@@ -125,10 +125,10 @@ $$\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\mathbb{E}_{S_t\sim \mathcal{D}_t
 
 $$=\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim Q_s}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\mathcal{L}(h,\mathcal{D}_t))}\mathbb{E}_{S_t\sim \mathcal{D}_t}e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_t)-\hat{\mathcal{L}}(h,S_t))} \right ]$$
 
-\begin{lemma}
-	Let $l:Z\times H\rightarrow[0,K]$ be a measurable function. Let $\pi\in\mathcal{M}(H)$ be a distribution over $H$ that is independent w.r.t. $Z$. Let $S\in Z^m$ be an i.\! i.\! d.\! sample. With probability at least $1-\delta$ over the choice of $S$,
+\begin{lemma} (Corollary from Hoeffding's lemma) 
+	Let $l:Z\times H\rightarrow[0,K]$ be a measurable function. Let $\pi\in\mathcal{M}(H)$ be a distribution over $H$ that is independent w.r.t. $Z$. Let $S\in Z^m$ be an i.\! i.\! d.\! sample. 
 	
-	$$\log \mathbb{E}_{h\sim \pi}\left [e^{t(\frac{1}{m}\sum_i l(z_i,h)-\mathbb{E}_{z}l(z,h))}\right ]\leq \frac{t^2K^2}{8m}+\log{1/ \delta}$$
+	$$\log \mathbb{E}_{h\sim \pi}\left [e^{t(\frac{1}{m}\sum_i l(z_i,h)-\mathbb{E}_{z}l(z,h))}\right ]\leq \frac{t^2K^2}{8m}$$
 \end{lemma}
 
 Using this lemma, if our loss function $l$ is bounded in $[0,K]$, we get
@@ -216,6 +216,45 @@ $$\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\math
 
 This implies that if the domains are similar, for any $Q_s$ that transfers well to $\mathcal{D}_t$ we can adapt to $\mathcal{D}_t$ without much forgetting using the same criterion as forward transfer.
 
+\subsection{Comparing forgetting and forward transfer for Gibbs learners}
+
+Starting from \eqref{eq:opt-gibbs} and choosing $Q_s(h)\propto P(h)e^{-\lambda_t\hat{\mathcal{L}}(h,S_s)}$
+yields the following:
+
+\begin{equation*} 
+\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq -\frac{1}{\lambda_t}\log \mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)-\lambda_t\hat{\mathcal{L}}(h,S_s)}\right ]+\frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim P}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_s)-\hat{\mathcal{L}}(h,S_s)-\mathcal{L}(h,\mathcal{D}_t))} \right ]
+\end{equation*}
+
+Taking an expectation over $S_s$, applying Jensen's inequality on the last term, then using Fubini's theorem to swap the order of expectations and Hoeffding's lemma gives us
+
+\begin{equation*} 
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq -\frac{1}{\lambda_t}\mathbb{E}_{S_s\sim \mathcal{D}_s}\log \mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)-\lambda_t\hat{\mathcal{L}}(h,S_s)}\right ]+\frac{\lambda_t K^2}{8m_t}+\frac{\lambda_t K^2}{8m_s}+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]
+\end{equation*}
+
+we can then apply Jensen's inequality on the first term and arrive at the final result
+
+\begin{equation} 
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_s)\leq \frac{\lambda_t K^2}{8m_t}+\frac{\lambda_t K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)+\mathcal{L}(P,\mathcal{D}_t)+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_t)} \right ]
+\end{equation}
+
+Using the same $Q_s, Q_{s:t}$ for forward transfer and following similar techniques arrives at a very similar equation:
+
+\begin{equation*} 
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_t)\leq -\frac{1}{\lambda_t}\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\log \mathbb{E}_{h\sim P}\left [e^{-\lambda_t\hat{\mathcal{L}}(h,S_t)-\lambda_t\hat{\mathcal{L}}(h,S_s)}\right ]+\frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\mathbb{E}_{S_s\sim \mathcal{D}_s}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\hat{\mathcal{L}}(h,S_s)} \right ]
+\end{equation*}
+
+applying Jensen's inequality on the first term yields 
+
+\begin{equation*} 
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_t)\leq \mathcal{L}(P,\mathcal{D}_s)+\mathcal{L}(P,\mathcal{D}_t)+\frac{\lambda_t K^2}{8m_t}+\frac{1}{\lambda_t}\mathbb{E}_{S_s\sim \mathcal{D}_s}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\hat{\mathcal{L}}(h,S_s)} \right ]
+\end{equation*}
+
+and via Jensen's inequality and Hoeffding's lemma, we can arrive at the final result of 
+
+\begin{equation} 
+\mathbb{E}_{S_s\sim \mathcal{D}_s}\mathbb{E}_{S_t\sim \mathcal{D}_t}\mathcal{L}( \hat{Q}^{\lambda_t}_{s:t},\mathcal{D}_t)\leq \frac{\lambda_t K^2}{8m_t}+\frac{\lambda_t K^2}{8m_s}+\mathcal{L}(P,\mathcal{D}_s)+\mathcal{L}(P,\mathcal{D}_t)+\frac{1}{\lambda_t}\log\mathbb{E}_{h\sim P}\left [e^{-\lambda_t\mathcal{L}(h,\mathcal{D}_s)} \right ]
+\end{equation}
+
 \section{Regret bound on forward transfer}
 
 Considering the same setting as Section \ref{sec:forgetting-formulation}, we consider the metric of regret:
@@ -241,7 +280,7 @@ Marking $\mathcal{L}(Q_1, \mathcal{D}_2)\triangleq FWT(Q_1, \mathcal{D}_2)$ as t
 
 We can use known results from domain adaptation methods to provide an upper bound to the transfer gap terms. As a simple (and loose) example, we can consider the following theorem from \citet{shui2020beyond}:
 
-\begin{lemma}
+\begin{lemma} (Theorem 1, \citep{shui2020beyond})
 	Assume that $\ell$ is bounded in $[0, K]$. For all $h\in \mathcal{H}$ we have
 	$$\mathcal{L}(h, \mathcal{D}_1)-\mathcal{L}(h, \mathcal{D}_2)\leq \frac{K}{\sqrt{2}}\sqrt{D_{JS}(\mathcal{D}_1||\mathcal{D}_2)},$$ 
 	where $D_{JS}$ is the Jensen-Shannon divergence between the joint data distributions.
