@@ -597,7 +597,10 @@ While our experimental results are preliminary, they clearly demonstrate an impr
 
 There are two main open issues to be addressed in future work. 
 The first issue is that our approach requires the use of stochastic models, which may lead to high-variance gradients and are therefore non-trivial to optimize. One potential method to address this issue is to make use of PAC-Bayes bounds with different complexity measures such as Wasserstein distance \citep{Ohnishi2021, Amit2022}.
-The second issue is to consider our meta-adaptation algorithm in the context of continual learning \citep{Kirkpatrick2017}. Recent work by \citet{Haddouche2022} used data-dependent PAC-Bayes bounds in the context of online learning, and it would be of interest to extend these results to the continual setting and derive bounds that provide a clearer tradeoff between low generalization error and avoiding catastrophic forgetting
+The second issue is to consider our meta-adaptation algorithm in the context of continual learning \citep{Kirkpatrick2017}. Recent work by \citet{Haddouche2022} used data-dependent PAC-Bayes bounds in the context of online learning, and it would be of interest to extend these results to the continual setting and derive bounds that provide a clearer tradeoff between low generalization error and avoiding catastrophic forgetting.
+
+\section*{Acknowledgements}
+This work was supported by the Israel Science Foundation grant number $1693/22$.
 
 %\clearpage
 %\bibliographystyle{aaai23}

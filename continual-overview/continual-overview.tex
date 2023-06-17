@@ -744,7 +744,7 @@ We can provide oracle bounds on the forgetting of $\hat{Q}^{\lambda_T}_{1:T}$:
 \begin{align*} 
 \begin{split}
 \forall i\in[1,T-1]:
-\mathcal{L}(\hat{Q}^{\lambda_T}_{1:T}, \mathcal{D}_i) &\leq \frac{1}{\lambda_t}\log\frac{\mathbb{E}_{h\sim \hat{Q}^{\lambda_{T-1}}_{1:T-1}}\left [e^{\lambda_t(\mathcal{L}(h,\mathcal{D}_i)-\hat{\mathcal{L}}(h,S_T))} \right ]}{\mathbb{E}_{h\sim \hat{Q}^{\lambda_{T-1}}_{1:T-1}}\left [e^{-\lambda_t\hat{\mathcal{L}}(h,S_T)} \right ]}
+\mathcal{L}(\hat{Q}^{\lambda_T}_{1:T}, \mathcal{D}_i) &\leq \frac{1}{\lambda_T}\log\frac{\mathbb{E}_{h\sim \hat{Q}^{\lambda_{T-1}}_{1:T-1}}\left [e^{\lambda_T(\mathcal{L}(h,\mathcal{D}_i)-\hat{\mathcal{L}}(h,S_T))} \right ]}{\mathbb{E}_{h\sim \hat{Q}^{\lambda_{T-1}}_{1:T-1}}\left [e^{-\lambda_T\hat{\mathcal{L}}(h,S_T)} \right ]}
 \end{split}
 \end{align*}
 
@@ -824,6 +824,80 @@ These results are somewhat surprising, as they imply a sufficient condition for 
 The lack of dependence on task order can be attributed to the nature of the empirical Gibbs distribution that applies a combination of exponential weights on the initial distribution $P$. The final weight of any given hypothesis $h$ therefore does not depend on the order of tasks but rather only on $P(h)$ and its empirical performance on each task.
 
 The fact that this bound does not become worse with the number of tasks is a result of the assumption on the covariance: we assume that hypotheses that perform well on task $i$ tend to perform well on all other tasks, and thus the exponential weighting scheme does not significantly reduce their probability in the final distribution. 
+
+We note that in general we also know (even if the covariance is not negative)
+\begin{align} 
+\begin{split}
+\mathbb{E}_{S_T}\mathcal{L}(\hat{Q}^{\lambda_T}_{1:T}, \mathcal{D}_T) &\leq \frac{\lambda_T K^2}{8m_T}+\mathcal{L}(\hat{Q}^{\lambda_{T-1}}_{1:T-1},\mathcal{D}_T)
+\end{split}
+\end{align}
+
+\subsubsection{Connections to OGD}
+
+If we look at the bound for forgetting on $T-1$, we can see some connection to OGD similar methods:
+
+\begin{align*} 
+\begin{split}
+\mathbb{E}_{S_{T-1}}\mathcal{L}(\hat{Q}^{\lambda_T}_{1:T}, \mathcal{D}_{T-1}) &\leq \frac{\lambda_T K^2}{8m_{T-1}}+\frac{1}{\lambda_T}\mathbb{E}_{S_{T-1}}\log\frac{\mathbb{E}_{h\sim \hat{Q}^{\lambda_{T-2}}_{1:T-2}}\left [e^{-\lambda_{T}\hat{\mathcal{L}}(h,S_{T}))} \right ]}{\mathbb{E}_{h\sim \hat{Q}^{\lambda_{T-2}}_{1:T-2}}\left [e^{-\lambda_T\hat{\mathcal{L}}(h,S_T)-\lambda_{T}\hat{\mathcal{L}}(h,S_{T-1}))} \right ]}
+\end{split}
+\end{align*}
+
+If $\mathrm{cov}_{\hat{Q}^{\lambda_{T-2}}_{1:T-2}}(e^{-\lambda_T\hat{\mathcal{L}}(h,S_T)}, e^{\lambda_{T}\hat{\mathcal{L}}(h,S_{T-1})})\geq 0$, we have
+
+\begin{align} 
+\begin{split}
+\mathbb{E}_{S_{T-1}}\mathcal{L}(\hat{Q}^{\lambda_T}_{1:T}, \mathcal{D}_{T-1}) &\leq \frac{\lambda_T K^2}{8m_{T-1}}+\mathcal{L}(\hat{Q}^{\lambda_{T-2}}_{1:T-2},\mathcal{D}_{T-1})
+\end{split}
+\end{align}
+
+This implies that we want to pick hypotheses that are at least orthogonal w.\!r.\!t.\! future tasks in order avoid forgetting. The same condition also applies for generalization, thus suggesting that we want to pick updates that are at least orthogonal to the previous losses. Methods such as OGD \citep{farajtabar2020orthogonal} try to apply a similar notion to gradient descent in order for updates to be orthogonal to previous tasks. This bound suggests that this orthogonality not required if tasks are positively correlated.
+
+\subsubsection{Negative examples - poor correlation}
+
+Consider a setting with $T-1$ positively correlated tasks $S_1,\ldots,S_{T-1}$ and a single negatively correlated task $S_T$, meaning 
+
+$$\forall i,j\in [1,T-1]: \mathrm{cov}_{P}(e^{-\lambda_T\hat{\mathcal{L}}(h,S_T)}, e^{-\lambda_j\hat{\mathcal{L}}(h,S_j)})\ll 0, \mathrm{cov}_{P}(e^{-\lambda_i\hat{\mathcal{L}}(h,S_i)}, e^{-\lambda_j\hat{\mathcal{L}}(h,S_j)})\gg 0$$
+
+We note that each of these covariance terms is bounded in $[-1,1]$, though we do not explicitly make use of this in our analysis.
+
+We have forward transfer 
+
+\begin{align} 
+\begin{split}
+\mathbb{E}_{S_T}\mathcal{L}(\hat{Q}^{\lambda_T}_{1:T}, \mathcal{D}_T) &\leq \frac{\lambda_T K^2}{8m_T}+\frac{1}{\lambda_T}\mathbb{E}_{S_T}\log\mathbb{E}_{h\sim P}\left [e^{-\sum_{j=1}^{T}\lambda_j\hat{\mathcal{L}}(h,S_j)} \right ]+\frac{1}{\lambda_T}\log\mathbb{E}_{h\sim P}\left [e^{-\sum_{j=1}^{T-1}\lambda_j\hat{\mathcal{L}}(h,S_j)} \right ]
+\end{split}
+\end{align}
+
+and for forgetting
+
+\begin{align} 
+\begin{split}
+\forall i\in[1,T-1]:
+\mathbb{E}_{S_i}\mathcal{L}(\hat{Q}^{\lambda_T}_{1:T}, \mathcal{D}_i) &\leq \frac{\lambda_T K^2}{8m_i}+\frac{1}{\lambda_T}\mathbb{E}_{S_i}\log\mathbb{E}_{h\sim P}\left [e^{-\sum_{j=1}^{T}\lambda_j\hat{\mathcal{L}}(h,S_j)} \right ]+\frac{1}{\lambda_T}\mathbb{E}_{S_i}\log\mathbb{E}_{h\sim P}\left [e^{-\sum_{j\neq i}^{T}\lambda_j\hat{\mathcal{L}}(h,S_j)} \right ]
+\end{split}
+\end{align}
+
+From these two equations and our correlation condition, we can clearly see that the Gibbs learning process has a trade-off: if $\hat{\mathcal{L}}(P,S_T)$ is low, $\sum_{i=1}^{T-1}\hat{\mathcal{L}}(P,S_i)$ is high and vice-versa.
+
+When the loss for the final task is low, we have a tight bound for generalization as the last two terms essentially cancel out, leaving us with 
+
+\begin{align} 
+\begin{split}
+\mathbb{E}_{S_T}\mathcal{L}(\hat{Q}^{\lambda_T}_{1:T}, \mathcal{D}_T) &\leq \frac{\lambda_T K^2}{8m_T}+\min_h \hat{\mathcal{L}}(h,\mathcal{D}_t)
+\end{split}
+\end{align}
+
+but at the same time, we have a forgetting bound 
+
+\begin{align} 
+\begin{split}
+\mathbb{E}_{S_i}\mathcal{L}(\hat{Q}^{\lambda_T}_{1:T}, \mathcal{D}_i) &\leq \frac{\lambda_T K^2}{8m_i}+\max_{j\neq t}\max_h \frac{\lambda_j}{\lambda_T}\hat{\mathcal{L}}(h,\mathcal{D}_j).
+\end{split}
+\end{align}
+
+In a similar vein, if $\sum_{i=1}^{T-1}\hat{\mathcal{L}}(P,S_i)$ is low, we can arrive at a tight bound on forgetting, but a poor bound on generalization.
+
+\subsection{Empirical testing}
 
 \subsection{Meta-learning formulation}
 
