@@ -1,0 +1,464 @@
+\documentclass[letterpaper]{article}
+
+% AAAI-style 2-per-page format, without the annoying bits
+\setlength\topmargin{-0.25in} \setlength\oddsidemargin{-0.25in}
+\setlength\textheight{9.0in} \setlength\textwidth{7.0in}
+\setlength\columnsep{0.375in} \newlength\titlebox \setlength\titlebox{2.25in}
+\setlength\headheight{0pt}  \setlength\headsep{0pt}
+\flushbottom \sloppy
+
+\pdfpagewidth=8.5in
+\pdfpageheight=11in
+
+\usepackage{natbib}
+
+\usepackage{times} 
+\usepackage{helvet}  
+\usepackage{courier}  
+\usepackage{url}  
+\usepackage{graphicx} 
+
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{algorithm}
+% \usepackage[utf8]{inputenc}
+% \usepackage{algorithm,algcompatible,amssymb,amsmath}
+% \renewcommand{\COMMENT}[2][.5\linewidth]{%
+% \leavevmode\hfill\makebox[#1][l]{//~#2}}
+% \algnewcommand\algorithmicto{\textbf{to}}
+% \algnewcommand\RETURN{\State \textbf{return} }
+\usepackage[noend]{algpseudocode}
+
+
+
+\usepackage{multirow}
+\usepackage{ctable}
+\usepackage{color}
+\usepackage{natbib}
+\usepackage[normalem]{ulem}
+
+
+\usepackage{romannum}
+
+%\usepackage[style=authoryear]{biblatex}
+
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black, % color for table of contents
+	citecolor=black, % color for citations
+	urlcolor=blue, % color for hyperlinks
+	bookmarks=true,
+}
+\urlstyle{same}
+
+
+
+
+\raggedbottom %nicer enumerate
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{hypothesis}{Hypothesis}[section]
+\newtheorem{assumption}{Assumption}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newcommand{\RM}[1]{{\textcolor{magenta}{#1}}}
+\newcommand{\LF}[1]{{\textcolor{blue}{#1}}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{meta-VAE stuff}
+\begin{document}
+	
+	\pagenumbering{arabic}
+	\maketitle
+	
+
+\tableofcontents
+
+ 
+\section{Introduction}
+
+\begin{assumption} \label{assume:distances} (restated from \citep{mbacke2023statistical})
+Distribution $q(\cdot | x)$ and loss $\ell$ satisfy assumption $1$ with constant $K>0$ if there exists a family $\mathcal{E}$ of functions $\mathcal{H}\rightarrow \mathbb{R}$  such that:
+\begin{enumerate}
+    \item The function $x\rightarrow q(\cdot | x)$ is continuous in the sense that $\forall x_1,x_2 \in \mathcal{X}$, $$d_\mathcal{E}(q(h | x_1), q(h | x_2))\leq K d(x_1,x_2)$$
+    \item For any $x\in \mathcal{X}$, $$\ell(\cdot, x)\in \mathcal{E} $$
+\end{enumerate}
+\end{assumption}
+
+\section{Initial theorems}
+
+\begin{theorem} \label{thm:meta-vae}
+Let $(\mathcal{X},d)$ be a metric space, let $U$ be a distribution such that any $\mu \sim U$ is a probability measure over $\mathcal{X}$. Let $\mathcal{Z}$ be a hypothesis class with a prior distribution $p(z)$, a loss function $\ell:\mathcal{Z}\times \mathcal{X}\rightarrow \mathbb{R}$, and real numbers $\delta \in (0, 1), \lambda>0$.
+With probability at least $1-\delta$ over the draw of $S_1\sim \mu_1^m, S_2\sim \mu_2^m\ldots S_n\sim \mu_n^m$, the following holds for any conditional posterior $q(z|x)$ that satisfies Assumption \ref{assume:distances} with constant $K>0$:
+
+\begin{equation}
+\begin{split}
+    \mathbb{E}_{\mu\sim U}\mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x)}\left [\ell(z,x) \right ]\leq &\frac{1}{nm}\sum_{i=1}^{n}\sum_{j=1}^{m}\mathbb{E}_{z\sim q(z|x_{ij})}\left [\ell(z,x_{ij}) \right ] + \frac{1}{\lambda}\sum_{i=1}^{n}\sum_{j=1}^{m}d_{\mathrm{KL}}(q(z|x_{ij})||p(z)) \\
+    & + \frac{K}{nm}\sum_{i=1}^{n}\sum_{j=1}^{m}\mathbb{E}_{\mu\sim U}\mathbb{E}_{x\sim \mu}\left [d(x,x_{ij}) \right ]+\frac{1}{\lambda}\log\frac{1}{\delta} \\
+    &+ \frac{1}{\lambda}\log  \mathbb{E}_{\mu_i\sim U}\mathbb{E}_{S_i\sim \mu_i^m} \mathbb{E}_{z\sim p(z)}e^{\lambda(\mathbb{E}_{\mu\sim U}\mathbb{E}_{x\sim \mu}\left [\ell(z,x)\right ]-\frac{1}{nm}\sum_{i=1}^{n}\sum_{j=1}^{m}\ell(z,x_{ij}))}
+\end{split}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+TBD, nearly identical to \citep{mbacke2023statistical}.
+\end{proof}
+\RM{The index $i$ in the final line is not clear to me. Shouldn't is just be $\log  \mathbb{E}_{\mu\sim U}\mathbb{E}_{S\sim \mu^m} \mathbb{E}_{z\sim p(z)}$? Same for next theorem.}
+\LF{This index is for the choice of training data, the moment term considers the sensitivity of the loss to the sampling process. It should be possible to have a bound on the specific training data with only $\mathbb{E}_{z\sim p(z)}$.}
+
+Under a slightly weaker assumption - such as assumption \ref{assume:distances} applying only within each task with constant $K_i$ , we arrive at a multi-task variant of this theorem:
+
+\begin{theorem} \label{thm:multitask-vae}
+Let $(\mathcal{X},d)$ be a metric space, let $U$ be a distribution such that any $\mu \sim U$ is a probability measure over $\mathcal{X}$. Let $\mathcal{Z}$ be a hypothesis class with a prior distribution $p(z)$, a loss function $\ell:\mathcal{Z}\times \mathcal{X}\rightarrow \mathbb{R}$, and real numbers $\delta \in (0, 1), \lambda>0$.
+With probability at least $1-\delta$ over the draw of $S_1\sim \mu_1^m, S_2\sim \mu_2^m\ldots S_n\sim \mu_n^m$, the following holds for any conditional posterior $q(z|x)$ that for each task $i$, the points for that task satisfy Assumption \ref{assume:distances} with constant $K_i>0$,
+\begin{equation} 
+\begin{split}
+    \frac{1}{n}\sum_{i=1}^{n}\mathbb{E}_{x_i\sim \mu_i}\mathbb{E}_{z\sim q(z|x_i)}\left [\ell(z,x_i) \right ]\leq &\frac{1}{nm}\sum_{i=1}^{n}\sum_{j=1}^{m}\mathbb{E}_{z\sim q(z|x_{ij})}\left [\ell(z,x_{ij}) \right ] + \frac{1}{\lambda}\sum_{i=1}^{n}\sum_{j=1}^{m}d_{\mathrm{KL}}(q(z|x_{ij})||p(z)) \\
+    & + \frac{1}{nm}\sum_{i=1}^{n}\sum_{j=1}^{m}K_i\mathbb{E}_{x_i\sim \mu_i}\left [d(x_i,x_{ij}) \right ]+\frac{1}{\lambda}\log\frac{1}{\delta} \\
+    &+ \frac{1}{\lambda}\log  \mathbb{E}_{\mu_i\sim U}\mathbb{E}_{S_i\sim \mu_i^m} \mathbb{E}_{z\sim p(z)}e^{\lambda(\mathbb{E}_{\mu\sim U}\mathbb{E}_{x\sim \mu}\left [\ell(z,x)\right ]-\frac{1}{nm}\sum_{i=1}^{n}\sum_{j=1}^{m}\ell(z,x_{ij}))}
+\end{split}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Same as Theorem \ref{thm:meta-vae}, but with the new assumption for the inequality.
+\end{proof}
+
+We note that it is also easy to change the final term to 
+$$\frac{1}{\lambda}\log \mathbb{E}_{S_i\sim \mu_i^m} \mathbb{E}_{z\sim p(z)}e^{\lambda(\frac{1}{n}\sum_{i=1}^{n}\mathbb{E}_{x_i\sim \mu_i}\left [\ell(z,x_i)\right ]-\frac{1}{nm}\sum_{i=1}^{n}\sum_{j=1}^{m}\ell(z,x_{ij}))}$$
+should we desire a weaker stability assumption for this case.
+
+Under this weaker assumption, we can also arrive at a mixed Theorem for different parameter types:
+
+\begin{theorem} \label{thm:meta-vae-parametric}
+Let $(\mathcal{X},d)$ be a metric space, let $U$ be a distribution such that any $\mu \sim U$ is a probability measure over $\mathcal{X}$. Let $\mathcal{Z}$ be a hypothesis class with a prior distribution $p(z)$, a loss function $\ell:\mathcal{Z}\times \mathcal{X}\rightarrow \mathbb{R}$, and real numbers $\delta \in (0, 1), \lambda>0$.
+With probability at least $1-\delta$ over the draw of $S_1\sim \mu_1^m, S_2\sim \mu_2^m\ldots S_n\sim \mu_n^m$, the following holds uniformly for all parameter posteriors $\Phi$ where for each task $i$, the \emph{parametric} conditional posterior $q_{\phi_i}(z|x)$ ($\phi_i$ is learned from $\phi, S_i$) satisfies Assumption \ref{assume:distances} with constant $K_i>0$,
+\begin{equation} 
+\begin{split}
+    \mathbb{E}_{\phi\sim \Phi}\mathbb{E}_{\mu\sim U, x\sim \mu}\mathbb{E}_{z\sim q_{\phi(\mu)}(z|x)}\left [\ell(z,x) \right ]\leq &\frac{1}{n}\sum_{i=1}^{n}\frac{1}{m_i}\sum_{j=1}^{m_i}\mathbb{E}_{\phi\sim \Phi}\mathbb{E}_{z\sim q_{\phi_i}(z|x_{ij})}\left [\ell(z,x_{ij}) \right ]\\
+    &+\frac{1}{n}\sum_{i=1}^{n}\frac{K_i}{m_i}\sum_{j=1}^{m_i}\mathbb{E}_{x_i\sim \mu_i}[d(x_i,x_{ij})] \\
+    &+ \left (\frac{1}{\sqrt{n}}+\frac{1}{n\sqrt{\bar{m}}}\right )d_{\mathrm{KL}}(\Phi||\Phi_0) + \frac{1}{n\sqrt{\bar{m}}}\sum_{i=1}^{n}\sum_{j=1}^{m_i}\mathbb{E}_{\phi\sim \Phi}d_{\mathrm{KL}}(q_{\phi_i}(z|x_{ij})||p(z)) \\
+    &+ \Psi(n,m,p(z),\Phi_0, \delta)
+\end{split}
+\end{equation}
+\end{theorem}
+
+For comparison, we provide a similar bound for Meta-learning in the more standard setting:
+
+\begin{equation*} 
+\begin{split}
+    \mathbb{E}_{\mathcal{D}\sim \tau, P\sim \mathcal{Q}}\mathbb{E}_{S\sim \mathcal{D}^m, h\sim Q(P,S)}\mathbb{E}_{x\sim \mathcal{D}}\left [\ell(h,x) \right ]\leq &\frac{1}{n}\sum_{i=1}^{n}\frac{1}{m_i}\sum_{j=1}^{m_i}\mathbb{E}_{P\sim \mathcal{Q}}\mathbb{E}_{h\sim Q(P,S_i)}\left [\ell(h,x_{ij}) \right ] \\
+    &+ \left (\frac{1}{\sqrt{n}}+\frac{1}{n\sqrt{\bar{m}}}\right )d_{\mathrm{KL}}(\mathcal{Q}||\mathcal{P}) + \frac{1}{n\sqrt{\bar{m}}}\sum_{i=1}^{n}\mathbb{E}_{P\sim \mathcal{Q}}d_{\mathrm{KL}}(Q(P,S_i)||P) \\
+    &+ \Psi(n,m,P,\mathcal{P}, \delta)
+\end{split}
+\end{equation*}
+
+\begin{proof}
+    The proof involves a 2-level posterior PAC-Bayes bound, similar to \citet{Rothfuss2020}.
+We use a prior of $(\Phi_0,p(z))$ and a posterior of $(\Phi, q_{A(\phi,S_i)}(z|x_{ij}))\triangleq (\Phi, q_{\phi_i}(z|x_{ij}))$.
+
+\emph{Task-level argument}:
+We apply a change-of-measure inequality on $$f(\Phi, S_1,\ldots,S_n)=\gamma \left (\frac{1}{n}\sum_{i=1}^{n}\frac{1}{m_i}\sum_{j=1}^{m_i}\mathbb{E}_{\phi,q_i(z|x_{ij})}[\mathbb{E}_{x_i\sim \mu_i}\ell(z, x_i)-\ell(z, x_{ij})]\right )$$, the average expected loss for all tasks. This means we have one meta-level posterior $\Phi$, and we have a separate task-level posterior per sample $q_i(z|x_{ij})$.
+\begin{equation*} 
+\begin{split}
+    \frac{1}{n}\sum_{i=1}^{n}\frac{1}{m_i}\sum_{j=1}^{m_i}\mathbb{E}_{\phi,q_i(z|x_{ij})}\ell(z, \mu_i)\leq &\frac{1}{m_i}\sum_{j=1}^{m_i}\mathbb{E}_{\phi\sim \Phi}\mathbb{E}_{z\sim q_{\phi_i}(z|x_{ij})}[\ell(z,x_{ij})] \\
+    &+ \frac{1}{\gamma}d_{\mathrm{KL}}(\Phi||\Phi_0) + \frac{1}{\gamma}\sum_{i=1}^{n}\sum_{j=1}^{m_i}\mathbb{E}_{\phi\sim \Phi}d_{\mathrm{KL}}(q_{\phi_i}(z|x_{ij})||p(z)) \\
+    &+ \Psi(\gamma, p(z), \delta)
+\end{split}
+\end{equation*}
+where 
+$$\Psi(\gamma, p(z), \delta)\triangleq \frac{1}{\gamma}\log\mathbb{E}_{\phi\sim \Phi_0, z\sim p(z)}\left [e^{\frac{\gamma}{n}\sum_{i=1}^{n}\frac{1}{m_i}\sum_{j=1}^{m_i}(\ell(z,\mu_i)-\ell(z,x_{ij}))}\right ]+\frac{1}{\gamma} \log 1/\delta$$
+
+We note that similarly to \citep{mbacke2023statistical}, this inequality applies for a given set of decoders $\{p_i(x|z)\}_{i=1}^{n}$ per task, meaning the bound is not optimizable w.\ r.\ t.\ the decoders. By re-ordering the terms and choosing $\gamma=n\beta$, we have 
+$$\Psi(n\beta, p(z), \delta)\triangleq \frac{1}{n\beta}\log\mathbb{E}_{z\sim p(z)}\left [\prod_{i=1}^{n}\prod_{j=1}^{m_i}e^{\frac{\beta}{m_i}(\ell(z,\mu_i)-\ell(z,x_{ij}))}\right ]+\frac{1}{n\beta} \log 1/\delta$$
+
+We will focus more on $\Psi(n\beta, p(z), \delta)$ later, but using standard methods for bounded or sub-Gaussian losses, we have a term that converges to $0$ as $\bar{m}\rightarrow \infty$ for $\beta=\sqrt{\bar{m}}$, where $\bar{m}$ is the average sample size.
+
+Assuming we have for each task $\mu_i$ that Assumption \ref{assume:distances} holds for any $q_{\phi_i}(\cdot, x)$ with constant $K_i>0$, we have  
+
+\begin{equation} \label{eq:task-level-bound}
+\begin{split}
+    \frac{1}{n}\sum_{i=1}^{n}\mathbb{E}_{\phi\sim \Phi}\mathbb{E}_{x\sim \mu_i}\mathbb{E}_{q_i(z|x)}\ell(z, x)\leq &\frac{1}{m_i}\sum_{j=1}^{m_i}\mathbb{E}_{\phi\sim \Phi}\mathbb{E}_{z\sim q_{\phi_i}(z|x_{ij})}[\ell(z,x_{ij})] \\
+    &+\frac{1}{n}\sum_{i=1}^{n}\frac{K_i}{m_i}\sum_{j=1}^{m_i}\mathbb{E}_{x_i\sim \mu_i}[d(x_i,x_{ij})] \\
+    &+ \frac{1}{n\sqrt{\bar{m}}}d_{\mathrm{KL}}(\Phi||\Phi_0) + \frac{1}{n\sqrt{\bar{m}}}\sum_{i=1}^{n}\sum_{j=1}^{m_i}\mathbb{E}_{\phi\sim \Phi}d_{\mathrm{KL}}(q_{\phi_i}(z|x_{ij})||p(z)) \\
+    &+ \Psi(n\sqrt{\bar{m}}, p(z), \delta)
+\end{split}
+\end{equation}
+
+\emph{Meta-level argument}:
+Using change-of-measure, Markov's inequality, we have 
+\begin{equation} \label{eq:meta-level-bound}
+\begin{split}
+    \mathcal{L}(\Phi, U)\leq &\frac{1}{n}\sum_{i=1}^{n}\mathcal{L}(\Phi, \mu_i) + \frac{1}{\lambda}d_{\mathrm{KL}}(\Phi||\Phi_0) + \Xi(\lambda,\Phi_0, \delta')
+\end{split}
+\end{equation}
+where $$\mathcal{L}(\Phi, U)\triangleq \mathbb{E}_{\phi\sim \Phi}\mathbb{E}_{\mu\sim U, x\sim \mu}\mathbb{E}_{z\sim q_{\phi(\mu)}(z|x)}\left [\ell(z,x) \right ]$$
+$$\mathcal{L}(\Phi, \mu)\triangleq \mathbb{E}_{\phi\sim \Phi}\mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q_{A(\phi,S)}(z|x)}\left [\ell(z,x) \right ]$$
+If $\ell$ is bounded or sub-Gaussian, we can choose $\lambda=\sqrt{n}$ to upper bound $\Xi$ such that $\lim_{n\rightarrow \infty}\Xi(\sqrt{n},\Phi_0, \delta')=0$.
+
+Notably, this bound requires that we have a given decoder for each task to apply the reconstruction loss in expectation over the task-set $U$.
+
+Putting \eqref{eq:task-level-bound} in \eqref{eq:meta-level-bound} gives us 
+\begin{equation*} 
+\begin{split}
+    \mathcal{L}(\Phi, U)\leq &\frac{1}{m_i}\sum_{j=1}^{m_i}\mathbb{E}_{\phi\sim \Phi}\mathbb{E}_{z\sim q_{\phi_i}(z|x_{ij})}[\ell(z,x_{ij})] \\
+    &+\frac{1}{n}\sum_{i=1}^{n}\frac{K_i}{m_i}\sum_{j=1}^{m_i}\mathbb{E}_{x_i\sim \mu_i}[d(x_i,x_{ij})] \\
+    &+ \left (\frac{1}{\sqrt{n}}+\frac{1}{n\sqrt{\bar{m}}}\right )d_{\mathrm{KL}}(\Phi||\Phi_0) + \frac{1}{n\sqrt{\bar{m}}}\sum_{i=1}^{n}\sum_{j=1}^{m_i}\mathbb{E}_{\phi\sim \Phi}d_{\mathrm{KL}}(q_{\phi_i}(z|x_{ij})||p(z)) \\
+    &+ \Psi(n\sqrt{\bar{m}}, p(z), \delta) 
+     + \Xi(\sqrt{n},\Phi_0, \delta')
+\end{split}
+\end{equation*}
+\end{proof}
+
+We can probably use $q_\phi(z|x_{ij})$ as the KL-term priors, but bounding the exponential moment $\Psi$ may be difficult.
+It may be better to bound the binary-kl instead, since the per-level term should be tighter. TODO: Look at \citep{riou2023bayes} for inspiration on better bound (they show that if the task-level is exact Gibbs posterior, the meta-level has rate $1/n$ due to Bernstein condition). 
+
+We may also be able to use the fact that the prior is $p(z)$ to improve the bound for $\Psi$ in a similar manner. Using the definition of reconstruction loss, we have
+$$\Psi(n\beta,p(z),\delta)=\frac{1}{n\beta}\log1/\delta+\frac{1}{n\beta}\log \mathbb{E}_{z\sim p(z)}\prod_{i=1}^{n}\mathbb{E}_{x_i\sim \mu_i}\prod_{j=1}^{m_i}e^{\frac{\beta}{m_i}\langle x_i-x_{ij},x_i-\hat{x_i}(z)\rangle}e^{\frac{\beta}{m_i}<x_i-x_{ij},x_{ij}-\hat{x_i}(z)>}$$
+$$=\frac{1}{n\beta}\log1/\delta+\frac{1}{\gamma_i}\log \mathbb{E}_{z\sim p(z)}\prod_{i=1}^{n}\mathbb{E}_{x_i\sim \mu_i}\prod_{j=1}^{m_i}e^{\frac{\beta}{m_i}(||x_i-\hat{x_i}(z)||^2_2-||x_{ij}-\hat{x_i}(z)||^2_2)}$$.
+
+This (unsurprisingly) implies that if we have $\hat{x_i}(z)=x_i$ (the mean reconstructed data is the mean of the data distribution) we have $\Psi(n\beta,p(z),\delta)\leq \frac{1}{n\beta}\log 1$, meaning we can pick $\beta\rightarrow\infty$ without penalty. 
+
+\LF{TODO: show a simple example of the tradeoff for the decoder, we want the decoder to have low reconstruction loss on the training to minimize empirical loss, but we want it to generate data similar to the data-generating distribution for $z\sim p(z)$.}
+
+\LF{TODO: Show/discuss the results on $\Psi$ if we have a manifold assumption, $\mu_i= P^*\#G^*_i$, with a simple shared distribution $P^*$ chained into task-specific variations. }
+
+\subsection{Extensions of VAE theorems}
+In this section we will consider extensions of the VAE theorems from \citep{mbacke2023statistical}.
+
+\begin{assumption} \label{assume:reconstruction-dists} 
+Distributions $q(\cdot | x), P(\cdot|z)$ satisfy this assumption with constant $K>0$ if the $\forall x_1,x_2 \in \mathcal{X}$, $$d(P(x|z\sim q(z | x_1)), P(x|z\sim q(z | x_2))\leq K d(x_1,x_2)$$
+\end{assumption}
+
+This Assumption implies that the reconstructions of similar examples are also close, which is a different assumption from assuming that the latent representations of similar examples are similar. In the special setting where the decoder $P$ is a smooth and Lipshitz-continuous function of the latent representation, these Assumptions are identical. In the extreme case where $P(x|z)$ does not depend on $z$, Assumption \ref{assume:reconstruction-dists} always holds. While this case is somewhat extreme, we can consider a decoder that memorizes the training data and randomly outputs one of the training samples as one such decoder $P$.
+
+\begin{theorem} \label{thm:vae-datadep-decoder}
+Let $\mathcal{X}$ be the instance space and $\mu\in \mathcal{M}(\mathcal{X})$ be the data-generating distribution. Let $\mathcal{H}$ be the hypothesis class such that $h=(q(z|x),P(x|z)), h(x)=P(\cdot|z\sim q(z|x))$. 
+Let $P_0$ be some data-free (we can use a data-dependent bound but it will not be optimizable) distribution over decoders, $p(z)$ a data-free distribution over latent space. 
+Let $\delta\in (0,1), \lambda>0$ be real numbers. With probability at least $1-\delta$ over the draw of $S$, the following holds for any $q,P$ that satisfy Assumption \ref{assume:reconstruction-dists} with constant $K>0$ or for any $q$ that satisfies Assumption \ref{assume:distances} if $P$ is given or the assumption holds for any $P$.
+\begin{equation}
+\begin{split}
+    \mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x),\hat{x}\sim P_S(x|z)}\left [\ell(\hat{x},x) \right ]\leq &\frac{1}{m}\sum_{i=1}^{m}\mathbb{E}_{z\sim q(z|x_{i}),\hat{x_i}\sim P_S(x|z)}\left [\ell(\hat{x_i},x_{i}) \right ]\\
+    &+ \frac{1}{\lambda}\sum_{i=1}^m \mathbb{E}_{z\sim q(z|x_{i})}d_{\mathrm{KL}}(P_S(x|z)||P_0(x|z))+ \frac{1}{\lambda}\sum_{i=1}^{m}d_{\mathrm{KL}}(q(z|x_{i})||p(z)) \\
+    & + \frac{K}{m}\sum_{i=1}^{m}\mathbb{E}_{x\sim \mu}\left [d(x,x_{i}) \right ]+\frac{1}{\lambda}\log\frac{1}{\delta} \\
+    &+ \frac{1}{\lambda}\log  \mathbb{E}_{S\sim \mu^m} \mathbb{E}_{z\sim p(z), \hat{x}\sim P_0(x|z)}e^{\lambda(\mathbb{E}_{x\sim \mu}\left [\ell(\hat{x},x)\right ]-\frac{1}{m}\sum_{i=1}^{m}\ell(\hat{x},x_{i}))}
+\end{split}
+\end{equation}
+\end{theorem}
+
+We note that this assumes that the decoder parameters are decided based on the training data $S$ but the output is based on the encoded input. This allows for the posterior to be both encoder and decoder. If we assume instead that the decoder is a static function decided by $S$, we can obtain an improvement on the second term: $\frac{1}{\lambda}d_{\mathrm{KL}}(P_S||P_0)$.
+
+That said, such an assumption makes training effectively impossible, as the decoder must be capable of reconstructing images without access to the encoded latent representation during optimization. One possible method to achieve this is via de-noising models such as diffusion models, thereby changing the bound to a more classical PB bound without an encoder.
+
+\begin{proof}
+    Similar to \citet{mbacke2023statistical}, but we split the hypothesis to $P_S$ and then $[q(\cdot|x_1),\ldots, q(\cdot|x_m)]$, and use the different assumption to swap the order of expectations on the LHS. 
+\end{proof}
+
+% \LF{TODO:
+% Remove $K$ term from \citet{mbacke2023statistical} by using $\bar{x}=\frac{1}{m}\sum_{i=1}^m x_i$ and considering ``reconstruction" as $\mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|\bar{x})}\ell(z,x)$.
+% This is trivial, but weaker since we are not reconstructing but rather measuring distance between the reconstruction of the sample average image $\bar{x}$ and the true mean image. The resulting objective is harder to optimize since we need reconstruction for $\bar{x}$, and we need to ensure that $q(z|\bar{x})$ is smooth. Possibly more importantly, it is likely the images will be ``smeared".}
+
+\LF{\subsubsection{Removing $K$ term with additional posterior}}
+
+Starting from Markov's inequality, we have with probability at least $1-\delta$ over the choice of $S\sim \mu^m, x\sim \mu$,
+$$\mathbb{E}_{H\sim p(h)^{m+1}}\exp{\frac{\lambda}{m}\sum_{i=1}^{m}(\ell(h_{m+1},x)-\ell(h_i,x_i))}\leq \frac{1}{\delta}\mathbb{E}_{S\sim \mu^m,x\sim \mu}\mathbb{E}_{H\sim p(h)^{m+1}}\exp{\frac{\lambda}{m}\sum_{i=1}^{m}(\ell(h_{m+1},x)-\ell(h_i,x_i))}$$
+
+Similarly to \citet{mbacke2023statistical}, we can lower bound the l.\ h.\ s. via a change-of-measure inequality,
+$$\mathrm{l.\ h.\ s.}\geq \exp{[\lambda\mathbb{E}_{h\sim q(h|x)}\ell(h,x)-D_{\mathrm{KL}}(q(h|x)||p(h))]}\prod_{i=1}^{m}\exp{[-\frac{\lambda}{m}\mathbb{E}_{h\sim q(h|x_i)}\ell(h,x_i)-D_{\mathrm{KL}}(q(h|x_i)||p(h))]}$$
+
+Taking the log and moving terms, we have with probability at least $1-\delta$ over the choice of $S\sim \mu^m, x\sim \mu$,
+$$\mathbb{E}_{h\sim q(h|x)}\ell(h,x)\leq \frac{1}{m}\sum_{i=1}^{m}\mathbb{E}_{h\sim q(h|x_i)}\ell(h,x_i))+\frac{1}{\lambda}\sum_{i=1}^{m}D_{\mathrm{KL}}(q(h|x_i)||p(h))+\frac{1}{\lambda}D_{\mathrm{KL}}(q(h|x_i)||p(h))+\frac{1}{\lambda}\log{1/\delta}+\frac{1}{\lambda}\log \xi$$
+where $$\xi=\mathbb{E}_{S\sim \mu^m,x\sim \mu}\mathbb{E}_{h\sim p(h)}\exp{\frac{\lambda}{m}\sum_{i=1}^{m}(\ell(h,x)-\ell(h,x_i))}=\mathbb{E}_{h\sim p(h)}\mathbb{E}_{S\sim \mu^m,x\sim \mu}\prod_{i=1}^{m}\exp{\frac{\lambda}{m}(\ell(h,x)-\ell(h,x_i))}$$
+
+This $\xi$ term is harder to bound since we have $\mathbb{E}_{x}e^{\lambda\ell(h,x)}$ rather than $e^{\mathbb{E}_{x}\ell(h,x)}$, so applying Hoeffding's lemma would result in an additional term that diverges.
+We do note that since $S$ is sampled i.\ i.\ d. we have $$\xi=\mathbb{E}_{h\sim p(h)}\mathbb{E}_{x,x'\sim \mu}\exp{\lambda(\ell(h,x)-\ell(h,x'))}$$
+
+\LF{\subsection{Alternative VAE theorems}}
+In this section, we will consider ways to arrive at converging PAC-Bayes bounds for reconstruction with KL-divergence terms on the latent representation.
+
+Throughout this section, we will rely on the notion of stochastic (Markov) kernels, so we shall provide both a standard definition and a more specific variation to fit our purposes.
+
+\begin{defn}
+A \emph{stochastic kernel} $K(B,x)$ is a map $\mathcal{B}\times X\rightarrow [0,1]$ with the following properties:
+\begin{enumerate}
+    \item For any fixed $B_0\in \mathcal{B}$, the map $K(B_0, x)$ is measurable (in the $\sigma$-algebra for $X$) for all $x\in X$.
+    \item For any fixed $x_0\in X$, the map $K(B, x_0)$ is a valid probability measure (in the relevant $\sigma$-algebra) for all $B\in \mathcal{B}$.
+\end{enumerate}
+\end{defn}
+
+\begin{defn}
+A data-dependent, $x$-conditioned distribution over hypothesis space $\mathcal{H}$ is formalized a multi-parameter stochastic kernel from $\mathcal{S}$ to $(\mathcal{X},\mathcal{H})$, which is a mapping $Q: \mathcal{S}\times \Sigma_{\mathcal{X}}\times \Sigma_\mathcal{H}\rightarrow [0,1]$ such that: (1) For each set of sample-hypothesis pairs $(X,B)\in \Sigma_{\mathcal{X}}\times\Sigma_\mathcal{H}$, the function $Q(S,X,B)$ is measurable for any $S$. (2) For each $S$, the function $Q(S,X,B)$ is a valid probability measure over $\mathcal{X}\times\mathcal{H}$.
+\end{defn}
+
+For all of our attempts, we employ a similar methodology to \citet{Rivasplata2020} in defining PAC-Bayes bounds over stochastic kernels.
+
+We will present bounds assuming a given decoder $\hat{P}_S: \mathcal{Z}\rightarrow \mu$, but can be extended to the setting where both encoder and decoder are part of the (data-conditioned) hypothesis space.
+
+Let us first prove the main theorem we intend to use. In order to  decompose the sampling process into data and latent variables, we will assume that that samples are drawn independently from the hypothesis space, meaning that for any $Q_S(X,H)$, sampling $(x,h)\sim Q_S$ can be decomposed to sampling $x\sim P^{Q_S}$ and then sampling $h\sim q^{Q_S}(h|x)$.
+
+\begin{theorem} \label{thm:rivasplata-conditioned}
+    Fix a probability measure $P^S\in \mathcal{M}(\mathcal{S})$ a distribution over training sets.
+    Let $Q^0\in \mathcal{K}(\mathcal{S},(\mathcal{X},\mathcal{H}))$ be a stochastic kernel prior, where we assume $Q^0_S$ can be decomposed into sampling $x$ and then sampling $h$.
+    Let $f:\mathcal{S},\mathcal{X},\mathcal{H}\rightarrow \mathbb{R}$ be a measurable function.
+
+    For any $Q\in \mathcal{K}(\mathcal{S},(\mathcal{X},\mathcal{H}))$ that can be decomposed into sampling $x\sim Q_S(x)$ and $h\sim q^{Q_S}(h|x)$, for any $\delta\in (0,1)$, with probability at least $1-\delta$ over the draw of $S\sim P^S$,
+    $$\mathbb{E}_{x\sim Q_S(x)}\mathbb{E}_{h\sim q^{Q_S}(h|x)}[f(S,x,h)]\leq D_{\mathrm{KL}}(Q_S(x)||Q^0_S(x))+\mathbb{E}_{x\sim Q_S(x)}D_{\mathrm{KL}}( q^{Q_S}(h|x)|| q^{Q^0_S}(h|x))+\log\frac{\xi}{\delta}$$
+    where $$\xi=\int_{\mathcal{S}}\int_{\mathcal{X}}\int_{\mathcal{H}}e^{f(S,x,h)}q^{Q^0_S}(dh|x)Q^0_S(dx)P(dS)$$
+\end{theorem}
+
+\begin{proof}
+    The proof sketch is the same as \citet{Rivasplata2020} with the kernel mapping to a distribution $Q_S(x,h)=P^{Q_S}(x)q^{Q_S}(h|x)$.
+    For the l.\ h.\ s. we can separate the expectation over $Q_S$ to two separate expectations, and for the r.\ h.\ s. we can decompose the KL-divergence to two separate divergences since we assume drawing $x$ is independent in $\mathcal{H}$.
+\end{proof}
+
+\LF{\subsubsection{Attempt 1 - averaging over the sample}}
+We assume $X=S$, meaning we will average our function $f(S,x,h)$ over samples in the training set.
+
+\begin{theorem}
+Let $\mu\in \mathcal{M}(\mathcal{H})$ be a data-generating distribution. Let $\mathcal{H}$ be the hypothesis class of encoders. Let $p(z)$ be a data-free distribution over the latent space $\mathcal{Z}$. Let $\delta\in (0,1), \lambda>0$ be real numbers.
+With probability at least $1-\delta$ over the draw of $S\sim \mu^m$,
+the following holds for any $q$ that satisfies Assumption \ref{assume:distances} with $K>0$.
+\begin{equation}
+\begin{split}
+    \mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x)}\left [\ell(z,x) \right ]\leq &\frac{1}{m}\sum_{i=1}^{m}\mathbb{E}_{z\sim q(z|x_{i})}\left [\ell(z,x_{i}) \right ]\\
+    &+ \frac{1}{m\lambda}\sum_{i=1}^{m}d_{\mathrm{KL}}(q(z|x_{i})||p(z)) \\
+    & + \frac{K}{m}\sum_{i=1}^{m}\mathbb{E}_{x\sim \mu}\left [d(x,x_{i}) \right ]+\frac{1}{\lambda}\log\frac{1}{\delta} \\
+    &+ \frac{1}{\lambda}\log  \mathbb{E}_{S\sim \mu^m} \mathbb{E}_{z\sim p(z)}\left [\frac{1}{m}\sum_{i=1}^{m}e^{\lambda(\mathbb{E}_{x\sim \mu}\left [\ell(z,x)\right ]-\ell(z,x_{i}))}\right ]
+\end{split}
+\end{equation}
+\end{theorem}
+
+This result is slightly problematic, since the moment term does not converge to zero as $m\rightarrow\infty$ in general unless we add some assumptions on the space.
+If $$\mathbb{E}_{z\sim p(z)}\mathbb{E}_{S\sim \mu^m} \left [\frac{1}{m}\sum_{i=1}^{m}e^{\lambda(\mathbb{E}_{x\sim \mu}\left [\ell(z,x)\right ]-\ell(z,x_{i}))}\right ]\leq \frac{1}{m}e^{\lambda C}$$,
+we can choose $\lambda=O(1)$ and achieve a converging r.\ h.\ s. 
+This would imply that for most points is $\mu$, $\ell(z,x)\geq \mathbb{E}_{x'\in \mu}\ell(z,x')$. This would also mean that the third term $\frac{K}{m}\sum_{i=1}^{m}\mathbb{E}_{x\sim \mu}\left [d(x,x_{i}) \right ]$ is quite large, meaning the bound does not easily converge to zero as $m\rightarrow\infty$.
+
+\begin{proof}
+    The proof sketch is to use Theorem \ref{thm:rivasplata-conditioned}
+    and setting $f(S,x,z)=\lambda(\mathbb{E}_{x'\in \mu}\ell(z,x')-\ell(z,x))$.
+    Assumption \ref{assume:distances} is used to change the l.\ h.\ s. from $$\mathbb{E}_{x\sim S}\mathbb{E}_{z\sim q(z|S,x)}\left [\mathbb{E}_{x'\in \mu}\ell(z,x')\right]$$ to $$\mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|S,x)}\left [\ell(z,x)\right]+\frac{K}{m}\sum_{i=1}^{m}\mathbb{E}_{x\sim \mu}\left [d(x,x_{i}) \right ]$$
+\end{proof}
+
+\LF{\subsubsection{Attempt 2 - per-sample average reconstruction}}
+
+Changing the reference function to have easier convergence for the exponential moment term, we have:
+
+\begin{theorem} \label{thm:stochastic-kernel-sample-average}
+    Under the same conditions as the previous Theorem, assuming that $\Delta_x=\max_{x,x'}d(x,x')$, with probability at least $1-\delta$ over the choice of $S\sim \mu^m$
+    \begin{equation}
+\begin{split}
+    \frac{1}{m}\sum_{i=1}^m\mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x_i)}\left [\ell(z,x) \right ]\leq &\frac{1}{m^2}\sum_{i=1}^{m}\sum_{j=1}^{m}\mathbb{E}_{z\sim q(z|x_{i})}\left [\ell(z,x_{j}) \right ]\\
+    &+ \frac{1}{m\lambda}\sum_{i=1}^{m}d_{\mathrm{KL}}(q(z|x_{i})||p(z)) \\
+    & +\frac{1}{\lambda}\log\frac{1}{\delta} + \frac{\lambda (\Delta_x)^2}{8m}
+\end{split}
+\end{equation}
+\end{theorem}
+
+\begin{corollary}
+    Under the same conditions as the previous Theorem, assuming that $\Delta_x=\max_{x,x'}d(x,x')$, with probability at least $1-\delta$ over the choice of $S\sim \mu^m$
+    \begin{equation}
+\begin{split}
+    \mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x)}\left [\ell(z,x) \right ]\leq &\frac{1}{m^2}\sum_{i=1}^{m}\sum_{j=1}^{m}\mathbb{E}_{z\sim q(z|x_{i})}\left [\ell(z,x_{j}) \right ]\\
+    &+ \frac{1}{m\lambda}\sum_{i=1}^{m}d_{\mathrm{KL}}(q(z|x_{i})||p(z)) \\
+    & + \frac{K}{m}\sum_{i=1}^{m}\mathbb{E}_{x\sim \mu}\left [d(x,x_{i}) \right ]+\frac{1}{\lambda}\log\frac{1}{\delta} \\
+    &+ \frac{\lambda (\Delta_x)^2}{8m}
+\end{split}
+\end{equation}
+\end{corollary}
+
+This bound converges, but the empirical term is not the empirical reconstruction loss but rather the averaged reconstruction.
+Using Assumption \ref{assume:distances}, we can upper bound this term using the more interpretable $$\frac{1}{m}\sum_{i=1}^{m}\mathbb{E}_{z\sim q(z|x_{i})}\left [\ell(z,x_{i}) \right ]+\frac{K}{m^2}\sum_{i=1}^{m}\sum_{j=1}^{m}d(x_i,x_j)$$
+
+\begin{proof}
+    The proof sketch is to use Theorem \ref{thm:rivasplata-conditioned} with $$f(S,x,z)=\lambda\left (\mathbb{E}_{x'\in \mu}\ell(z,x')-\frac{1}{m}\sum_{j=1}^{m}\ell(z,x_j)\right )$$
+    The moment term is bounded using Hoeffding's lemma.
+\end{proof}
+
+\LF{\subsubsection{Attempt 3 - averaging over the population}}
+
+By picking the distribution of $x$ as $x\sim \mu$, we can arrive at another bound.
+
+\begin{theorem}
+    Under the same conditions as the previous Theorem, assuming that $\Delta_x=\max_{x,x'}d(x,x')$, with probability at least $1-\delta$ over the choice of $S\sim \mu^m$
+    \begin{equation}
+\begin{split}
+    \mathbb{E}_{x,x'\sim \mu}\mathbb{E}_{z\sim q(z|x)}\left [\ell(z,x') \right ]\leq &\frac{1}{m}\sum_{i=1}^{m}\mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x)}\left [\ell(z,x_{i}) \right ]\\
+    &+ \frac{1}{\lambda}\mathbb{E}_{x\sim \mu}d_{\mathrm{KL}}(q(z|x)||p(z)) \\
+     &+\frac{1}{\lambda}\log\frac{1}{\delta} 
+    + \frac{\lambda (\Delta_x)^2}{8m}
+\end{split}
+\end{equation}
+\end{theorem}
+
+Applying Hoeffding's inequality on the r.\ h.\ s. (+a union bound) yields a similar (but looser) bound to Theorem \ref{thm:stochastic-kernel-sample-average}.
+
+An alternative bound can be derived with $f(S,x,z)=\lambda\left (\ell(z,x)-\frac{1}{m}\sum_i \ell(z,x_i)\right )$, yielding
+\begin{equation*}
+\begin{split}
+    \mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x)}\left [\ell(z,x) \right ]\leq &\frac{1}{m}\sum_{i=1}^{m}\mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x)}\left [\ell(z,x_{i}) \right ]\\
+    &+ \frac{1}{\lambda}\mathbb{E}_{x\sim \mu}d_{\mathrm{KL}}(q(z|x)||p(z)) \\
+     &+\frac{1}{\lambda}\log\frac{1}{\delta} 
+    + \frac{\lambda (\Delta_x)^2}{8m} + \frac{1}{\lambda}\log \mathbb{E}_{z\sim p(z)}\mathbb{E}_{x\sim \mu}\left [e^{\lambda(\ell(z,x)-\mathbb{E}_{x'\sim \mu}\ell(z,x'))}\right ]
+\end{split}
+\end{equation*}
+
+We can apply Jensen's inequality on the last term, giving us $\frac{1}{\lambda}\log \mathbb{E}_{z\sim p(z)}\mathbb{E}_{x,x'\sim \mu}\left [e^{\lambda(\ell(z,x)-\ell(z,x'))}\right ]$.
+
+\begin{corollary}
+    Under the same conditions as the previous Theorem, assuming that $\Delta_x=\max_{x,x'}d(x,x')$, with probability at least $1-\delta$ over the choice of $S\sim \mu^m$
+    \begin{equation}
+\begin{split}
+    \mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x)}\left [\ell(z,x) \right ]\leq &\frac{1}{m}\sum_{i=1}^{m}\mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x_i)}\left [\ell(z,x_{i}) \right ]\\
+    &+ \frac{1}{\lambda}\mathbb{E}_{x\sim \mu}d_{\mathrm{KL}}(q(z|x)||p(z)) \\
+    & + \frac{K}{m}\sum_{i=1}^{m}\mathbb{E}_{x\sim \mu}\left [d(x,x_i) \right ]+ K\mathbb{E}_{x,x'\sim \mu}\left [d(x,x') \right ]\\ &+\frac{1}{\lambda}\log\frac{1}{\delta} 
+    + \frac{\lambda (\Delta_x)^2}{8m}
+\end{split}
+\end{equation}
+\end{corollary}
+
+We can use concentration inequalities such as Hoeffding's inequality to (probabilistically) upper bound the expected KL term $\mathbb{E}_{x\sim \mu}d_{\mathrm{KL}}(q(z|x)||p(z))$ by $$\frac{1}{m}\sum_{i=1}^{m}d_{\mathrm{KL}}(q(z|x_i)||p(z))+\frac{\Delta_x\sqrt{\log2/\delta}}{\sqrt{2m}}$$
+
+\begin{proof}
+    The proof sketch is to use Theorem \ref{thm:rivasplata-conditioned} with $x\sim \mu$ and $$f(S,x,z)=\lambda\left (\mathbb{E}_{x'\in \mu}\ell(z,x')-\frac{1}{m}\sum_{i=1}^{m}\ell(z,x_i)\right )$$
+    The moment term is bounded using Hoeffding's lemma.
+    Assumption \ref{assume:distances} is used on both sides of the equation to replace the conditional expectations.
+\end{proof}
+
+\LF{\subsubsection{Attempt 4 - mixed $x$ (bad direction for removing $K$ terms)}}
+Suppose we sample $$x\sim \begin{cases}
+S \quad w.\ p.\quad 1/(m+1)\\
+\mu \quad w.\ p.\quad m/(m+1)
+\end{cases}$$ and that $f(S,x,h)$ is $\lambda\ell(h,x)$ for $x\in \mu/S$ and $-\lambda\ell(z,x_i)$ for $x\in S$.
+
+We would have $$m\mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x)}\ell(z,x)-\frac{1}{m}\sum_{i=1}^{m}\mathbb{E}_{z\sim q(z|x_i)}\left [\ell(z,x_i) \right ]\leq \frac{m}{\lambda}\mathbb{E}_{x\sim \mu}d_{\mathrm{KL}}(q(z|x)||p(z))+ \frac{1}{\lambda m}\sum_{i=1}^{m}d_{\mathrm{KL}}(q(z|x_i)||p(z))
+     +\frac{m+1}{\lambda}\log\frac{\xi}{\delta} 
+    $$
+
+$$\mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x)}\ell(z,x)\leq\frac{1}{m^2}\sum_{i=1}^{m}\mathbb{E}_{z\sim q(z|x_i)}\left [\ell(z,x_i) \right ]+ \frac{1}{\lambda}\mathbb{E}_{x\sim \mu}d_{\mathrm{KL}}(q(z|x)||p(z))+ \frac{1}{\lambda m^2}\sum_{i=1}^{m}d_{\mathrm{KL}}(q(z|x_i)||p(z))
+     +\frac{m+1}{m\lambda}\log\frac{\xi}{\delta} 
+    $$
+
+where $$\xi=\mathbb{E}_{z\sim p(z)}\mathbb{E}_{S}\left [\frac{m}{m+1}\mathbb{E}_{x\sim \mu}e^{\lambda\ell(z,x)}+\frac{1}{m(m+1)}\sum_{i=1}^m e^{-\lambda\ell(z,x_i)}\right ]$$
+
+This doesn't seem to easily converge to zero for $m\rightarrow\infty$ for any reasonable choice of $\lambda$. Swapping the probabilities around gives a bound on $\frac{1}{m}\mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x)}\ell(z,x)$ and the KL-term does not converge for $\mathbb{E}_{x\sim \mu}\mathbb{E}_{z\sim q(z|x)}\ell(z,x)$.
+
+\section{Interesting directions}
+
+\begin{itemize}
+    \item More meta-VAE with per-task encoders and a single decoder, like Theorem \ref{thm:meta-vae-parametric}. Refine for binary-kl, Gibbs meta-learner, stability of moment for Gaussian prior.
+    \item Continual VAE with per-task encoder (with or without known task ids), is task relatedness useful? Maybe via transfer learning. Ideally something related to latent spaces e.g. $d_{\mathrm{KL}}(q_i(z|x_i)||q_j(z|x_j))$.
+    \item Utilize ideas from empirical Continual VAE papers:
+    (1) (CL for anomaly detection with VAE) Generate data using old VAE to augment training (so train $\theta,\phi$ from their old values but train on $S'_i=S_i\cup \{p_\theta(z_k)|z_k\sim \mathcal{N}(0,I_d) \}_{k=1}^{m_i}$. 
+    (2) (BooVAE) Use $q_\phi(z|x)$ from the old tasks as a prior for $z$ for the next task.
+    Both ideas should allow for an informed prior $q(z|S_{i-1})$, either directly or via sampling+re-encoding. Combined with the PB bounds, this should give $d_{\mathrm{KL}}(q_i(z|x_i)||q_{i-1}(z|S_{i-1}))$ in the bound.
+    \item Fine-tuning/Semi-supervised - Suppose we have large unlabelled set $X$ and small labelled set $S\sim \mathcal{D}$, can we learn via the reconstruction bound on $X$ s.t.\ after also learning $S$ with this prior, the generalization loss for $\mathcal{D}$ is somehow better?
+    Ideally: different bound if we know downstream task has data contained in a previous unlabelled distribution
+\end{itemize}
+
+\clearpage
+\bibliographystyle{plainnat}
+\bibliography{library}
+
+\end{document}
